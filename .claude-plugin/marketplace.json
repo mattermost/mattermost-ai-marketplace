@@ -1,0 +1,25 @@
+{
+  "name": "mattermost-ai-marketplace",
+  "owner": {
+    "name": "mattermost"
+  },
+  "metadata": {
+    "description": "A collection of Claude Code plugins for Mattermost development",
+    "version": "0.3.0"
+  },
+  "plugins": [
+    {
+      "name": "mattermost-plugin-development",
+      "source": "./plugins/plugin-development",
+      "description": "Claude Code plugins for developing Mattermost plugins",
+      "version": "0.3.0",
+      "author": {
+        "name": "mattermost"
+      },
+      "repository": "https://github.com/mattermost/mattermost-ai-marketplace",
+      "license": "MIT",
+      "keywords": ["mattermost", "plugin", "development"],
+      "category": "development"
+    }
+  ]
+}
