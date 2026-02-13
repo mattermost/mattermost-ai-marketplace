@@ -1,0 +1,9 @@
+{
+  "name": "precommit",
+  "description": "Pre-commit expert that discovers, runs, and resolves all code quality checks in a monorepo before code is committed. Reports issues clearly when automated fixes aren't possible.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["precommit", "linting", "ci", "code-quality"]
+}

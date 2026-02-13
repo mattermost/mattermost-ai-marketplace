@@ -1,0 +1,113 @@
+{
+  "name": "mattermost-ai-marketplace",
+  "owner": {
+    "name": "Mattermost AI Team",
+    "email": "ai@mattermost.com"
+  },
+  "metadata": {
+    "description": "Staff-contributed Claude Code plugins for Mattermost engineering workflows",
+    "version": "0.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "code-simplifier",
+      "source": "code-simplifier",
+      "description": "Simplifies and refines code for clarity, consistency, and maintainability while preserving all functionality",
+      "version": "1.0.0",
+      "category": "code-quality",
+      "tags": ["refactoring", "simplification", "code-quality"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "conflicts",
+      "source": "conflicts",
+      "description": "Git merge conflict resolution agent that analyzes intent behind changes on both branches",
+      "version": "1.0.0",
+      "category": "git",
+      "tags": ["git", "merge", "conflicts"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "figma-implement-design",
+      "source": "figma-implement-design",
+      "description": "Translate Figma nodes into production-ready code with 1:1 visual fidelity using the Figma MCP workflow",
+      "version": "1.0.0",
+      "category": "design",
+      "tags": ["figma", "design", "ui", "mcp"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "precommit",
+      "source": "precommit",
+      "description": "Pre-commit expert that discovers, runs, and resolves all code quality checks in a monorepo",
+      "version": "1.0.0",
+      "category": "code-quality",
+      "tags": ["precommit", "linting", "ci", "code-quality"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "test-evaluator",
+      "source": "test-evaluator",
+      "description": "Reviews existing tests for efficacy, correctness, and coverage gaps, prioritizing real interactions over mocking",
+      "version": "1.0.0",
+      "category": "testing",
+      "tags": ["testing", "test-quality", "code-review", "coverage"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "teamimplement",
+      "source": "teamimplement",
+      "description": "Orchestrate phased software implementation using a team of engineers with dedicated research, planning, implementation, code review, and QA stages",
+      "version": "1.0.0",
+      "category": "productivity",
+      "tags": ["orchestration", "team", "implementation", "code-review", "qa"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "issue-resolver",
+      "source": "issue-resolver",
+      "description": "Autonomous issue resolution agent that investigates, plans, and fixes issues using sub-agents and browser-based validation",
+      "version": "1.0.0",
+      "category": "productivity",
+      "tags": ["issues", "debugging", "automation", "browser", "validation"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "mattermost-test-data",
+      "source": "mattermost-test-data",
+      "description": "Backfill realistic test data into a Mattermost server using MCP tools — creates users, teams, channels, and natural conversations",
+      "version": "1.0.0",
+      "category": "devops",
+      "tags": ["mattermost", "test-data", "mcp", "demo", "seeding"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
+      "name": "claude-md-improver",
+      "source": "claude-md-improver",
+      "description": "Audit and improve CLAUDE.md files in repositories — scans, scores quality, and makes targeted updates",
+      "version": "1.0.0",
+      "category": "productivity",
+      "tags": ["claude-md", "audit", "project-context", "maintenance"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    }
+  ]
+}

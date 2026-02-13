@@ -1,0 +1,9 @@
+{
+  "name": "teamimplement",
+  "description": "Orchestrate phased software implementation using a team of engineers. Delegates research, planning, implementation, code review, and QA validation following a pipeline defined in .planning/PLAN.md.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["orchestration", "team", "implementation", "code-review", "qa"]
+}

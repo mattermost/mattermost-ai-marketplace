@@ -1,0 +1,9 @@
+{
+  "name": "mattermost-test-data",
+  "description": "Backfill realistic test data into a Mattermost server using MCP tools. Creates users, teams, channels, and natural conversations.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["mattermost", "test-data", "mcp", "demo", "seeding"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "issue-resolver",
+  "description": "Autonomous issue resolution agent that investigates, plans, and fixes issues using sub-agents and browser-based validation without human intervention.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["issues", "debugging", "automation", "browser", "validation"]
+}

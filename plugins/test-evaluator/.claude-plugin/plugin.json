@@ -1,0 +1,9 @@
+{
+  "name": "test-evaluator",
+  "description": "Reviews existing tests for efficacy, correctness, and coverage gaps. Evaluates whether tests actually test what they claim to, prioritizing real interactions over mocking.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["testing", "test-quality", "code-review", "coverage"]
+}

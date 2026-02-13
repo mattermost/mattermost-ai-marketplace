@@ -1,0 +1,9 @@
+{
+  "name": "conflicts",
+  "description": "Git merge conflict resolution agent that analyzes intent behind changes on both branches and makes informed decisions about what to preserve.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["git", "merge", "conflicts"]
+}

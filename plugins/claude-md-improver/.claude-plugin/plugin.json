@@ -1,0 +1,9 @@
+{
+  "name": "claude-md-improver",
+  "description": "Audit and improve CLAUDE.md files in repositories. Scans for all CLAUDE.md files, evaluates quality, outputs a report, and makes targeted updates.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["claude-md", "audit", "project-context", "maintenance"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "figma-implement-design",
+  "description": "Translate Figma nodes into production-ready code with 1:1 visual fidelity using the Figma MCP workflow. Requires a working Figma MCP server connection.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["figma", "design", "ui", "mcp"]
+}
