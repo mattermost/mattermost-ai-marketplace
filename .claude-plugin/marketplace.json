@@ -108,6 +108,17 @@
       "author": {
         "name": "Nick Misasi"
       }
+    },
+    {
+      "name": "mattermost-plugin-development",
+      "source": "plugin-development",
+      "description": "Update Mattermost plugin repos from the starter template and fix linter issues",
+      "version": "1.0.0",
+      "category": "development",
+      "tags": ["mattermost", "plugin", "development", "starter-template", "linting"],
+      "author": {
+        "name": "Ben Schumacher"
+      }
     }
   ]
 }
