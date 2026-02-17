@@ -111,7 +111,7 @@
     },
     {
       "name": "mattermost-plugin-development",
-      "source": "plugin-development",
+      "source": "./plugins/plugin-development",
       "description": "Skills for developing Mattermost plugins",
       "version": "1.0.0",
       "category": "development",
