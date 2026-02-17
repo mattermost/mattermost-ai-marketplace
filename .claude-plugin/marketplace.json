@@ -112,10 +112,10 @@
     {
       "name": "mattermost-plugin-development",
       "source": "plugin-development",
-      "description": "Update Mattermost plugin repos from the starter template and fix linter issues",
+      "description": "Skills for developing Mattermost plugins",
       "version": "1.0.0",
       "category": "development",
-      "tags": ["mattermost", "plugin", "development", "starter-template", "linting"],
+      "tags": ["mattermost", "plugin", "development"],
       "author": {
         "name": "Ben Schumacher"
       }

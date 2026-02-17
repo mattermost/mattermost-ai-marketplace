@@ -31,7 +31,7 @@ Staff-contributed Claude Code plugins for Mattermost engineering workflows. Brow
 | [`issue-resolver`](plugins/issue-resolver/)                    | Autonomous issue resolution agent using sub-agents and browser-based validation                               | productivity | 1.0.0   |
 | [`mattermost-test-data`](plugins/mattermost-test-data/)        | Backfill realistic test data into a Mattermost server using MCP tools                                         | devops       | 1.0.0   |
 | [`claude-md-improver`](plugins/claude-md-improver/)            | Audit and improve CLAUDE.md files — scans, scores quality, and makes targeted updates                         | productivity | 1.0.0   |
-| [`mattermost-plugin-development`](plugins/plugin-development/) | Update Mattermost plugin repos from the starter template and fix linter issues                                | development  | 1.0.0   |
+| [`mattermost-plugin-development`](plugins/plugin-development/) | Skills for developing Mattermost plugins                                                                      | development  | 1.0.0   |
 
 ## Auto-Setup for Your Projects
 
