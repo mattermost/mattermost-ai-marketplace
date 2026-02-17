@@ -1,0 +1,7 @@
+{
+  "name": "mattermost-plugin-development",
+  "description": "Claude Code plugins for developing Mattermost plugins",
+  "author": {
+    "name": "Ben Schumacher"
+  }
+}
