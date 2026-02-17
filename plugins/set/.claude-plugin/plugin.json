@@ -1,0 +1,9 @@
+{
+  "name": "set",
+  "description": "Helpers for SET workflows",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jesse Hallam"
+  },
+  "keywords": ["security", "cve", "jira"]
+}

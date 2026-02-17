@@ -118,6 +118,17 @@
       "author": {
         "name": "Ben Schumacher"
       }
+    },
+    {
+      "name": "set",
+      "source": "./plugins/set",
+      "description": "Helpers for SET workflows",
+      "version": "1.0.0",
+      "category": "security",
+      "tags": ["security", "cve", "jira"],
+      "author": {
+        "name": "Jesse Hallam"
+      }
     }
   ]
 }
