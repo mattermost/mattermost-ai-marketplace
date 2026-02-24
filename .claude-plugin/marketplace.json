@@ -118,6 +118,17 @@
       "author": {
         "name": "Ben Schumacher"
       }
+    },
+    {
+      "name": "review-migration",
+      "source": "./plugins/review-migration",
+      "description": "Analyze Mattermost schema migrations against best practices and generate a review report",
+      "version": "1.0.0",
+      "category": "code-quality",
+      "tags": ["mattermost", "migration", "schema", "database", "review"],
+      "author": {
+        "name": "Ben Cooke"
+      }
     }
   ]
 }
