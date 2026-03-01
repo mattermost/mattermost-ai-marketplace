@@ -22,7 +22,11 @@ Check if pwd has files beyond dotfiles. If non-empty, warn the user with `AskUse
 TMPDIR=$(mktemp -d)
 git clone --depth 1 https://github.com/mattermost/mattermost-plugin-starter-template "$TMPDIR"
 rm -rf "$TMPDIR/.git"
-cp -a "$TMPDIR"/. ./
+if command -v rsync >/dev/null 2>&1; then
+  rsync -a "$TMPDIR"/ ./
+else
+  cp -R "$TMPDIR"/. ./
+fi
 rm -rf "$TMPDIR"
 ```
 
