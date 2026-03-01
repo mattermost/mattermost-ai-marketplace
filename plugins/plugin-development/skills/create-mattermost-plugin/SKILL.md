@@ -44,9 +44,16 @@ Derive values:
 
 ## Step 4: Git init & first commit
 
-1. Run `git init` if `.git` doesn't exist
-2. `git add -A && git commit -m "Initial plugin scaffold from mattermost-plugin-starter-template"`
+1. If `.git` does not exist, run `git init` to create a new repository.
+2. If `.git` already exists, use `AskUserQuestion` to ask whether to:
+   - reuse the existing repository and create a commit with the scaffolded files,
+   - skip all git operations for this step, or
+   - abort the skill to avoid modifying the existing repository.
+3. When it is appropriate to commit (either after initializing a new repo, or when the user chose to reuse the existing repo), run:
 
+   ```bash
+   git add -A
+   git commit -m "Initial plugin scaffold from mattermost-plugin-starter-template"
 ## Step 5: Summary
 
 Print what was created and remind the user to run `make` to build.
