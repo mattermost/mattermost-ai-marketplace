@@ -1,0 +1,9 @@
+{
+  "name": "review-migration",
+  "description": "Analyze Mattermost schema migrations against best practices and generate a filled-out review template",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ben Cooke"
+  },
+  "keywords": ["mattermost", "migration", "schema", "review", "database", "postgresql"]
+}
