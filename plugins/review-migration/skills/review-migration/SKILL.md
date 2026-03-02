@@ -2,14 +2,19 @@
 name: review-migration
 description: Analyze Mattermost schema migrations against best practices and generate a review report. Pass a migration number/name as argument or omit to auto-detect new migrations.
 user-invocable: true
-allowed-tools: Read, Glob, Grep, Bash, Write
+allowed-tools: Read, Glob, Grep, Bash, Write, WebFetch
 ---
 
 # Review Migration
 
 Analyze a Mattermost schema migration against best practices and produce a filled-out review report.
 
-## Step 1: Find the migration files
+## Step 1: Load the rules
+
+1. Fetch the official [Mattermost DB Migration Guide](https://developers.mattermost.com/contribute/more-info/server/schema-migration-guide/). This is the authoritative source for migration rules, lock types, and best practices. Extract all rules, the lock types table, and the batch processing patterns.
+2. Read [reference.md](reference.md) for supplementary internal knowledge not covered by the official guide (morph driver behavior, large table sizes, empty-table guidance).
+
+## Step 2: Find the migration files
 
 If `$ARGUMENTS` is provided, use it to locate the migration:
 
@@ -26,63 +31,20 @@ If `$ARGUMENTS` is empty, auto-detect new or modified migrations:
 
 Read both the `.up.sql` and `.down.sql` files. If the down migration is missing, flag it.
 
-## Step 2: Analyze against best practices
+## Step 3: Analyze against best practices
 
-Check every SQL statement against these rules:
+Check every SQL statement against the rules from the official guide and reference.md. Pay particular attention to:
 
-### Critical restrictions
-
-| Rule | Details |
-|------|---------|
-| **No ALTER COLUMN TYPE** | Takes an exclusive lock and rewrites the entire table. The `ALTER TABLE posts ALTER COLUMN props TYPE jsonb` migration took 8+ hours for some customers. If unavoidable, must use a multi-release migration: add new column, backfill via batches + triggers, switch in next ESR, drop old column in subsequent ESR. |
-| **CREATE INDEX must use CONCURRENTLY** | Without CONCURRENTLY, index creation takes a SHARE lock blocking all writes for the duration. On large tables this can be minutes to hours. |
-| **DROP INDEX must use CONCURRENTLY** | Same reasoning as CREATE INDEX. |
-| **No FOREIGN KEY via ALTER TABLE** | Adding FK constraints scans the entire table and takes SHARE ROW EXCLUSIVE lock, blocking DML except SELECTs. Avoid when possible. |
-| **No full-table DELETE or UPDATE** | Must process in batches (100-row batches with offset tracking) to avoid extended locks. |
-| **`morph:nontransactional` where needed** | Any migration using `CONCURRENTLY` must have `-- morph:nontransactional` as the **first line of the file**. The morph driver checks `strings.HasPrefix(query, "-- morph:nontransactional")` — placing it mid-file causes it to be ignored, and the entire file runs in a transaction, making CONCURRENTLY fail. |
-| **Down migration must exist** | Every `.up.sql` must have a corresponding `.down.sql`. |
-
-### Lock types by operation
-
-| Operation | Table Rewrite | Concurrent DML | Lock Type | Notes |
-|-----------|---------------|----------------|-----------|-------|
-| CREATE INDEX | No | Yes | None (with CONCURRENTLY) | Must use CONCURRENTLY |
-| DROP INDEX | No | Yes | None (with CONCURRENTLY) | Must use CONCURRENTLY |
-| ADD COLUMN | No | Yes | ACCESS EXCLUSIVE (metadata only) | Returns instantly, metadata-only lock |
-| ALTER COLUMN TYPE | **Yes** | **No** | ACCESS EXCLUSIVE | **Strongly avoid** |
-| DROP COLUMN | No | Yes | ACCESS EXCLUSIVE (metadata only) | Marks space as unused |
-| ADD FK CONSTRAINT | No | Selects only | SHARE ROW EXCLUSIVE | Scans entire table |
-| ADD UNIQUE CONSTRAINT | No | Yes | None (if index created concurrently first) | Create index concurrently, then attach |
-
-### Additional checks
-
-- **Unique constraints**: Should be created by first creating an index concurrently, then attaching it: `ALTER TABLE t ADD CONSTRAINT name UNIQUE USING INDEX idx_name;`
-- **NULL-to-value conversions**: Prefer `COALESCE` in application code over UPDATE statements.
-- **IF NOT EXISTS / IF EXISTS**: DDL should use these guards for idempotency.
-- **Nontransactional file splitting**: If a migration needs both transactional statements (ALTER TABLE) and nontransactional statements (CREATE INDEX CONCURRENTLY), they MUST be in separate migration files. A single file cannot be both transactional and nontransactional.
-
-## Step 3: Assess large-dataset testing need
-
-Flag "large-dataset testing recommended" if any DDL statement touches one of these tables, which are known to be large in production Mattermost deployments:
-
-| Table | Typical Size |
-|-------|-------------|
-| `posts` | 100M+ rows |
-| `channelmembers` | Tens of millions |
-| `threadmemberships` | Tens of millions |
-| `preferences` | Tens of millions |
-| `fileinfo` | Tens of millions |
-| `channels` | Millions |
-| `users` | Millions |
-| `status` | Millions |
-| `reactions` | Millions |
-| `threads` | Millions |
-
-Also flag if the migration creates an index (even concurrently) on any of these tables — concurrent index creation on a 100M-row table can still take significant time and I/O.
+- Whether CONCURRENTLY is used (and whether `morph:nontransactional` is present as the first line)
+- Whether the migration mixes transactional and nontransactional statements in a single file
+- Whether the table is empty/feature-flagged (relaxes some rules — see reference.md)
+- Backwards compatibility with the previous ESR
 
 ## Step 4: Generate the review report
 
-Output the following markdown template, filling in every section based on your analysis. Use checkmarks for passing checks and X marks for failures with explanations.
+Output the following markdown template, filling in every section based on your analysis. Use the exact status values shown: ✅, ❌, or N/A.
+
+If the table is empty or feature-flagged, add a context note at the top: `> **Context:** The table is gated by a feature flag and will be empty when this migration runs.`
 
 ~~~markdown
 # Schema Migration Review: [version] — [description]
@@ -98,23 +60,23 @@ Output the following markdown template, filling in every section based on your a
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| No ALTER COLUMN TYPE | pass/FAIL | ... |
-| CREATE INDEX uses CONCURRENTLY | pass/FAIL/N/A | ... |
-| DROP INDEX uses CONCURRENTLY | pass/FAIL/N/A | ... |
-| No FOREIGN KEY via ALTER TABLE | pass/FAIL | ... |
-| No full-table DELETE/UPDATE | pass/FAIL | ... |
-| morph:nontransactional where needed | pass/FAIL/N/A | ... |
-| Down migration exists | pass/FAIL | ... |
-| Transactional/nontransactional split correct | pass/FAIL/N/A | ... |
+| No ALTER COLUMN TYPE | ✅/❌/N/A | ... |
+| CREATE INDEX uses CONCURRENTLY | ✅/❌/N/A | ... |
+| DROP INDEX uses CONCURRENTLY | ✅/❌/N/A | ... |
+| No FOREIGN KEY via ALTER TABLE | ✅/❌/N/A | ... |
+| No full-table DELETE/UPDATE | ✅/❌/N/A | ... |
+| morph:nontransactional where needed | ✅/❌/N/A | ... |
+| Down migration exists | ✅/❌ | ... |
+| Transactional/nontransactional split correct | ✅/❌/N/A | ... |
 
 ## Backwards Compatibility
 - Compatible with previous ESR: Yes/No
-- Can previous Mattermost version run with new schema: Yes/No — [explain: e.g. new columns have defaults, old code ignores them]
+- Can previous Mattermost version run with new schema: Yes/No — [explain]
 - Impact if not compatible: ...
 
 ## Table Locks & Impact
 - Tables affected: ...
-- Lock types acquired: ... (e.g., ACCESS EXCLUSIVE metadata-only, none via CONCURRENTLY)
+- Lock types acquired: ... (use lock types from the official guide)
 - Impact to concurrent operations: ...
 
 ## Zero Downtime
@@ -123,7 +85,7 @@ Output the following markdown template, filling in every section based on your a
 
 ## Large-Dataset Testing Recommendation
 - **Recommended: Yes/No**
-- Reason: ... (e.g., "Index creation on `posts` table which typically has 100M+ rows")
+- Reason: ...
 - Tables to seed for testing: ...
 
 ## Test Results (fill manually if testing recommended)
@@ -132,12 +94,9 @@ Output the following markdown template, filling in every section based on your a
 |----|-----------|-----------|----------|----------|
 | PostgreSQL | | | | |
 
-## SQL Queries for Pre-Upgrade
-Queries admins can run before upgrading to make the actual migration instantaneous:
-
+## SQL Queries
 ```sql
--- PostgreSQL
-[relevant migration SQL that can be run ahead of time]
+[contents of the .up.sql file]
 ```
 ~~~
 
