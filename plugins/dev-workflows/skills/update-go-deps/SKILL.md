@@ -52,7 +52,7 @@ Group changes by type:
 1. Stage only `go.mod`, `go.sum`, and `vendor/` (if present): do **not** stage unrelated files.
 2. Commit with a message like:
 
-```
+```text
 chore(deps): update Go dependencies
 
 <paste summary of notable upgrades here>

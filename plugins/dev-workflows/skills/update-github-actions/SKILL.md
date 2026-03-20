@@ -38,13 +38,13 @@ Deduplicate the list. For each unique `owner/repo` reference, record the current
 
 For each `owner/repo`, fetch the latest release from GitHub:
 
-```
+```text
 https://api.github.com/repos/{owner}/{repo}/releases/latest
 ```
 
 If the action does not publish GitHub Releases, fall back to the latest tag:
 
-```
+```text
 https://api.github.com/repos/{owner}/{repo}/tags
 ```
 
@@ -54,14 +54,14 @@ Record the latest version tag (e.g. `v4.1.0`).
 
 For every action (regardless of how it is currently pinned), fetch the commit SHA for the latest release tag:
 
-```
+```text
 https://api.github.com/repos/{owner}/{repo}/git/ref/tags/{latest-tag}
 ```
 
 If the tag is an annotated tag (type `tag`), follow the `object.url` to get the underlying commit SHA. If it is a lightweight tag (type `commit`), use the SHA directly.
 
 The target format for every action reference is:
-```
+```text
 uses: owner/repo@<full-commit-sha> # vX.Y.Z
 ```
 
@@ -113,7 +113,7 @@ uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.1.
 
 4. Commit:
 
-```
+```text
 chore(ci): update GitHub Actions to latest versions
 
 <paste summary table>

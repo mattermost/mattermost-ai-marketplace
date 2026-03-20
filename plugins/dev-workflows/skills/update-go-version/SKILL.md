@@ -16,7 +16,7 @@ Update all Go module files and CI configuration to the latest stable Go release.
 
 Fetch the current release list from the official Go downloads API:
 
-```
+```text
 https://go.dev/dl/?mode=json
 ```
 
@@ -69,7 +69,7 @@ For each updated `go.mod`:
 1. Stage `go.mod`, `go.sum`, `vendor/` (if present), and any updated config files.
 2. Commit with a message like:
 
-```
+```text
 chore(go): update Go version to X.Y.Z
 ```
 

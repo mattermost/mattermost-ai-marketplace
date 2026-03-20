@@ -56,6 +56,6 @@ Update all GitHub Actions `uses:` references in `.github/workflows/` to their la
 1. Finds every `uses:` reference across all workflow YAML files
 2. Fetches the latest release for each action from the GitHub API
 3. Updates semver-pinned references (`@v3` → `@v4`, `@v3.1.0` → `@v3.2.1`)
-4. Updates SHA-pinned references that have a version comment (`@sha # vX`) — resolves the new SHA and updates the comment; skips bare SHA pins with no comment
+4. Updates all SHA-pinned references — resolves the latest SHA and version comment; bare SHA pins with no comment are resolved to `@sha # vX.Y.Z` using the latest release
 5. Flags major-version bumps that may have breaking changes
 6. Commits only `.github/workflows/` files with a summary table
