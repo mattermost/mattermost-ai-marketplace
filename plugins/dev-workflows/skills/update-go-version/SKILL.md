@@ -2,6 +2,7 @@
 name: update-go-version
 description: Update the Go version in go.mod (and related config files) to the latest stable release. Fetches the current latest version from the web, updates all relevant files, runs go mod tidy, and commits.
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 ---
 
@@ -42,7 +43,7 @@ Files that typically contain the Go version:
 
 ### Phase 2: Check current versions
 
-For each `go.mod`, read the current `go` directive. If it is already at the latest version, report that and stop (nothing to do).
+For each `go.mod`, read the current `go` directive. If it is already at the latest version, log that fact for this module and continue to the next module (nothing to do for this one).
 
 ### Phase 3: Update files
 

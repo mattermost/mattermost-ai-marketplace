@@ -1,13 +1,14 @@
 ---
 name: update-github-actions
-description: Update all GitHub Actions workflow dependencies (uses: owner/action@vX) to their latest released versions. Fetches current releases from GitHub, updates all workflow YAML files, and commits.
+description: Update all GitHub Actions workflow dependencies (uses: owner/action@vX) to their latest released versions. Fetches current releases from GitHub, updates all workflow YAML files to use SHA pinning with version comments, and commits.
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__github-server__list_commits
 ---
 
 # Update GitHub Actions Dependencies
 
-Scan all `.github/workflows/*.yml` files, find every `uses:` reference, resolve the latest release for each action, and update in place.
+Scan all `.github/workflows/*.yml` files, find every `uses:` reference, resolve the latest release for each action, and update in place. **All actions are migrated to SHA pinning with a version comment** (e.g. `@abc123 # v4.1.0`) for supply-chain security.
 
 ## Instructions
 
@@ -27,7 +28,8 @@ find .github/workflows -name '*.yml' -o -name '*.yaml'
 Extract every `uses:` line. Each reference has one of these forms:
 - `uses: owner/repo@vX.Y.Z` — pinned to a semver tag
 - `uses: owner/repo@vX` — pinned to a major-version tag
-- `uses: owner/repo@<sha>` — pinned to a commit SHA (skip these — do not change SHA pins without user confirmation)
+- `uses: owner/repo@<sha> # vX.Y.Z` — already SHA-pinned with version comment
+- `uses: owner/repo@<sha>` — SHA-pinned with no comment (treat as unknown version)
 - `uses: ./.github/actions/local` — local action (skip)
 
 Deduplicate the list. For each unique `owner/repo` reference, record the current version string.
@@ -46,21 +48,11 @@ If the action does not publish GitHub Releases, fall back to the latest tag:
 https://api.github.com/repos/{owner}/{repo}/tags
 ```
 
-Record the latest version tag (e.g. `v4.1.0`). Also note the major version alias (e.g. `v4`) — some repos maintain floating major-version tags.
+Record the latest version tag (e.g. `v4.1.0`).
 
-### Phase 3: Determine update strategy
+### Phase 3: Resolve commit SHAs
 
-For each reference, decide how to update based on what the workflow currently uses:
-- Currently `@vX.Y.Z` → update to latest `@vX'.Y'.Z'` (full semver)
-- Currently `@vX` → update to latest major version `@vX'` only if a newer major exists; otherwise leave as-is
-- Currently `@<sha>` with no comment → skip unless the user explicitly asked to unpin
-- Currently `@<sha> # vX.Y.Z` → **update**: resolve the latest release SHA and version tag, replace both the SHA and the comment (e.g. `@abc123 # v3.0.1` → `@def456 # v4.1.0`)
-
-Report any major-version bumps separately — these may have breaking changes.
-
-### Phase 4: Resolve commit SHAs for SHA-pinned actions
-
-For any action pinned as `@<sha> # vX.Y.Z`, fetch the commit SHA for the latest release tag:
+For every action (regardless of how it is currently pinned), fetch the commit SHA for the latest release tag:
 
 ```
 https://api.github.com/repos/{owner}/{repo}/git/ref/tags/{latest-tag}
@@ -68,27 +60,48 @@ https://api.github.com/repos/{owner}/{repo}/git/ref/tags/{latest-tag}
 
 If the tag is an annotated tag (type `tag`), follow the `object.url` to get the underlying commit SHA. If it is a lightweight tag (type `commit`), use the SHA directly.
 
-### Phase 5: Update workflow files
-
-For each workflow file, replace outdated version strings using exact string replacement. Update every occurrence of each action reference.
-
-Semver-pinned example:
-```yaml
-# before
-uses: actions/checkout@v3
-# after
-uses: actions/checkout@v4
+The target format for every action reference is:
+```
+uses: owner/repo@<full-commit-sha> # vX.Y.Z
 ```
 
-SHA-pinned with comment example:
+### Phase 4: Determine changes
+
+For each reference, compare the current state to the target SHA-pinned form:
+- Currently `@vX.Y.Z` → migrate to `@<sha> # vX'.Y'.Z'`
+- Currently `@vX` → migrate to `@<sha> # vX'.Y'.Z'`
+- Currently `@<sha> # vX.Y.Z` → update SHA and version tag to latest
+- Currently `@<sha>` with no comment → update to `@<sha> # vX'.Y'.Z'` using the resolved latest release
+
+Report any major-version bumps separately — these may have breaking changes.
+
+### Phase 5: Update workflow files
+
+For each workflow file, replace every action reference with its SHA-pinned form using exact string replacement.
+
+Examples:
 ```yaml
-# before
+# before (semver tag)
+uses: actions/checkout@v3
+# after
+uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.1.0
+```
+
+```yaml
+# before (major-version tag)
+uses: actions/setup-go@v4
+# after
+uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+```
+
+```yaml
+# before (SHA-pinned, stale)
 uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # v3.0.1
 # after
 uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.1.0
 ```
 
-### Phase 5: Summarise and commit
+### Phase 6: Summarise and commit
 
 1. Print a table of all changes:
    | Action | Old version | New version | Major bump? |
@@ -110,7 +123,6 @@ chore(ci): update GitHub Actions to latest versions
 
 ## Notes
 
-- SHA-pinned actions with a version comment (`@<sha> # vX.Y.Z`) are updated — both the SHA and the comment are replaced with the latest release.
-- SHA-pinned actions with no comment are left unchanged — these are intentional pins with no declared version to track.
+- Every action is migrated to `@<sha> # vTag` format — this is the target state regardless of how the action was previously pinned.
 - If an action's latest release is a pre-release (`-beta`, `-rc`), skip it and use the latest stable release instead.
 - Some actions (e.g. `github/codeql-action`) release very frequently — confirm the version looks sane before committing.

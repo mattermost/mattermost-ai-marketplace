@@ -2,6 +2,7 @@
 name: update-go-deps
 description: Update all direct Go module dependencies to their latest versions, tidy the module graph, verify tests pass, and commit the result. Use when you want to bump deps, address CVEs, or do routine dependency maintenance.
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -61,6 +62,6 @@ chore(deps): update Go dependencies
 
 ## Notes
 
-- This skill upgrades to the **latest** version within each module's declared Go version constraint. It does not change the `go` directive in `go.mod` — use the starter-template skill for that.
+- This skill upgrades to the **latest** version within each module's declared Go version constraint. It does not change the `go` directive in `go.mod` — use `/dev-workflows:update-go-version` to update the module's go directive.
 - If the repo uses a `replace` directive in `go.mod`, preserve it unless the user explicitly asks to remove it.
 - Security-sensitive upgrades (CVE fixes) should be called out explicitly in the commit message.
