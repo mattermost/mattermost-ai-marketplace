@@ -1,0 +1,9 @@
+{
+  "name": "dev-workflows",
+  "description": "Skills for common development workflows — dependency management, module hygiene, and routine maintenance tasks",
+  "version": "1.0.0",
+  "author": {
+    "name": "Ben Schumacher"
+  },
+  "keywords": ["go", "golang", "dependencies", "modules", "maintenance", "workflows"]
+}

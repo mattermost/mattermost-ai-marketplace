@@ -129,6 +129,17 @@
       "author": {
         "name": "Ben Cooke"
       }
+    },
+    {
+      "name": "dev-workflows",
+      "source": "./plugins/dev-workflows",
+      "description": "Skills for common development workflows — dependency management, module hygiene, and routine maintenance tasks",
+      "version": "1.0.0",
+      "category": "devops",
+      "tags": ["go", "golang", "dependencies", "modules", "maintenance"],
+      "author": {
+        "name": "Ben Schumacher"
+      }
     }
   ]
 }
