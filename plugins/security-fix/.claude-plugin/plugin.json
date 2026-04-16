@@ -1,0 +1,9 @@
+{
+  "name": "security-fix",
+  "description": "Orchestrates test-driven fixes for Mattermost security tickets with a Staff Security Engineer mindset: failing secure-behavior tests first, then implementation, then security review and edge-case loops, then a review-ready PR with a vague public description.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nick Misasi"
+  },
+  "keywords": ["security", "tdd", "jira", "mattermost", "pull-request"]
+}
