@@ -165,7 +165,7 @@ Mobile Feature Template — focus on screens, navigation, data layer, and platfo
 |--------|--------|
 | React Native | `mobile-developer`, `react-frontend` |
 | Navigation | `mobile-developer` |
-| Native modules | `mobile-developer`, `ios-developer` (if available) |
+| Native modules | `mobile-developer`, `ios-developer`, `android-developer` (if available) |
 | State management | `redux-expert` |
 | Accessibility | `accessibility-guardian` |
 

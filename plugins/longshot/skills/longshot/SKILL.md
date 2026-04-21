@@ -172,7 +172,7 @@ All external skills, CLIs, MCPs, and domain agents are optional — pipeline deg
 | Category | Items | Fallback |
 |----------|-------|----------|
 | CLIs | `git` (required), `gh`, `acli`, `make`, `npm`, `go` | `--skip pr`, manual Jira prompts, profile-specific warnings |
-| MCP | Playwright, Figma, Atlassian | Manual checklist, skip design context, fall back to `acli` |
+| MCP | Playwright, Figma, Atlassian (fallback only — `acli` takes priority) | Manual checklist, skip design context, manual Jira/Confluence prompts |
 | Skills | See [Skills referenced](#skills-referenced) below | Inline templates, built-in agents |
 | Domain agents | See [Domain agents referenced](#domain-agents-referenced) below | Skip that dimension |
 | Slash commands | See [Slash commands referenced](#slash-commands-referenced) below | Inline workflow |
@@ -219,7 +219,7 @@ Soft references — each is invoked only when its dimension applies. If the agen
 - `license-reviewer` (phase 5.3 license check)
 
 **Mobile (mattermost-mobile profile):**
-- `mobile-developer`, `ios-developer`, `accessibility-guardian`
+- `mobile-developer`, `ios-developer`, `android-developer`, `accessibility-guardian`
 
 **Built-in / host-provided:**
 - `general-purpose` (phase 1 analysis), `Explore` (phase 2 research, phase 1 triage/ideation), `debugger` (phase 4 CODE_BUG classification)

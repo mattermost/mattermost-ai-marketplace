@@ -210,7 +210,7 @@ From Phase 0 toolchain probe:
 |-----|------------------|
 | Playwright MCP | Phase 4.6 falls back to printing a manual checklist |
 | Figma MCP | Phase 1 skips design-context fetching |
-| Atlassian MCP | Phase 1/8 fall back to `acli`, then manual |
+| Atlassian MCP | `acli` is the primary tool for Jira/Confluence; MCP is only used as fallback when `acli` is unavailable. If both are missing, Phase 1/8 degrade to manual prompts. |
 
 ---
 
