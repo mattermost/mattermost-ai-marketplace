@@ -140,6 +140,17 @@
       "author": {
         "name": "Ben Schumacher"
       }
+    },
+    {
+      "name": "grafana",
+      "source": "./plugins/grafana",
+      "description": "Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance",
+      "version": "1.0.0",
+      "category": "devops",
+      "tags": ["grafana", "observability", "loki", "prometheus", "production", "monitoring"],
+      "author": {
+        "name": "Jesse Hallam"
+      }
     }
   ]
 }
