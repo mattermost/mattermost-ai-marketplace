@@ -173,13 +173,74 @@ All external skills, CLIs, MCPs, and domain agents are optional — pipeline deg
 |----------|-------|----------|
 | CLIs | `git` (required), `gh`, `acli`, `make`, `npm`, `go` | `--skip pr`, manual Jira prompts, profile-specific warnings |
 | MCP | Playwright, Figma, Atlassian | Manual checklist, skip design context, fall back to `acli` |
-| Skills | `conductor:track-management`, `superpowers:writing-plans`, `comprehensive-review:full-review`, `coderabbit:review`, `figma:implement-design`, `accessibility-compliance:wcag-audit-patterns` | Inline templates, built-in agents |
-| Domain agents | `simplicity-reviewer`, `api-reviewer`, etc. (soft references) | Skip that dimension |
+| Skills | See [Skills referenced](#skills-referenced) below | Inline templates, built-in agents |
+| Domain agents | See [Domain agents referenced](#domain-agents-referenced) below | Skip that dimension |
+| Slash commands | See [Slash commands referenced](#slash-commands-referenced) below | Inline workflow |
+
+### Skills referenced
+
+Every skill the pipeline may invoke (grouped by host plugin). All are soft references — missing any one degrades gracefully.
+
+| Skill | Where used | Purpose |
+|-------|-----------|---------|
+| `conductor:track-management` | Phase 2 | Plan structure template |
+| `superpowers:writing-plans` | Phase 2 (fallback) | Plan drafting when conductor absent |
+| `comprehensive-review:full-review` | Phase 6 | Multi-dimensional code review orchestrator |
+| `coderabbit:review` | Phase 6 (AI review before human) | AI code review |
+| `figma:implement-design` | Phase 1 | Figma design context fetching |
+| `accessibility-compliance:wcag-audit-patterns` | Phase 6 (a11y dimension) | WCAG audit patterns |
+| `database-migrations:sql-migrations` | Phase 5.6 | General migration patterns reference |
+
+### Domain agents referenced
+
+Soft references — each is invoked only when its dimension applies. If the agent isn't registered in your platform's agent directory, the dimension is skipped (logged in `findings/synthesis.md`).
+
+**Always-on (phase 3 Tier 1, phase 2 plan review):**
+- `simplicity-reviewer`, `error-handling-reviewer`, `duplication-reviewer`, `design-flaw-finder`, `plan-assertion-checker`
+
+**Backend / Go (phase 3 Tier 3, phase 2 domain routing):**
+- `api-reviewer`, `api-contract-reviewer`, `app-reviewer`, `store-reviewer`, `pattern-reviewer`, `go-backend`
+
+**Frontend / React / TS (phase 3 Tier 4, phase 2 domain routing):**
+- `react-frontend`, `redux-expert`, `component-reviewer`
+
+**Testing (phase 3 Tier 5, phase 4):**
+- `test-coverage-reviewer`, `test-unit-expert`, `e2e-test-writer`, `e2e-test-reviewer`
+
+**API/model compatibility (phase 3 Tier 6):**
+- `backwards-compatibility-reviewer`, `null-safety-reviewer`
+
+**Domain specialists (phase 2 routing):**
+- `database-architecture-reviewer`, `db-migration` (database/migrations)
+- `permission-design-auditor`, `permission-auditor` (permissions/auth)
+- `system-design-reviewer` (system design)
+- `caching-strategist` (caching)
+- `tiptap-reviewer` (TipTap/editor — MM-specific, optional)
+- `license-reviewer` (phase 5.3 license check)
+
+**Mobile (mattermost-mobile profile):**
+- `mobile-developer`, `ios-developer`, `accessibility-guardian`
+
+**Built-in / host-provided:**
+- `general-purpose` (phase 1 analysis), `Explore` (phase 2 research, phase 1 triage/ideation), `debugger` (phase 4 CODE_BUG classification)
+
+### Slash commands referenced
+
+These are invoked directly as commands. Plugin-namespaced commands install via the plugin; bare commands (`/create-code`, etc.) are project-local workflows — the pipeline falls back to inline behavior if absent.
+
+| Command | Where used | Host plugin |
+|---------|-----------|-------------|
+| `/comprehensive-review:full-review` | Phase 6 | `comprehensive-review` |
+| `/review` | Phase 6 (presentation) | project-local or built-in |
+| `/create-code` | Phase 3 | project-local |
+| `/create-test` | Phase 4 | project-local |
+| `/fix-test` | Phase 4 | project-local |
 
 ### Recommended Plugin Repositories
 
-- [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills
-- [superpowers](https://github.com/obra/superpowers) — brainstorming, planning, debugging, TDD, worktrees
+- [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills (source for `comprehensive-review`, `agent-teams`, `coderabbit`, and most domain agents above)
+- [superpowers](https://github.com/obra/superpowers) — brainstorming, planning, debugging, TDD, worktrees (source for `superpowers:*` skills)
+- Built-in marketplace skills: `conductor:*`, `figma:*`, `accessibility-compliance:*`, `database-migrations:*` (Claude Code defaults; install via the platform's marketplace)
 
 Install via your platform's plugin/skill mechanism. Claude Code example:
 
@@ -190,9 +251,10 @@ claude plugin install superpowers@superpowers
 claude plugin install comprehensive-review@claude-code-workflows
 claude plugin install agent-teams@claude-code-workflows
 claude plugin install coderabbit@claude-code-workflows
+# Plus any domain agents you want from the claude-code-workflows marketplace
 ```
 
-Other platforms (Cursor, Copilot CLI, Codex, Gemini CLI, etc.) should install the equivalent skills/agents per their own tooling — the pipeline degrades gracefully when specific skills are absent.
+Other platforms (Cursor, Copilot CLI, Codex, Gemini CLI, etc.) should install the equivalent skills/agents per their own tooling — the pipeline degrades gracefully when specific skills or agents are absent.
 
 ---
 
