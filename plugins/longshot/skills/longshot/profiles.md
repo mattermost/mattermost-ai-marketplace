@@ -1,6 +1,10 @@
 # Longshot Profiles
 
-Project profiles define build commands, plan templates, and agent routing for `/longshot`. Cross-cutting rules (top-level commands, git safety, commit format) are centralized in [rules.md](rules.md).
+Project profiles define build commands, plan templates, and agent routing for `/longshot`. Cross-cutting behavior lives elsewhere:
+
+- Top-level build commands, git safety, commit format → [rules.md](rules.md)
+- PR template handling (follow `PULL_REQUEST_TEMPLATE.md` if present, else use the default body) → [phase-7-ship.md § Step 7.5](phase-7-ship.md)
+- Security handling (language, branch, test code, PR sanitization) → [rules.md §3](rules.md#3-security-handling)
 
 ## Profile Detection Order
 
@@ -92,12 +96,6 @@ Run all of these before committing (Phase 7, Step 7.0). Order: auto-fix first, t
 | Webapp tests | `cd webapp/channels && npm test` |
 | i18n | `make i18n-extract` (if webapp strings changed) |
 
-### Git Rules
-See [rules.md §2](rules.md#2-git-safety).
-
-### PR Template
-Check for `PULL_REQUEST_TEMPLATE.md` in `.github/` or root. Always follow it if present.
-
 ---
 
 ## Profile: Generic
@@ -121,19 +119,6 @@ Global agents only (`~/.claude/agents/`). No project-specific agents.
 
 ### Pre-Ship Checks
 Run all detected lint, typecheck, and unit test commands from the auto-detected build commands above.
-
-### Git Rules
-See [rules.md §2](rules.md#2-git-safety).
-
-### PR Template
-Check for `PULL_REQUEST_TEMPLATE.md`. If not found, use default format:
-```
-## Summary
-- bullet points
-
-## Test plan
-- [ ] verification steps
-```
 
 ---
 
@@ -199,12 +184,6 @@ Features that touch the mobile app often require corresponding server/webapp cha
 | Lint | `npm run lint` |
 | Type check | `npm run check-types` |
 | Unit tests | `npm test` |
-
-### Git Rules
-See [rules.md §2](rules.md#2-git-safety).
-
-### PR Template
-Check for `PULL_REQUEST_TEMPLATE.md` in `.github/` or root. Always follow it if present.
 
 ---
 
@@ -277,12 +256,6 @@ Plugin Feature Template — scoped to plugin server + webapp layers.
 | Webapp lint | `cd webapp && npm run lint` |
 | Webapp typecheck | `cd webapp && npm run check-types` (if available) |
 | Webapp tests | `cd webapp && npm test` |
-
-### Git Rules
-See [rules.md §2](rules.md#2-git-safety).
-
-### PR Template
-Check for `PULL_REQUEST_TEMPLATE.md` in `.github/` or root. Always follow it if present.
 
 ---
 
