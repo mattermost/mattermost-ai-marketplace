@@ -238,8 +238,9 @@ These are invoked directly as commands. Plugin-namespaced commands install via t
 
 ### Recommended Plugin Repositories
 
-- [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills (source for `comprehensive-review`, `agent-teams`, `coderabbit`, and most domain agents above)
+- [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills (source for `comprehensive-review`, `agent-teams`, and most domain agents above)
 - [superpowers](https://github.com/obra/superpowers) — brainstorming, planning, debugging, TDD, worktrees (source for `superpowers:*` skills)
+- [coderabbit](https://www.coderabbit.ai/) — AI code review (`coderabbit:review`); distributed separately from `claude-code-workflows`, install per its own docs
 - Built-in marketplace skills: `conductor:*`, `figma:*`, `accessibility-compliance:*`, `database-migrations:*` (Claude Code defaults; install via the platform's marketplace)
 
 Install via your platform's plugin/skill mechanism. Claude Code example:
@@ -250,7 +251,7 @@ claude plugin marketplace add obra/superpowers
 claude plugin install superpowers@superpowers
 claude plugin install comprehensive-review@claude-code-workflows
 claude plugin install agent-teams@claude-code-workflows
-claude plugin install coderabbit@claude-code-workflows
+# coderabbit ships separately — follow https://www.coderabbit.ai/ install docs
 # Plus any domain agents you want from the claude-code-workflows marketplace
 ```
 
