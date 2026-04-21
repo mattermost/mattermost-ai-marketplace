@@ -67,10 +67,10 @@ Load and follow project style guides during implementation and review:
 - Domain agents should be prompted with relevant style guide excerpts
 
 ### Agent Routing
-Three-level agent discovery from `~/.claude/docs/project-context-loading.md` (check in order, higher levels override lower):
-- Level 1: `~/.claude/agents/` (global, including `mattermost/` subdirectory)
-- Level 2: Parent repo `.claude/agents/` (if exists)
-- Level 3: Project `.claude/agents/` (highest priority)
+Three-level agent discovery (check in order, higher levels override lower). Paths below are the Claude Code convention; other platforms use equivalent locations.
+- Level 1: Global agent directory (e.g., `~/.claude/agents/`, including a `mattermost/` subdirectory)
+- Level 2: Parent repo agent directory (e.g., `.claude/agents/` in a parent of the project) if it exists
+- Level 3: Project-level agent directory (e.g., `.claude/agents/` in the project root) — highest priority
 
 Domain routing for plan consultation:
 | Feature touches | Agents |
@@ -115,7 +115,7 @@ Scan these files in order to discover commands:
 5. `go.mod` → `make test`, `make check-style` (fallback: `go test ./...` if no Makefile)
 
 ### Agent Routing
-Global agents only (`~/.claude/agents/`). No project-specific agents.
+Global agents only (e.g., `~/.claude/agents/` on Claude Code, or the equivalent location on other platforms). No project-specific agents.
 
 ### Pre-Ship Checks
 Run all detected lint, typecheck, and unit test commands from the auto-detected build commands above.

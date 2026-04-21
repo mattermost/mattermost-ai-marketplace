@@ -181,6 +181,8 @@ All external skills, CLIs, MCPs, and domain agents are optional — pipeline deg
 - [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills
 - [superpowers](https://github.com/obra/superpowers) — brainstorming, planning, debugging, TDD, worktrees
 
+Install via your platform's plugin/skill mechanism. Claude Code example:
+
 ```bash
 claude plugin marketplace add wshobson/agents
 claude plugin marketplace add obra/superpowers
@@ -189,6 +191,8 @@ claude plugin install comprehensive-review@claude-code-workflows
 claude plugin install agent-teams@claude-code-workflows
 claude plugin install coderabbit@claude-code-workflows
 ```
+
+Other platforms (Cursor, Copilot CLI, Codex, Gemini CLI, etc.) should install the equivalent skills/agents per their own tooling — the pipeline degrades gracefully when specific skills are absent.
 
 ---
 

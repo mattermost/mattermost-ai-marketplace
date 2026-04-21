@@ -1,6 +1,6 @@
 # Longshot Rules
 
-Cross-cutting rules, guards, and invariants that apply across longshot phases. When these conflict with phase-specific instructions, **these rules govern**. When in conflict with user instructions (CLAUDE.md, explicit requests), **the user wins**.
+Cross-cutting rules, guards, and invariants that apply across longshot phases. When these conflict with phase-specific instructions, **these rules govern**. When in conflict with user instructions (CLAUDE.md / AGENTS.md / GEMINI.md or direct requests), **the user wins**.
 
 Complements:
 - [principles.md](principles.md) — the *why* (quality bar, engineering philosophy)
@@ -180,7 +180,7 @@ Longshot degrades gracefully. Missing dependencies trigger a warning, not a halt
 
 ### 5.1 Agent Fallback
 
-All domain agents are **soft references**. If an agent isn't registered in `~/.claude/agents/` or the project's `.claude/agents/`:
+All domain agents are **soft references**. If an agent isn't registered in the platform's agent directory (e.g., `~/.claude/agents/`, project-level `.claude/agents/`, or the equivalent on other platforms):
 - The phase proceeds without that review dimension
 - A note is added to `<artifact_dir>/findings/synthesis.md`: `"<agent-name>: unavailable, skipped"`
 - Do NOT attempt to emulate the agent inline — skip the dimension

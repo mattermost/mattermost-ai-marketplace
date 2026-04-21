@@ -251,7 +251,7 @@ If no security signals are found: continue normally.
 
 ### Step 1.2: Analyze Requirements
 
-Spawn a `general-purpose` agent (model: **haiku** for speed) with the input text AND all fetched reference material:
+Spawn a `general-purpose` agent (prefer a **fast/lightweight model** for speed) with the input text AND all fetched reference material:
 
 ```
 You are a requirements analyst. Given this feature request and its reference material:

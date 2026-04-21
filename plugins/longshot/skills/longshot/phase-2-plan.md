@@ -85,7 +85,7 @@ Document any viable alternatives as a "## Alternatives Considered" section in th
 Principle citation: [rules.md §8](rules.md#8-principle-applications) — iteration is cheap; if two approaches seem viable, prototype the riskier parts of each before committing.
 
 ### Step 2.5: Completeness Check (skip with `--minimal`)
-Spawn **haiku** agent to verify all required template sections are present and non-empty. Fix gaps before proceeding.
+Spawn a **fast/lightweight** agent to verify all required template sections are present and non-empty. Fix gaps before proceeding.
 
 ### Step 2.6: Assertion Check (skip with `--minimal`)
 Spawn `plan-assertion-checker` agent (if available in agents directory) to verify factual claims against codebase. Fix MUST_FIX items.
