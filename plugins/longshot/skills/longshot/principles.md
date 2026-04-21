@@ -15,7 +15,7 @@ Longshot operationalizes these principles in [rules.md §8](rules.md#8-principle
 | Verifying Tickets | Drink own champagne on community/hub; engineers close their own tickets; every capability needs a lighthouse customer | Phase 8 (post-ship) |
 
 Related references:
-- [Feature Flags Guidelines](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364763143/AI-Powered+Development+Process)
-- [Token Optimization](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364763143/AI-Powered+Development+Process)
-- [Jira Epic Guidelines](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364763143/AI-Powered+Development+Process)
+- [Feature Flags Guidelines](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364795905/Feature+Flags+Guidelines)
+- [Token Optimization Guide for AI Coding Tools](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4367024153/Token+Optimization+Guide+for+AI+Coding+Tools)
+- [Jira Epic Guidelines](https://mattermost.atlassian.net/wiki/spaces/pde/pages/2906488838/Jira+Epic+Guidelines)
 - [Sensitive PRs Handbook](https://handbook.mattermost.com/operations/security/product-security/working-on-sensitive-prs) — cited by [rules.md §3](rules.md#3-security-handling)
