@@ -9,7 +9,8 @@ tags:
   - code-review
   - shipping
   - orchestration
-user_invocable: true
+user-invocable: true
+disable-model-invocation: true
 ---
 
 # Longshot

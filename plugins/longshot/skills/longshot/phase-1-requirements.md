@@ -75,7 +75,7 @@ Before documenting findings, attempt to reproduce the issue to confirm the hypot
    - **API call**: if the bug is in an API endpoint, construct the failing request (curl or equivalent) with the triggering input.
    - **Manual steps**: if no automated reproduction is possible, write numbered steps the user can follow.
 3. **Record the result**:
-   - If reproduced: note "Confirmed — reproduced via <method>" and include the test, screenshot, or curl command in spec.md
+   - If reproduced: note "Confirmed — reproduced via <method>" and include the test, screenshot, or curl command in `<artifact_dir>/spec.md`
    - If not reproduced: note "Could not reproduce — hypothesis may be wrong" and ask user for more context before proceeding
 4. **Security issues**: see [rules.md §3.3](rules.md#33-test-code) — benign equivalent inputs only, ticket ID references only.
 
@@ -108,10 +108,10 @@ If the user chooses [1] (create ticket):
   - Type: Bug (or Security Bug if security signals detected)
   - Labels: from-triage
 - Update state.json with the new ticket ID
-- Add the ticket details to spec.md
+- Add the ticket details to `<artifact_dir>/spec.md`
 
 If the user chooses [2] (proceed directly):
-- Write the triage findings directly into spec.md as the requirements basis
+- Write the triage findings directly into `<artifact_dir>/spec.md` as the requirements basis
 - Skip ticket creation — the fix PR itself will be the documentation
 
 If the user chooses [3] (investigate further):
@@ -167,12 +167,12 @@ MVF looks buildable. Next steps:
   [1] Create Jira ticket + lightweight spec → continue to Phase 2
   [2] Draft a full PRFAQ / Epic (for larger ideas that need stakeholder buy-in first)
   [3] Just write the spec → proceed without ticket
-  [4] Park it — save findings to spec.md and stop (resume later with --skip-to requirements)
+  [4] Park it — save findings to `<artifact_dir>/spec.md` and stop (resume later with --skip-to requirements)
 ```
 
 If [1] (create ticket + spec):
 - Create a Jira Story via `acli` with: Title, Problem/Justification/Solution from brainstorm, MVF scope, acceptance criteria derived from the MVF description
-- Write spec.md with the MVF-scoped requirements
+- Write `<artifact_dir>/spec.md` with the MVF-scoped requirements
 - Update state.json with ticket ID
 
 If [2] (full PRFAQ/Epic):
