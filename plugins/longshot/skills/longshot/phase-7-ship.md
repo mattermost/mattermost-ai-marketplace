@@ -34,7 +34,7 @@ Stage specific modified files per [rules.md §2](rules.md#2-git-safety) — neve
 
 ### Step 7.3: Commit
 Create local commit with conventional format (see [rules.md §2](rules.md#2-git-safety) for format rules and [rules.md §1.3](rules.md#13-no-ai-attribution-in-commits-or-prs) for attribution):
-```
+```text
 <type>(<scope>): <subject>
 
 <body explaining what/why>

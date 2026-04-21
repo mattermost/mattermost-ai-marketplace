@@ -162,7 +162,7 @@ Not in MVF: <list of deferred capabilities>
 ### Step 1.0A.3: Document & Create Ticket
 
 Ask the user:
-```
+```text
 MVF looks buildable. Next steps:
   [1] Create Jira ticket + lightweight spec → continue to Phase 2
   [2] Draft a full PRFAQ / Epic (for larger ideas that need stakeholder buy-in first)
@@ -253,7 +253,7 @@ If no security signals are found: continue normally.
 
 Spawn a `general-purpose` agent (prefer a **fast/lightweight model** for speed) with the input text AND all fetched reference material:
 
-```
+```text
 You are a requirements analyst. Given this feature request and its reference material:
 
 FEATURE REQUEST:
@@ -322,7 +322,7 @@ Runs in **advisory mode** when a Jira ticket is present — findings are noted i
 
 **2a. Epic Description audit** — the description must contain all three sections with substantive content (not just placeholder text):
 
-```
+```text
 Problem:      [what problem are we solving]
 Justification:[why important, how it aligns with parent company objective]
 Solution:     [how we're solving it, why this approach, alternatives considered]
@@ -362,7 +362,7 @@ Produce a status table and note findings in spec.md. Then determine whether to s
 - **Auto-skip the draft menu** (default) when: scope is XS/S, OR `--refs strict` is NOT set and no critical gaps exist. Silently note the findings in `## Epic & PRD Status` in spec.md and proceed.
 - **Surface the draft menu** when: `--refs strict` is set, OR a **critical gap** exists for M+ scope: GreenLight PRD is missing (required before Feature Spec Design milestone) or Technical Spec is missing (required before Code Development milestone).
 
-```
+```text
 Epic <KEY> document status:
   Description
     ✓ Problem: present
@@ -441,7 +441,7 @@ When advisory-only (no critical gaps or XS/S scope), do not show the numbered me
 | **XL** | Cross-system, multi-repo | All phases run at full depth + cross-repo coordination flags. |
 
 Present to user as:
-```
+```text
 Scope: M (single layer — webapp Redux state changes)
 Phases: Setup → Requirements → Plan → Implement → Test → Quality → Review → Ship → Post-Ship
 Depth: Moderate — all phases evaluated, plan abbreviated, review tier-scaled

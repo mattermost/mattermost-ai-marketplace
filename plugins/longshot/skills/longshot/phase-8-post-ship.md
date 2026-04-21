@@ -24,7 +24,7 @@ Post a comment on the ticket with structured QA test steps derived from:
 - Key user flows and edge cases
 
 Format:
-```
+```text
 QA Test Steps (auto-generated from /longshot):
 
 Setup:

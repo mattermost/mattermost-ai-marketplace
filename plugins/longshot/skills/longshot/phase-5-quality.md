@@ -60,7 +60,7 @@
 - **Unbatched UPDATE/DELETE** on large tables — must use batched operations with offset tracking.
 
 #### Multi-ESR Pattern (for breaking schema changes):
-```
+```text
 ESR N (base):     read/write old column
 ESR N+1:          add new column (nullable), dual-write old+new, start batch migration job
 ESR N+2:          verify batch complete, switch reads to new column, stop writing old

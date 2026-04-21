@@ -88,7 +88,7 @@ Use the `Write` tool to persist:
 1. `<artifact_dir>/findings/phase6/comprehensive-review/<dimension>.md` — raw output, one file per dimension, verbatim
 2. `<artifact_dir>/findings/phase6/synthesis.md` — unified finding list (format below), the only file read downstream
 
-```
+```text
 <artifact_dir>/findings/phase6/
 ├── comprehensive-review/
 │   ├── architecture.md
@@ -104,7 +104,7 @@ Per [rules.md §7](rules.md#7-swarm-mode-file-ownership--convergence), only `syn
 
 **synthesis.md format** (required):
 
-```
+```text
 ## Phase 6 Review Synthesis
 
 Verdict: READY | NEEDS_WORK | MAJOR_REVISION

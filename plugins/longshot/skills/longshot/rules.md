@@ -220,7 +220,7 @@ Used at every pipeline halt: gate failure after max retries, context limit appro
 
 **Standard STOP message format:**
 
-```
+```text
 LONGSHOT STOPPED at Phase <N> (<phase-name>)
 Reason: <what went wrong>
 Last output:
@@ -254,7 +254,7 @@ Applies whenever a phase spawns a team (Phases 2, 3, 4, 6 when `TeamCreate` is a
 
 Agents write to `<artifact_dir>/findings/`, namespaced by pipeline phase:
 
-```
+```text
 findings/
 └── phase<N>/              # e.g., phase2/, phase3/, phase6/
     ├── <source>/          # Optional: raw per-agent/per-dimension output
@@ -269,7 +269,7 @@ findings/
 
 After each implementation layer completes, the leader broadcasts to all remaining agents:
 
-```
+```text
 INTERFACE SUMMARY from <completed-layer>:
 - Exported types/structs: <list with signatures>
 - Public functions: <list with signatures>

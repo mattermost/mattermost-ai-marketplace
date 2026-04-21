@@ -17,7 +17,7 @@ disable-model-invocation: true
 
 Autonomous development pipeline — covers feature work, bug triage, and ideation. Drives planning → implementation → testing → quality → review → ship → post-ship via specialist agents. Run the full cycle or any subset (`--skip-to`, `--only`).
 
-### Reference Files
+## Reference Files
 
 - [rules.md](rules.md) — cross-cutting invariants, git/security/retry/STOP protocols
 - [principles.md](principles.md) — AI-Powered Development Process (the *why*)
@@ -26,7 +26,7 @@ Autonomous development pipeline — covers feature work, bug triage, and ideatio
 
 ## Usage
 
-```
+```text
 /longshot "Add drag-and-drop reordering to the pages sidebar"
 /longshot "Fix pagination bug in channel search" --minimal
 /longshot "Add OAuth2 with Google provider" --profile mm
@@ -57,7 +57,7 @@ Each phase is a **gate** — failure stops with a report and `--skip-to` suggest
 
 ### Flow (ingress / egress)
 
-```
+```text
 INGRESS                PIPELINE                    EGRESS
 ───────                ────────                    ──────
 
