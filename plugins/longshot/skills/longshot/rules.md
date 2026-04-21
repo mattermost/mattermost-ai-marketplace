@@ -82,12 +82,14 @@ in `state.json.checkpoints[]`. These SHAs are what `--revert <phase>` consumes.
 
 Apply regardless of profile.
 
-- **NEVER** `git rebase` — interactive or otherwise. Reversion uses `git revert`, never `git reset --hard`.
+- **NEVER rewrite public history.** Once a PR is opened, `git rebase`, `git reset --hard`, and amends to pushed commits are off-limits — these rewrite history reviewers are tracking. Reversion on public branches uses `git revert` (preserves history), never `git reset --hard`.
+- **Before the PR is opened**, `git rebase` IS acceptable (and often encouraged) for local cleanup — squash WIP commits, reword messages, reorder, drop noise. The distinguishing rule is *public* history, not rebase itself.
 - **NEVER** force push (`-f`, `--force`, `--force-with-lease`) unless the user explicitly requests it.
 - **NEVER** skip hooks (`--no-verify`, `--no-gpg-sign`) unless the user explicitly requests it. If a pre-commit hook fails, investigate and fix — don't bypass.
 - **NEVER** `git add -A` or `git add .`. Stage specific files by name to avoid capturing `.env`, credentials, tracking files, or unrelated changes.
 - **NEVER** unstage files without explicit user permission.
 - **NEVER** amend a commit after a hook failure — the commit didn't happen; hook failure means `--amend` would modify the *previous* commit. Fix, re-stage, create a NEW commit.
+- **ALWAYS** follow `PULL_REQUEST_TEMPLATE.md` if present in the target repo (check `.github/` and root). Fill every required section — do not skip, do not substitute a custom template. Only fall back to the default body ([phase-7-ship.md § Step 7.5](phase-7-ship.md)) when no template exists.
 - **Commit format**: conventional (`<type>(<scope>): <subject>`), subject ≤50 chars, imperative mood, no period. Types: `feat|fix|docs|style|refactor|test|chore|perf`.
 
 `--revert <phase>` uses `git revert` on the SHAs recorded in `state.json.checkpoints[]`. It preserves history.
