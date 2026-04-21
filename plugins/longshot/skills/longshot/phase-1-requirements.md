@@ -4,7 +4,7 @@
 
 ## Requirements Mode Detection
 
-Phase 1 operates in one of two modes based on the input:
+Phase 1 operates in one of three modes based on the input:
 
 | Mode | Trigger | Flow |
 |------|---------|------|
@@ -85,7 +85,7 @@ Save reproduction artifacts (failing test file, screenshot, curl command) to `<a
 
 Present the triage findings to the user:
 
-```
+```text
 Triage Report:
   Reported: "<original report>"
   Severity: <Critical/High/Medium/Low>
@@ -150,7 +150,7 @@ Spawn an **Explore** agent to assess feasibility against the current codebase:
 4. **Estimate effort**: XS/S/M/L based on layers touched
 
 Present the feasibility findings:
-```
+```text
 Idea: "<original idea>"
 MVF: <one-sentence description of the minimum viable slice>
 Builds on: <existing components/APIs/patterns>

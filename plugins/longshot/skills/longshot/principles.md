@@ -4,7 +4,7 @@ Longshot operates under Mattermost's AI-Powered Development Process. Rather than
 
 - **[PE: AI-Powered Development Process](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364763143/AI-Powered+Development+Process)** — governing document for design artifacts, development practices, PR submission/review, and ticket verification
 
-Longshot operationalizes these principles in [rules.md §8](rules.md#8-principle-applications) — which cites the specific principle load-bearing at each phase. The table below is an index back to the source; read the Confluence page for the full guidance.
+Longshot operationalizes these principles in [rules.md §8](rules.md#8-principle-applications) — which cites the specific principle that is load-bearing at each phase. The table below is an index back to the source; read the Confluence page for the full guidance.
 
 | Section | Summary | Applies to |
 |---------|---------|-----------|
