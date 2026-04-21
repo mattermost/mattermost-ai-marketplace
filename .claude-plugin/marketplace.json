@@ -140,6 +140,17 @@
       "author": {
         "name": "Ben Schumacher"
       }
+    },
+    {
+      "name": "longshot",
+      "source": "./plugins/longshot",
+      "description": "Autonomous development pipeline for features, bug triage, and ideation — planning through post-ship via specialist agents, end-to-end or resumable",
+      "version": "4.6.0",
+      "category": "productivity",
+      "tags": ["orchestration", "planning", "implementation", "testing", "code-review", "shipping", "triage", "ideation"],
+      "author": {
+        "name": "Caleb Roseland"
+      }
     }
   ]
 }
