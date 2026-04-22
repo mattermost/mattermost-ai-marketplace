@@ -18,6 +18,8 @@ If a reproduction test was written in Phase 1 (Step 1.0.2.5 or 1.2.5), verify th
 
 If no repro test exists but the ticket is a bug: write one now based on the ticket's steps to reproduce, then verify it passes.
 
+**Layer choice for the repro test**: match the layer where the bug manifests, not where the fix happens. If the ticket says "user sees wrong X in modal/list/toast/timestamp/count", the repro test is E2E — the fix may be a one-line selector/dispatch change, but a unit test of that change does not reproduce the user-facing bug. Route accordingly through Step 4.3's decision gate.
+
 ### Step 4.1: Analyze Code Under Test
 Read `<artifact_dir>/plan.md`, specifically the `## Test Plan` section, as the test specification. Also read implementation code to identify functions, public API, edge cases, and mocking needs.
 
@@ -29,10 +31,27 @@ Match project conventions (detected from existing test files). Use domain agents
 - `test-unit-expert`: unit test patterns
 
 ### Step 4.3: Write E2E Tests (Playwright preferred, Cypress fallback)
-**Framework selection** (in order):
+
+**Decision gate — E2E is REQUIRED unless all three are true**:
+1. No user-visible change (backend-only API, internal refactor, pure data migration)
+2. No DOM/render behavior involved — no "user sees X", modal/toast/list contents, timestamps, counts, visibility, ordering, or enablement
+3. No cross-request/cross-session/cross-tab behavior — no state freshness, realtime updates, cache invalidation, WebSocket-driven UI, or multi-user flows
+
+If any answer is **no**, E2E coverage is required. Write it.
+
+**Dodges to refuse (these are not reasons to skip):**
+- *"Unit test proves the action was dispatched / selector returns the right data."* — Dispatching an action does not prove a user sees the result in the DOM. State-freshness, render order, and reactivity bugs only surface through the real UI.
+- *"The fix is small."* — Bug class, not fix size, determines coverage. A one-line fix to a user-visible rendering bug still needs a test that exercises the rendering.
+- *"spec.md said no new E2E suites."* — That scope was set before the current bug was fully understood. If the bug class now requires E2E, revisit the spec constraint; don't hide behind it.
+- *"E2E needs a running server / two sessions / time manipulation."* — That's infrastructure cost, not a principled exemption. Pay it.
+- *"N/A"* — Not an acceptable value. Either spell out which of the three criteria applies, or write the test.
+
+**If skipping**: write `<artifact_dir>/state.json.phases.4-test.e2e_skip_reason` AND an explicit line in the Phase 4 summary stating which of the three exemption criteria applies, with a concrete one-sentence justification. Generic labels ("N/A", "backend-only", "covered by unit") are rejected — name what the user would *not* see if this shipped broken.
+
+**Framework selection**:
 1. **Playwright** — if `e2e-tests/playwright/` exists, or `@playwright/test` in dependencies
 2. **Cypress** — if `cypress/` exists, or `cypress` in dependencies
-3. **Skip** — if no E2E infra detected and feature is backend-only
+3. **No infra + E2E required** — STOP per [rules.md §6](rules.md#6-stop-protocol). Report that E2E coverage is mandated by the decision gate but no framework is installed. Do not silently skip.
 
 Use domain agents:
 - `e2e-test-writer`: E2E patterns, selectors, page objects
