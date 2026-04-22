@@ -4,12 +4,14 @@
 
 Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs.
 
-### Step 8.1: Transition Ticket Status
+**`acli` fallback**: all `acli jira`/`acli confluence` calls in this phase degrade to manual prompts when `acli` is unavailable (per Phase 0 toolchain probe; see [rules.md §5.3](rules.md#53-cli-tool-fallback)) — surface the proposed field updates, comment bodies, and transitions to the user and ask them to apply via the Jira UI.
+
+## Step 8.1: Transition Ticket Status
 Use `acli jira workitem` to update the ticket:
 - **Status**: Move to `Submitted` (or the project's equivalent PR-submitted state)
 - If transition fails (e.g., invalid workflow state), report and skip — don't block
 
-### Step 8.2: Update Ticket Fields
+## Step 8.2: Update Ticket Fields
 Set these fields if available and applicable:
 | Field | Value |
 |-------|-------|
@@ -17,7 +19,7 @@ Set these fields if available and applicable:
 | PR Link | The PR URL from Phase 7 |
 | Labels | Add `has-pr` or equivalent if project uses it |
 
-### Step 8.3: Add QA Test Steps
+## Step 8.3: Add QA Test Steps
 Post a comment on the ticket with structured QA test steps derived from:
 - Acceptance criteria (from Phase 1 spec.md)
 - Exploratory testing checklist (from Phase 4)
@@ -45,10 +47,10 @@ Regression:
 2. [ ] No console errors on affected pages
 ```
 
-### Step 8.4: Link PR to Ticket
+## Step 8.4: Link PR to Ticket
 If not already linked via branch name convention, add the PR as a linked item on the ticket.
 
-### Step 8.5: Release Planning
+## Step 8.5: Release Planning
 
 Always runs. Depth scales based on scope and whether this is a security issue.
 
