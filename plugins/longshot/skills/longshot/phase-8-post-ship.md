@@ -11,6 +11,7 @@ Use `acli jira workitem` to update the ticket:
 
 ## Step 8.2: Update Ticket Fields
 Set these fields if available and applicable:
+
 | Field | Value |
 |-------|-------|
 | Fix Version | Current development target (detect from branch name or ask user) |
