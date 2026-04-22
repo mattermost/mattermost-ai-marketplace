@@ -89,7 +89,7 @@
    |------|-------|-----------------|
    | `git` | `git --version` | ABORT — pipeline cannot run |
    | `gh` | `gh --version` | Warn — Phase 7 PR creation will fail; suggest `--skip pr` |
-   | `acli` | `acli --version` | Warn — Jira/Confluence steps (Phase 1, 8) degrade to manual prompts |
+   | `acli` | `acli --version` | Warn — Jira/Confluence steps (Phase 1, 8) fall back to Atlassian MCP, then manual prompts |
    | `make` | `make --version` | Warn (MM only) — Phases 4-5 quality commands may fail |
    | `npm` / `go` | check in `$PATH` | Warn — profile-specific test/lint commands may fail |
 

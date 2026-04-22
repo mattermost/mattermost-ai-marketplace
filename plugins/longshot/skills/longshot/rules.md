@@ -200,7 +200,7 @@ From Phase 0 toolchain probe:
 |------|-----------------|
 | `git` | **ABORT** — pipeline cannot run |
 | `gh` | Phase 7 PR creation disabled — suggest `--skip pr`; Phase 8 linking degrades |
-| `acli` | Phase 1/8 Jira steps fall back to manual prompts |
+| `acli` | Phase 1/8 Jira/Confluence steps fall back to Atlassian MCP, then to manual prompts if both are missing |
 | `make` | Warn (MM profile) — document that quality commands will fail |
 | `npm`/`node`/`go` | Warn — profile-specific commands fail, note in report |
 

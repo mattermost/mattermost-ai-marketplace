@@ -2,7 +2,7 @@
 
 **Goal**: Update the Jira ticket, prep release metadata, and complete handoff.
 
-Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs. If `acli` is unavailable, all Jira/Confluence calls degrade to manual prompts ([rules.md §5.3](rules.md#53-cli-tool-fallback)).
+Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs. If `acli` is unavailable, all Jira/Confluence calls fall back to Atlassian MCP, then manual prompts if both are missing ([rules.md §5.3](rules.md#53-cli-tool-fallback)).
 
 ## Step 8.1: Transition Ticket Status
 Use `acli jira workitem` to update the ticket:
