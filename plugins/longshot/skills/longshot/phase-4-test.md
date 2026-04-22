@@ -48,10 +48,7 @@ If any answer is **no**, E2E coverage is required. Write it.
 
 **If skipping**: write `<artifact_dir>/state.json.phases.4-test.e2e_skip_reason` AND an explicit line in the Phase 4 summary stating which of the three exemption criteria applies, with a concrete one-sentence justification. Generic labels ("N/A", "backend-only", "covered by unit") are rejected — name what the user would *not* see if this shipped broken.
 
-**Framework selection**:
-1. **Playwright** — if `e2e-tests/playwright/` exists, or `@playwright/test` in dependencies
-2. **Cypress** — if `cypress/` exists, or `cypress` in dependencies
-3. **No infra + E2E required** — STOP per [rules.md §6](rules.md#6-stop-protocol). Report that E2E coverage is mandated by the decision gate but no framework is installed. Do not silently skip.
+**Framework selection**: Playwright if `e2e-tests/playwright/` or `@playwright/test` is present, else Cypress if `cypress/` or a `cypress` dep is present. If the gate mandates E2E but neither framework is installed (rare — most projects have one), report and ask the user before skipping.
 
 Use domain agents:
 - `e2e-test-writer`: E2E patterns, selectors, page objects
