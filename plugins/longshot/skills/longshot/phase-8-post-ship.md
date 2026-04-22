@@ -2,9 +2,7 @@
 
 **Goal**: Update the Jira ticket, prep release metadata, and complete handoff.
 
-Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs.
-
-**`acli` fallback**: all `acli jira`/`acli confluence` calls in this phase degrade to manual prompts when `acli` is unavailable (per Phase 0 toolchain probe; see [rules.md §5.3](rules.md#53-cli-tool-fallback)) — surface the proposed field updates, comment bodies, and transitions to the user and ask them to apply via the Jira UI.
+Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs. If `acli` is unavailable, all Jira/Confluence calls degrade to manual prompts ([rules.md §5.3](rules.md#53-cli-tool-fallback)).
 
 ## Step 8.1: Transition Ticket Status
 Use `acli jira workitem` to update the ticket:

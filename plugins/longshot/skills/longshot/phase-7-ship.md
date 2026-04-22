@@ -84,9 +84,7 @@ Context: /longshot — <state.json.recap>
 - Create PR via `gh pr create`
 - Report PR URL
 
-If `--skip pr`: stop after local commit.
-
-If `gh` is unavailable (per Phase 0 toolchain probe, see [rules.md §5.3](rules.md#53-cli-tool-fallback)): stop after local commit, report the branch name and base, and instruct the user to create the PR manually via the web UI.
+If `--skip pr` or `gh` unavailable: stop after local commit; report branch + base for manual PR creation ([rules.md §5.3](rules.md#53-cli-tool-fallback)).
 
 Update state.json per [rules.md §1.5](rules.md#15-statejson-update-ritual).
 
