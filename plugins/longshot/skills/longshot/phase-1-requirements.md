@@ -200,7 +200,7 @@ Scan the input text for links and identifiers. Fetch each into context before an
 | Pattern | Tool | Example |
 |---------|------|---------|
 | Jira ticket (`MM-12345`, Atlassian URL) | `acli jira workitem view MM-12345` | Ticket description, acceptance criteria, comments, triage notes |
-| Figma URL | `figma:implement-design` MCP or `mcp__figma-desktop__*` | Design specs, component structure, visual requirements |
+| Figma URL | `figma:figma-implement-design` skill or `mcp__figma-dev-mode-mcp-server__*` MCP | Design specs, component structure, visual requirements |
 | Confluence/wiki URL | `acli confluence` or `mcp__mcp-atlassian__` | Spec documents, architecture decisions |
 | GitHub issue/PR URL | `gh issue view` / `gh pr view` | Issue description, discussion, linked PRs |
 | Generic URL | `WebFetch` | Any linked doc, spec, or reference |

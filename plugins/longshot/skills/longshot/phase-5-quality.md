@@ -34,7 +34,7 @@
 
 ## Step 5.6: Database Migration Validation (if migrations detected)
 
-**Reference**: Mattermost Schema Migration Guidelines (Agniva De Sarker, 2023). See also `database-migrations:sql-migrations` command for general migration patterns. Guidelines inlined below.
+**Reference**: Mattermost Schema Migration Guidelines (Agniva De Sarker, 2023). See also `/database-migrations:sql-migrations` command for general migration patterns. Guidelines inlined below.
 
 **Three goals (non-negotiable)**:
 1. Migrations ALWAYS backwards compatible to last ESR

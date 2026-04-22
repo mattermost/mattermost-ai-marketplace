@@ -186,18 +186,14 @@ Every skill the pipeline may invoke (grouped by host plugin). All are soft refer
 |-------|-----------|---------|
 | `conductor:track-management` | Phase 2 | Plan structure template |
 | `superpowers:writing-plans` | Phase 2 (fallback) | Plan drafting when conductor absent |
-| `comprehensive-review:full-review` | Phase 6 | Multi-dimensional code review orchestrator |
-| `coderabbit:review` | Phase 6 (AI review before human) | AI code review |
-| `figma:implement-design` | Phase 1 | Figma design context fetching |
+| `coderabbit:code-review` | Phase 6 (AI review before human) | AI code review |
+| `coderabbit:autofix` | Phase 6 (after AI review) | Apply CodeRabbit fix suggestions |
+| `figma:figma-implement-design` | Phase 1 | Figma design context fetching |
 | `accessibility-compliance:wcag-audit-patterns` | Phase 6 (a11y dimension) | WCAG audit patterns |
-| `database-migrations:sql-migrations` | Phase 5.6 | General migration patterns reference |
-| `conductor:implement` | Phase 3 | TDD task execution against a conductor plan |
 | `superpowers:subagent-driven-development` | Phase 3 (alt) | Parallel subagent execution of plan tasks |
 | `superpowers:executing-plans` | Phase 3 (alt) | Multi-session plan execution with review checkpoints |
-| `tdd-workflows:tdd-cycle` | Phase 4 | Full red/green/refactor cycle |
 | `superpowers:test-driven-development` | Phase 4 (alt) | TDD discipline for feature/bugfix |
 | `superpowers:systematic-debugging` | Phase 4 fix iteration | Root-cause hypothesis + evidence gathering |
-| `incident-response:smart-fix` | Phase 4 fix iteration (alt) | Multi-agent debug + verified fix |
 
 ### Domain agents referenced
 
@@ -234,25 +230,23 @@ Soft references — each is invoked only when its dimension applies. If the agen
 
 ### Slash commands referenced
 
-Phase 3/4 pick the first available implementation/TDD skill from the list below and fall back to inline behavior when none are present.
+Phase 3/4 pick the first available implementation/TDD command or skill from the fallback chains in each phase and fall back to inline behavior when none are present.
 
 | Command | Where used | Host plugin |
 |---------|-----------|-------------|
 | `/comprehensive-review:full-review` | Phase 6 | `comprehensive-review` |
 | `/review` | Phase 6 (presentation) | project-local or built-in |
 | `/conductor:implement` | Phase 3 (preferred) | `conductor` |
-| `superpowers:subagent-driven-development` | Phase 3 (alt — parallel subagents) | `superpowers` |
-| `superpowers:executing-plans` | Phase 3 (alt — multi-session) | `superpowers` |
 | `/tdd-workflows:tdd-cycle` | Phase 4 (preferred — red/green/refactor) | `tdd-workflows` |
-| `superpowers:test-driven-development` | Phase 4 (alt) | `superpowers` |
-| `superpowers:systematic-debugging` | Phase 4 fix iteration | `superpowers` |
-| `incident-response:smart-fix` | Phase 4 fix iteration (alt) | `incident-response` |
+| `/incident-response:smart-fix` | Phase 4 fix iteration (alt) | `incident-response` |
+| `/database-migrations:sql-migrations` | Phase 5.6 | `database-migrations` |
+| `/coderabbit:review` | Phase 6 (AI review) | `coderabbit` |
 
 ### Recommended Plugin Repositories
 
 - [claude-code-workflows](https://github.com/wshobson/agents) — domain agents and workflow skills (source for `comprehensive-review`, `agent-teams`, and most domain agents above)
 - [superpowers](https://github.com/obra/superpowers) — brainstorming, planning, debugging, TDD, worktrees (source for `superpowers:*` skills)
-- [coderabbit](https://www.coderabbit.ai/) — AI code review (`coderabbit:review`); distributed separately from `claude-code-workflows`, install per its own docs
+- [coderabbit](https://www.coderabbit.ai/) — AI code review (`coderabbit:code-review` skill, `coderabbit:autofix` skill, `/coderabbit:review` command); distributed separately from `claude-code-workflows`, install per its own docs
 - Built-in marketplace skills: `conductor:*`, `figma:*`, `accessibility-compliance:*`, `database-migrations:*` (Claude Code defaults; install via the platform's marketplace)
 
 Install via your platform's plugin/skill mechanism. Claude Code example:
