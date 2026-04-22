@@ -12,7 +12,7 @@
 
    Store the resolved path in `state.json.artifact_dir`.
 
-   ```
+   ```text
    <artifact_dir>/
    ├── state.json
    ├── spec.md              # Phase 1

@@ -56,11 +56,9 @@ Always runs. Depth scales based on scope and whether this is a security issue.
 **For all tickets** (standard release planning):
 
 1. **Determine fix version**: If not already set in state.json `release.fix_version`, identify the target release:
-   - Check the Jira ticket's Fix Version field via `acli jira workitem view`
-   - Query Jira project versions for release dates and statuses: `acli jira workitem search --jql "project = MM AND fixVersion = '<version>'" --fields fixVersion` or check the project's version list to see which versions are Unreleased vs Released
-   - If unset, detect from branch name (e.g., `release-10.5` → `10.5.0`) or ask user
-   - Cross-reference with the [Mattermost Server Releases page](https://docs.mattermost.com/product-overview/mattermost-server-releases.html#latest-releases) to verify the version is current and identify its release date
-   - Update `state.json.release.fix_version` and set the field on the Jira ticket
+   - **With ticket** (`state.json.repo` has a Jira ID): check the ticket's Fix Version via `acli jira workitem view`; query Jira project versions (`acli jira workitem search --jql "project = MM AND fixVersion = '<version>'" --fields fixVersion`) for Unreleased/Released status; update `state.json.release.fix_version` and set the field on the ticket.
+   - **Without ticket**: skip Jira reads/writes entirely. Detect from branch name (e.g., `release-10.5` → `10.5.0`) or ask the user; write to `state.json.release.fix_version` only.
+   - Either path: cross-reference with the [Mattermost Server Releases page](https://docs.mattermost.com/product-overview/mattermost-server-releases.html#latest-releases) to verify currency and release date.
 
 2. **Backport eligibility**: Evaluate whether this fix should be cherry-picked to any active release or ESR branches:
    - Query Jira for active release versions and their statuses — look for versions marked as Unreleased to identify branches still accepting fixes

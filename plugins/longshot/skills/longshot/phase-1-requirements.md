@@ -233,7 +233,7 @@ If a security issue is detected:
    - `embargo_until`: embargo/disclosure date if specified in ticket
 
 2. **Alert the user** — display prominently:
-   ```
+   ```text
    ⚠ SECURITY ISSUE DETECTED (type: <ticket_type>)
    This is a sensitive PR. Special handling required per:
    https://handbook.mattermost.com/operations/security/product-security/working-on-sensitive-prs
