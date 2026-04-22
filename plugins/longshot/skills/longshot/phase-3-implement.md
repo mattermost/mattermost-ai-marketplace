@@ -2,7 +2,12 @@
 
 **Goal**: Implement the plan with quality gates.
 
-Follow the `/create-code` workflow:
+Follow one of these implementation skills (first available wins):
+- **`/conductor:implement`** — TDD task execution against a conductor track's implementation plan
+- **`superpowers:subagent-driven-development`** — parallel subagent execution of independent plan tasks in the current session
+- **`superpowers:executing-plans`** — multi-session plan execution with review checkpoints
+
+If none are installed, proceed inline with the steps below.
 
 ### Step 3.1: Read Plan from file
 Per [rules.md §1.4](rules.md#14-artifacts-are-source-of-truth), read `<artifact_dir>/plan.md` from disk — never reconstruct from conversation context. Parse tasks, files to modify, acceptance criteria, and implementation order (waves).

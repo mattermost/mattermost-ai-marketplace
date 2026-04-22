@@ -191,6 +191,13 @@ Every skill the pipeline may invoke (grouped by host plugin). All are soft refer
 | `figma:implement-design` | Phase 1 | Figma design context fetching |
 | `accessibility-compliance:wcag-audit-patterns` | Phase 6 (a11y dimension) | WCAG audit patterns |
 | `database-migrations:sql-migrations` | Phase 5.6 | General migration patterns reference |
+| `conductor:implement` | Phase 3 | TDD task execution against a conductor plan |
+| `superpowers:subagent-driven-development` | Phase 3 (alt) | Parallel subagent execution of plan tasks |
+| `superpowers:executing-plans` | Phase 3 (alt) | Multi-session plan execution with review checkpoints |
+| `tdd-workflows:tdd-cycle` | Phase 4 | Full red/green/refactor cycle |
+| `superpowers:test-driven-development` | Phase 4 (alt) | TDD discipline for feature/bugfix |
+| `superpowers:systematic-debugging` | Phase 4 fix iteration | Root-cause hypothesis + evidence gathering |
+| `incident-response:smart-fix` | Phase 4 fix iteration (alt) | Multi-agent debug + verified fix |
 
 ### Domain agents referenced
 
@@ -227,15 +234,19 @@ Soft references — each is invoked only when its dimension applies. If the agen
 
 ### Slash commands referenced
 
-These are invoked directly as commands. Plugin-namespaced commands install via the plugin; bare commands (`/create-code`, etc.) are project-local workflows — the pipeline falls back to inline behavior if absent.
+Phase 3/4 pick the first available implementation/TDD skill from the list below and fall back to inline behavior when none are present.
 
 | Command | Where used | Host plugin |
 |---------|-----------|-------------|
 | `/comprehensive-review:full-review` | Phase 6 | `comprehensive-review` |
 | `/review` | Phase 6 (presentation) | project-local or built-in |
-| `/create-code` | Phase 3 | project-local |
-| `/create-test` | Phase 4 | project-local |
-| `/fix-test` | Phase 4 | project-local |
+| `/conductor:implement` | Phase 3 (preferred) | `conductor` |
+| `superpowers:subagent-driven-development` | Phase 3 (alt — parallel subagents) | `superpowers` |
+| `superpowers:executing-plans` | Phase 3 (alt — multi-session) | `superpowers` |
+| `/tdd-workflows:tdd-cycle` | Phase 4 (preferred — red/green/refactor) | `tdd-workflows` |
+| `superpowers:test-driven-development` | Phase 4 (alt) | `superpowers` |
+| `superpowers:systematic-debugging` | Phase 4 fix iteration | `superpowers` |
+| `incident-response:smart-fix` | Phase 4 fix iteration (alt) | `incident-response` |
 
 ### Recommended Plugin Repositories
 

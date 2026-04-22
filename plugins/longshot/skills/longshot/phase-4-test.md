@@ -2,7 +2,11 @@
 
 **Goal**: Comprehensive test coverage, all green.
 
-Follow the `/create-test` workflow:
+Follow one of these TDD skills (first available wins):
+- **`/tdd-workflows:tdd-cycle`** — full red/green/refactor cycle orchestration
+- **`superpowers:test-driven-development`** — TDD discipline for any feature/bugfix
+
+If none are installed, proceed inline with the steps below.
 
 ### Step 4.0: Reproduction Verification (bugs only)
 
@@ -67,7 +71,7 @@ If failures → Step 4.5.
 ### Step 4.5: Fix Failures
 Retry budget and classification rules live in [rules.md §4](rules.md#4-retry--escalation-budgets) — 3 attempts per error signature, transient-retry once, STOP protocol on exhaustion.
 
-Follow `/fix-test` workflow with structured classification:
+Use `superpowers:systematic-debugging` (or `incident-response:smart-fix` for code-bug classification) with structured classification:
 1. **Classify each failure**:
    - `CODE_BUG`: implementation logic error → spawn `debugger` agent for root cause
    - `TEST_BUG`: test incorrectly written (wrong selector, bad assertion) → fix test directly
