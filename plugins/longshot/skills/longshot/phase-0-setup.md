@@ -110,9 +110,16 @@
 
 ## Minimal Phase 0 for `--only`
 
-`/longshot --only <phase>` runs a reduced Phase 0 first to guarantee `artifact_dir`. Skips branch creation, permission approvals, and spec/plan drafting.
+`/longshot --only <phase>[,<phase>...]` runs a reduced Phase 0 first to guarantee `artifact_dir`. Skips branch creation, permission approvals, and spec/plan drafting.
 
-Runs: profile detection, toolchain probe, execution mode, state.json resolution. If state.json exists, reuse its `artifact_dir`. Otherwise bootstrap with feature name `<branch>-<phase>-<RFC3339>`, resolve path per full Phase 0's step 4, and write `state.json` with `recap: "--only <phase> invocation"`, `status: "in_progress"`, `current_phase: <N>`. Print the resolved path.
+Runs: profile detection, toolchain probe, execution mode, state.json resolution. If state.json exists, reuse its `artifact_dir`. Otherwise bootstrap with feature name `<branch>-<first-phase>-<RFC3339>`, resolve path per full Phase 0's step 4, and write `state.json` with `recap: "--only <phases> invocation"`, `status: "in_progress"`, `current_phase: <first>`, and `flags.only: ["<phase>", ...]` preserving the order given on the CLI. Print the resolved path.
+
+**Multi-phase execution** (`--only review,test` or similar):
+- Parse comma-separated list into an ordered queue; preserve CLI order verbatim (no topological re-sorting). If the user wrote `--only test,review`, run test before review.
+- Execute each phase in turn, honoring its normal gates and retry budgets ([rules.md §4](rules.md#4-retry--escalation-budgets)). A gate failure in one phase STOPs the run — do not silently skip to the next.
+- Between phases, update `state.json.current_phase` and emit a one-line transition log; do NOT run interstitial phases that weren't listed (e.g., `--only review,test` does not invoke quality between them).
+- On completion, exit without triggering downstream phases (same as single-phase `--only`).
+- Duplicates are collapsed preserving first occurrence. Unknown tokens abort before execution with the list of valid phase names.
 
 STOP if `git` unavailable or no writable filesystem.
 

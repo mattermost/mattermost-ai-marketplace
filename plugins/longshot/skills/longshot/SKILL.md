@@ -76,6 +76,7 @@ RESUMPTION
 --continue     ►  minimal P0  ►  current_phase   ►  normal flow
 --skip-to <N>  ►  minimal P0  ►  phase N         ►  normal flow
 --only <N>     ►  minimal P0  ►  phase N         ►  exit after
+--only A,B,C   ►  minimal P0  ►  phase A ► B ► C ►  exit after (honors order)
 
 SKIP PATHS
 ──────────
@@ -111,7 +112,7 @@ any      --abort, context limit, irrecoverable error
 |------|--------|
 | `--continue` | Resume the most recent in-progress run (reads state.json, picks up at `current_phase`). Alias: `--resume` |
 | `--skip-to <phase>` | Resume from a specific phase: `requirements`, `plan`, `implement`, `test`, `quality`, `review`, `ship`, `post-ship` |
-| `--only <phase>` | Run only the specified phase without downstream phases (e.g., `--only quality` to re-run lint). A **minimal Phase 0** runs first to resolve `artifact_dir` — see [phase-0-setup.md § Minimal Phase 0 for `--only`](phase-0-setup.md#minimal-phase-0-for---only). |
+| `--only <phase>[,<phase>...]` | Run only the specified phase(s), in the order given, without triggering adjacent phases. Single phase: `--only quality` re-runs lint. Multiple phases: `--only review,test` runs review first, then test — handy for "review a PR, then shore up testing gaps". Order is honored as written, so `--only test,review` and `--only review,test` execute differently. A **minimal Phase 0** runs first to resolve `artifact_dir` — see [phase-0-setup.md § Minimal Phase 0 for `--only`](phase-0-setup.md#minimal-phase-0-for---only). |
 | `--skip <phase>[,<phase>...]` | Skip phases or sub-steps. Tokens: phase names above + `pr` (skip push+PR within ship, keep local commit). Examples: `--skip review`, `--skip review,pr`. |
 | `--revert <phase>` | Semantically revert a phase using recorded commit SHAs (git revert, not reset) |
 
@@ -142,6 +143,7 @@ any      --abort, context limit, irrecoverable error
 | Resume where you left off | `--continue` |
 | Resume from a specific phase | `--skip-to <phase>` |
 | Re-run just one phase | `--only <phase>` |
+| Run a subset in order | `--only review,test` (review the branch, then shore up tests) |
 | Skip PR creation | `--skip pr` |
 | Skip Phase 6 review | `--skip review` |
 | Force a profile | `--profile <name>` |
