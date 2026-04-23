@@ -51,6 +51,8 @@ Plans, specs, and state are read from disk, never reconstructed from conversatio
 
 This prevents context drift across phases and makes resumption deterministic.
 
+**Corollary — reviewer/subagent artifacts must land under `<artifact_dir>`**: any agent, skill, or slash command that produces findings/review/analysis output MUST write to `<artifact_dir>/findings/phase<N>/...`, never to the repo working tree. For tools with rigid output paths (e.g., `/comprehensive-review:full-review` hardcodes `<cwd>/.full-review/`), the invoking phase redirects at source — pre-seed the output dir and symlink the rigid path into it, or intercept the stream and Write directly. After the command returns, verify `git status` shows no review-related entries. Cleanup is a fallback, not the primary strategy — leaked artifacts bloat diffs and risk accidental commits.
+
 ### 1.5 state.json Update Ritual
 
 At the end of every phase, update `state.json` atomically with:

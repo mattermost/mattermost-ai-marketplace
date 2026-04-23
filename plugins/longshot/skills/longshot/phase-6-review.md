@@ -12,6 +12,20 @@ Principle citation: [rules.md §8](rules.md#8-principle-applications) — strong
 
 Invoke both reviewers in parallel when possible — they're independent and complementary. Comprehensive-review orchestrates specialist agents across architectural/dimensional lenses; CodeRabbit contributes line-level AI-assisted findings (style, logic, security, best-practice) tuned to its own rule corpus. Capture each verbatim.
 
+**Before invoking either reviewer: pre-seed output locations** so their artifacts land in the longshot artifact dir, not the repo. This is critical for `--only review` runs where the repo is otherwise untouched — review output must NEVER clutter the working tree.
+
+```bash
+# Create the target dirs in the longshot artifact dir
+mkdir -p "<artifact_dir>/findings/phase6/comprehensive-review" "<artifact_dir>/findings/phase6/coderabbit"
+
+# Symlink the full-review command's hardcoded output path into our findings dir.
+# full-review writes to <cwd>/.full-review/ and has no output-dir flag, so
+# redirection via symlink is the cleanest non-invasive capture.
+ln -sfn "<artifact_dir>/findings/phase6/comprehensive-review" "<repo_root>/.full-review"
+```
+
+After reviewers complete (Step 6.2): remove the symlink with `rm "<repo_root>/.full-review"` (removes the link, not the target). Verify with `git status` that nothing review-related is in the working tree. If `.full-review/` ever appears as untracked, consider adding it to the repo's `.gitignore` as defense-in-depth.
+
 ### 6.1a: `/comprehensive-review:full-review`
 
 **Inputs to pass**:
@@ -21,10 +35,13 @@ Invoke both reviewers in parallel when possible — they're independent and comp
 - Depth signal (see table below)
 - Dimension emphasis notes (below) — longshot-specific severity calibration
 
+With the symlink in place, the command's `.full-review/*.md` writes land transparently in `<artifact_dir>/findings/phase6/comprehensive-review/`. Do not move or rename the files afterward — the command reads its own prior-phase files by path between its internal phases.
+
 ### 6.1b: `/coderabbit:review`
 
 Run `/coderabbit:review` (or the `coderabbit:code-review` skill) against the local diff with `--base <base_branch>`. Operates pre-PR — does not require the PR to be open.
 
+- **Output redirection**: capture the command's output directly with the `Write` tool to `<artifact_dir>/findings/phase6/coderabbit/review.md` — do not allow it to drop artifacts in the repo. If the invocation creates files in `cwd`, move them immediately and verify `git status` is clean.
 - If `coderabbit` CLI is unavailable, skip with a warning; CodeRabbit bot will still review the PR automatically in Phase 7, and `coderabbit:autofix` can be applied to those bot comments post-PR.
 - Treat CodeRabbit severity labels per the mapping in `coderabbit:autofix` (🔴 Critical/High → MUST_FIX, 🟠 Medium → SHOULD_FIX, 🟡 Minor/Low → NIT, 🟢 Info → NIT). Security findings are always MUST_FIX regardless of CodeRabbit's label.
 - Push back on stylistic nits that conflict with project convention; CodeRabbit is eager to find issues. The synthesis step is the place to deduplicate and calibrate.
@@ -93,19 +110,21 @@ Only include dimensions that apply. These calibrate `comprehensive-review` — n
 
 ## Step 6.2: Catalog Findings
 
-Use the `Write` tool to persist:
+Reviewer outputs should already be in `<artifact_dir>/findings/phase6/` from the pre-seeded redirection in Step 6.1. This step synthesizes them.
 
-1. `<artifact_dir>/findings/phase6/comprehensive-review/<dimension>.md` — raw output from 6.1a, one file per dimension, verbatim
-2. `<artifact_dir>/findings/phase6/coderabbit/review.md` — raw output from 6.1b, verbatim
-3. `<artifact_dir>/findings/phase6/synthesis.md` — unified finding list across both reviewers (format below), the only file read downstream. Deduplicate overlapping findings; prefer the more specific citation.
+- Verify both inputs landed correctly: `ls <artifact_dir>/findings/phase6/comprehensive-review/` and `ls <artifact_dir>/findings/phase6/coderabbit/`. If empty, the redirection failed — fix before synthesizing.
+- Write `<artifact_dir>/findings/phase6/synthesis.md` — unified finding list across both reviewers (format below). Deduplicate overlapping findings; prefer the more specific citation. This is the only file read downstream.
+- After removing the `.full-review` symlink, run `git status` and confirm nothing review-related appears in the working tree.
 
 ```text
 <artifact_dir>/findings/phase6/
 ├── comprehensive-review/
-│   ├── architecture.md
-│   ├── code-quality.md
-│   ├── security.md
-│   └── ... (one file per dimension)
+│   ├── 00-scope.md
+│   ├── 01-quality-architecture.md
+│   ├── 02-security-performance.md
+│   ├── 03-testing-documentation.md
+│   ├── 04-best-practices.md
+│   └── 05-final-report.md
 ├── coderabbit/
 │   └── review.md
 ├── round-1/
