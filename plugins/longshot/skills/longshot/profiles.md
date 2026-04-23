@@ -36,14 +36,14 @@ MM Layer Template (Model → Store → App → API → Webapp). Base structure f
 | Step | Command | When |
 |------|---------|------|
 | Server lint | `cd server && make check-style` | Phase 5 |
-| Webapp lint | `cd webapp/channels && npm run check` | Phase 5 |
-| Type check | `cd webapp/channels && npm run check-types` | Phase 5 |
+| Webapp lint | `cd webapp && make check-style` | Phase 5 |
+| Type check | `cd webapp && make check-types` | Phase 5 |
 | Format Go | `cd server && make fmt` | Phase 5 auto-fix |
-| Fix JS | `cd webapp/channels && npm run fix` | Phase 5 auto-fix |
+| Fix JS | `cd webapp && make fix-style` | Phase 5 auto-fix |
 | i18n extract | `make i18n-extract` | Phase 5 (if applicable) |
 | Server test | `cd server && make test-server` | Phase 4 |
 | Single Go test | `cd server && go test ./channels/app -run TestName -v` | Phase 4 targeted |
-| Webapp test | `cd webapp/channels && npm test` | Phase 4 |
+| Webapp test | `cd webapp && make test` | Phase 4 |
 
 > **Note**: Targeted `go test -run` for single tests is acceptable when no make target exists.
 | Deploy local | `cd server && make run` | Manual verification |
@@ -90,10 +90,10 @@ Run all of these before committing (Phase 7, Step 7.0). Order: auto-fix first, t
 | Go format | `cd server && make fmt` |
 | Go lint | `cd server && make check-style` |
 | Go tests | `cd server && make test-server` |
-| JS/TS fix | `cd webapp/channels && npm run fix` |
-| Webapp lint | `cd webapp/channels && npm run check` |
-| Type check | `cd webapp/channels && npm run check-types` |
-| Webapp tests | `cd webapp/channels && npm test` |
+| JS/TS fix | `cd webapp && make fix-style` |
+| Webapp lint | `cd webapp && make check-style` |
+| Type check | `cd webapp && make check-types` |
+| Webapp tests | `cd webapp && make test` |
 | i18n | `make i18n-extract` (if webapp strings changed) |
 
 ---

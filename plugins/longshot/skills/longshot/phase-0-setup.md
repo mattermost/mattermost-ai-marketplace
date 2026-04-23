@@ -78,7 +78,7 @@
    ```
 6. **Permission surface** (reference for platform settings/allowlist configuration — e.g., `.claude/settings.json` on Claude Code):
    - All profiles: `git`, `Read`/`Write`/`Edit`/`Glob`/`Grep`, `Agent`, `WebFetch`, `acli jira workitem view`, `gh pr create`, `Bash: mkdir/ls/jq`
-   - Mattermost: `make check-style`/`test-server`/`fmt`/`i18n-extract`, `npm run check`/`check-types`/`fix`/`test`, `npm audit`, `npx playwright test`
+   - Mattermost: `make check-style`/`test-server`/`fmt`/`i18n-extract` (server), `make check-style`/`check-types`/`fix-style`/`test` (webapp), `npm audit`, `npx playwright test`
    - Mobile: `npm install`/`lint`/`check-types`/`test`
    - Playbooks: `make deploy`/`check-style`/`i18n-extract`
    - Generic: auto-detected from `package.json` / `Makefile` / `go.mod`
