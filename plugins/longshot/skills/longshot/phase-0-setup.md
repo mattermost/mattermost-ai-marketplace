@@ -56,7 +56,7 @@
        "5-quality": {"status": "pending"},
        "6-review": {"status": "pending"},
        "7-ship": {"status": "pending"},
-       "8-post-ship": {"status": "pending"}
+       "8-release": {"status": "pending"}
      },
      "commits": [],
      "checkpoints": [],

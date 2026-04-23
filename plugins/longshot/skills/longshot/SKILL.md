@@ -1,6 +1,6 @@
 ---
 name: Longshot
-description: Autonomous development pipeline for features, bug triage, and ideation. Drives planning, implementation, testing, quality, review, shipping, and post-ship via specialist agents. Runs end-to-end or resumes from any phase.
+description: Autonomous development pipeline for features, bug triage, and ideation. Drives planning, implementation, testing, quality, review, shipping, and release via specialist agents. Runs end-to-end or resumes from any phase.
 version: 4.6.0
 tags:
   - planning
@@ -15,14 +15,14 @@ disable-model-invocation: true
 
 # Longshot
 
-Autonomous development pipeline — covers feature work, bug triage, and ideation. Drives planning → implementation → testing → quality → review → ship → post-ship via specialist agents. Run the full cycle or any subset (`--skip-to`, `--only`).
+Autonomous development pipeline — covers feature work, bug triage, and ideation. Drives planning → implementation → testing → quality → review → ship → release via specialist agents. Run the full cycle or any subset (`--skip-to`, `--only`).
 
 ## Reference Files
 
 - [rules.md](rules.md) — cross-cutting invariants, git/security/retry/STOP protocols
 - [principles.md](principles.md) — AI-Powered Development Process (the *why*)
 - [profiles.md](profiles.md) — per-project build commands, layers, agent routing
-- Phase files: [phase-0](phase-0-setup.md), [phase-1](phase-1-requirements.md), [phase-2](phase-2-plan.md), [phase-3](phase-3-implement.md), [phase-4](phase-4-test.md), [phase-5](phase-5-quality.md), [phase-6](phase-6-review.md), [phase-7](phase-7-ship.md), [phase-8](phase-8-post-ship.md)
+- Phase files: [phase-0](phase-0-setup.md), [phase-1](phase-1-requirements.md), [phase-2](phase-2-plan.md), [phase-3](phase-3-implement.md), [phase-4](phase-4-test.md), [phase-5](phase-5-quality.md), [phase-6](phase-6-review.md), [phase-7](phase-7-ship.md), [phase-8](phase-8-release.md)
 
 ## Usage
 
@@ -51,7 +51,7 @@ Autonomous development pipeline — covers feature work, bug triage, and ideatio
 | 5 | Quality | lint, typecheck, i18n, auto-fix |
 | 6 | Review | `/comprehensive-review:full-review` (2 rounds max) |
 | 7 | Ship | commit, confirm, push + PR |
-| 8 | Post-Ship | Jira status, fix version, QA steps |
+| 8 | Release | Jira status, fix version, backports, QA steps, changelog |
 
 Each phase is a **gate** — failure stops with a report and `--skip-to` suggestion.
 
@@ -69,7 +69,7 @@ INGRESS                PIPELINE                    EGRESS
                        5: Quality
                        6: Review        ──X MUST_FIX ──────►  STOP
                        7: Ship          ──[--skip pr]──────►  Local commit
-                       8: Post-Ship ────────────────────────► Complete
+                       8: Release   ────────────────────────► Complete
 
 RESUMPTION
 ──────────
@@ -82,7 +82,7 @@ SKIP PATHS
 ──────────
 --skip review     bypasses Phase 6 (5 → 7)
 --skip pr         local commit only, no push/PR
---skip post-ship  stops after Phase 7
+--skip release    stops after Phase 7
 
 STOP TRIGGERS
 ─────────────
@@ -111,7 +111,7 @@ any      --abort, context limit, irrecoverable error
 | Flag | Effect |
 |------|--------|
 | `--continue` | Resume the most recent in-progress run (reads state.json, picks up at `current_phase`). Alias: `--resume` |
-| `--skip-to <phase>` | Resume from a specific phase: `requirements`, `plan`, `implement`, `test`, `quality`, `review`, `ship`, `post-ship` |
+| `--skip-to <phase>` | Resume from a specific phase: `requirements`, `plan`, `implement`, `test`, `quality`, `review`, `ship`, `release` |
 | `--only <phase>[,<phase>...]` | Run only the listed phase(s), in CLI order, skipping everything else. E.g. `--only review,test` reviews then shores up tests. A [minimal Phase 0](phase-0-setup.md#minimal-phase-0-for---only) runs first to resolve `artifact_dir`. |
 | `--skip <phase>[,<phase>...]` | Skip phases or sub-steps. Tokens: phase names above + `pr` (skip push+PR within ship, keep local commit). Examples: `--skip review`, `--skip review,pr`. |
 | `--revert <phase>` | Semantically revert a phase using recorded commit SHAs (git revert, not reset) |
@@ -313,7 +313,7 @@ At completion (or stop), print:
 | Quality | COMPLETE | 30s |
 | Review | COMPLETE (1 SHOULD_FIX noted) | 2m |
 | Ship | COMPLETE | 10s |
-| Post-Ship | COMPLETE | 5s |
+| Release | COMPLETE | 5s |
 
 ### Artifacts
 - Plan: `<artifact_dir>/plan.md`

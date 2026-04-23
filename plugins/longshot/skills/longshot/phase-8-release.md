@@ -1,6 +1,6 @@
-# Phase 8: Post-Ship
+# Phase 8: Release
 
-**Goal**: Update the Jira ticket, prep release metadata, and complete handoff.
+**Goal**: Update the Jira ticket, prep release metadata, plan backports, and draft release notes.
 
 Steps 8.1–8.4 require a Jira ticket and are skipped if none was identified. Step 8.5 (Release Planning) always runs. If `acli` is unavailable, all Jira/Confluence calls fall back to Atlassian MCP, then manual prompts if both are missing ([rules.md §5.3](rules.md#53-cli-tool-fallback)).
 

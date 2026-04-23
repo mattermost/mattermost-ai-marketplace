@@ -12,7 +12,7 @@ Longshot operationalizes these principles in [rules.md §8](rules.md#8-principle
 | Development | Feature flags by default; AGENTS.md for shared context; use AI extensively but not carelessly | Phase 3 (implement) |
 | Submitting PRs | Self-review first; tests required; AI review before human; strong description; keep scoped and small; rebase before submitting | Phase 6 (self-review), Phase 7 (ship) |
 | Reviewing PRs | One required human reviewer; submitter owns quality; merged = ready to ship; acknowledge within 2 business days; focus on high-impact feedback | Context for reviewers (external to longshot run) |
-| Verifying Tickets | Drink own champagne on community/hub; engineers close their own tickets; every capability needs a lighthouse customer | Phase 8 (post-ship) |
+| Verifying Tickets | Drink own champagne on community/hub; engineers close their own tickets; every capability needs a lighthouse customer | Phase 8 (release) |
 
 Related references:
 - [Feature Flags Guidelines](https://mattermost.atlassian.net/wiki/spaces/pde/pages/4364795905/Feature+Flags+Guidelines)

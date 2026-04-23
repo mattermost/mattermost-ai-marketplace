@@ -434,16 +434,16 @@ When advisory-only (no critical gaps or XS/S scope), do not show the numbered me
 
 | Size | Description | Phase Depth |
 |------|-------------|-------------|
-| **XS** | Typo, config change, one-liner | All phases run with minimal depth. Requirements: 1-2 sentence spec. Plan: brief inline plan. Test: verify no regressions. Quality: full lint pass. Review: quick sanity check. Ship: standard commit flow. Post-Ship: update ticket if exists. |
-| **S** | Single file, clear fix | All phases run with light depth. Requirements: concise spec. Plan: short plan, skip domain consultation. Test: unit tests + E2E relevancy check. Quality: full checks. Review: focused review on changed area. Ship/Post-Ship: standard. |
-| **M** | Single layer, moderate scope | All phases run with moderate depth. Requirements: full spec. Plan: abbreviated plan with domain consultation if needed. Test: unit + E2E where applicable. Quality: full checks. Review: tier-scaled review. Ship/Post-Ship: standard. |
+| **XS** | Typo, config change, one-liner | All phases run with minimal depth. Requirements: 1-2 sentence spec. Plan: brief inline plan. Test: verify no regressions. Quality: full lint pass. Review: quick sanity check. Ship: standard commit flow. Release: update ticket if exists. |
+| **S** | Single file, clear fix | All phases run with light depth. Requirements: concise spec. Plan: short plan, skip domain consultation. Test: unit tests + E2E relevancy check. Quality: full checks. Review: focused review on changed area. Ship/Release: standard. |
+| **M** | Single layer, moderate scope | All phases run with moderate depth. Requirements: full spec. Plan: abbreviated plan with domain consultation if needed. Test: unit + E2E where applicable. Quality: full checks. Review: tier-scaled review. Ship/Release: standard. |
 | **L** | Multi-layer feature | All phases run at full depth. Complete pipeline with domain consultation, comprehensive testing, full-tier review. |
 | **XL** | Cross-system, multi-repo | All phases run at full depth + cross-repo coordination flags. |
 
 Present to user as:
 ```text
 Scope: M (single layer — webapp Redux state changes)
-Phases: Setup → Requirements → Plan → Implement → Test → Quality → Review → Ship → Post-Ship
+Phases: Setup → Requirements → Plan → Implement → Test → Quality → Review → Ship → Release
 Depth: Moderate — all phases evaluated, plan abbreviated, review tier-scaled
 ```
 
