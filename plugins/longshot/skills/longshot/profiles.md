@@ -40,7 +40,8 @@ MM Layer Template (Model → Store → App → API → Webapp). Base structure f
 | Type check | `cd webapp && make check-types` | Phase 5 |
 | Format Go | `cd server && make fmt` | Phase 5 auto-fix |
 | Fix JS | `cd webapp && make fix-style` | Phase 5 auto-fix |
-| i18n extract | `make i18n-extract` | Phase 5 (if applicable) |
+| i18n extract (server) | `cd server && make i18n-extract` | Phase 5 (if server strings changed) |
+| i18n extract (webapp) | `cd webapp && make i18n-extract` | Phase 5 (if webapp strings changed) |
 | Server test | `cd server && make test-server` | Phase 4 |
 | Single Go test | `cd server && go test ./channels/app -run TestName -v` | Phase 4 targeted |
 | Webapp test | `cd webapp && make test` | Phase 4 |
@@ -94,7 +95,8 @@ Run all of these before committing (Phase 7, Step 7.0). Order: auto-fix first, t
 | Webapp lint | `cd webapp && make check-style` |
 | Type check | `cd webapp && make check-types` |
 | Webapp tests | `cd webapp && make test` |
-| i18n | `make i18n-extract` (if webapp strings changed) |
+| i18n (server) | `cd server && make i18n-extract` (if server strings changed) |
+| i18n (webapp) | `cd webapp && make i18n-extract` (if webapp strings changed) |
 
 ---
 
