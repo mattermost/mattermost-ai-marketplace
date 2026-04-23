@@ -49,7 +49,7 @@ Autonomous development pipeline — covers feature work, bug triage, and ideatio
 | 3 | Implement | TDD, auto-review (2 rounds max) |
 | 4 | Test | unit + E2E + exploratory browser |
 | 5 | Quality | lint, typecheck, i18n, auto-fix |
-| 6 | Review | parallel `/comprehensive-review:full-review` + `/coderabbit:review`, synthesize to `findings/phase6/synthesis.md`, fix MUST_FIX (2 rounds max), gate on user approval |
+| 6 | Review | Multi-dimensional review driven by `/comprehensive-review:full-review` and `/coderabbit:review`, cataloged to findings, polished via `/review` (2 rounds max) |
 | 7 | Ship | commit, confirm, push + PR |
 | 8 | Release | Jira status, fix version, backports, QA steps, changelog |
 
