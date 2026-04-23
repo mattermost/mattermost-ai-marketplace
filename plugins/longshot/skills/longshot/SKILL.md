@@ -112,7 +112,7 @@ any      --abort, context limit, irrecoverable error
 |------|--------|
 | `--continue` | Resume the most recent in-progress run (reads state.json, picks up at `current_phase`). Alias: `--resume` |
 | `--skip-to <phase>` | Resume from a specific phase: `requirements`, `plan`, `implement`, `test`, `quality`, `review`, `ship`, `post-ship` |
-| `--only <phase>[,<phase>...]` | Run only the specified phase(s), in the order given, without triggering adjacent phases. Single phase: `--only quality` re-runs lint. Multiple phases: `--only review,test` runs review first, then test — handy for "review a PR, then shore up testing gaps". Order is honored as written, so `--only test,review` and `--only review,test` execute differently. A **minimal Phase 0** runs first to resolve `artifact_dir` — see [phase-0-setup.md § Minimal Phase 0 for `--only`](phase-0-setup.md#minimal-phase-0-for---only). |
+| `--only <phase>[,<phase>...]` | Run only the listed phase(s), in CLI order, skipping everything else. E.g. `--only review,test` reviews then shores up tests. A [minimal Phase 0](phase-0-setup.md#minimal-phase-0-for---only) runs first to resolve `artifact_dir`. |
 | `--skip <phase>[,<phase>...]` | Skip phases or sub-steps. Tokens: phase names above + `pr` (skip push+PR within ship, keep local commit). Examples: `--skip review`, `--skip review,pr`. |
 | `--revert <phase>` | Semantically revert a phase using recorded commit SHAs (git revert, not reset) |
 
