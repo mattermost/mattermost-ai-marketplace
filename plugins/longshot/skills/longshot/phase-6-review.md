@@ -1,6 +1,6 @@
 # Phase 6: Review (skip with `--skip review`)
 
-**Goal**: Multi-dimensional review driven by [`/comprehensive-review:full-review`](../../plugins/comprehensive-review/), cataloged to longshot findings, polished via `/review`.
+**Goal**: Multi-dimensional review driven by [`/comprehensive-review:full-review`](../../plugins/comprehensive-review/) and `/coderabbit:review`, cataloged to longshot findings, polished via `/review`.
 
 Principle citation: [rules.md §8](rules.md#8-principle-applications) — strong self-review; reviewers aren't a safety net.
 
@@ -8,9 +8,11 @@ Principle citation: [rules.md §8](rules.md#8-principle-applications) — strong
 
 ---
 
-## Step 6.1: Run Comprehensive Review
+## Step 6.1: Run Reviewers
 
-Invoke `/comprehensive-review:full-review`. It orchestrates specialist agents across dimensions — Phase 6 supplies context and captures output.
+Invoke both reviewers in parallel when possible — they're independent and complementary. Comprehensive-review orchestrates specialist agents across architectural/dimensional lenses; CodeRabbit contributes line-level AI-assisted findings (style, logic, security, best-practice) tuned to its own rule corpus. Capture each verbatim.
+
+### 6.1a: `/comprehensive-review:full-review`
 
 **Inputs to pass**:
 
@@ -18,6 +20,14 @@ Invoke `/comprehensive-review:full-review`. It orchestrates specialist agents ac
 - Scope (XS/S/M/L/XL), affected layers, security classification, feature flag status (from state.json / spec.md / plan.md)
 - Depth signal (see table below)
 - Dimension emphasis notes (below) — longshot-specific severity calibration
+
+### 6.1b: `/coderabbit:review`
+
+Run `/coderabbit:review` (or the `coderabbit:code-review` skill) against the local diff with `--base <base_branch>`. Operates pre-PR — does not require the PR to be open.
+
+- If `coderabbit` CLI is unavailable, skip with a warning; CodeRabbit bot will still review the PR automatically in Phase 7, and `coderabbit:autofix` can be applied to those bot comments post-PR.
+- Treat CodeRabbit severity labels per the mapping in `coderabbit:autofix` (🔴 Critical/High → MUST_FIX, 🟠 Medium → SHOULD_FIX, 🟡 Minor/Low → NIT, 🟢 Info → NIT). Security findings are always MUST_FIX regardless of CodeRabbit's label.
+- Push back on stylistic nits that conflict with project convention; CodeRabbit is eager to find issues. The synthesis step is the place to deduplicate and calibrate.
 
 ### Scope → Depth Signal
 
@@ -85,8 +95,9 @@ Only include dimensions that apply. These calibrate `comprehensive-review` — n
 
 Use the `Write` tool to persist:
 
-1. `<artifact_dir>/findings/phase6/comprehensive-review/<dimension>.md` — raw output, one file per dimension, verbatim
-2. `<artifact_dir>/findings/phase6/synthesis.md` — unified finding list (format below), the only file read downstream
+1. `<artifact_dir>/findings/phase6/comprehensive-review/<dimension>.md` — raw output from 6.1a, one file per dimension, verbatim
+2. `<artifact_dir>/findings/phase6/coderabbit/review.md` — raw output from 6.1b, verbatim
+3. `<artifact_dir>/findings/phase6/synthesis.md` — unified finding list across both reviewers (format below), the only file read downstream. Deduplicate overlapping findings; prefer the more specific citation.
 
 ```text
 <artifact_dir>/findings/phase6/
@@ -95,6 +106,8 @@ Use the `Write` tool to persist:
 │   ├── code-quality.md
 │   ├── security.md
 │   └── ... (one file per dimension)
+├── coderabbit/
+│   └── review.md
 ├── round-1/
 ├── round-2/
 └── synthesis.md
@@ -140,7 +153,7 @@ Round budget: **2** ([rules.md §4](rules.md#4-retry--escalation-budgets)).
 For each round:
 1. Fix all MUST_FIX items from `synthesis.md`
 2. Archive current findings to `<artifact_dir>/findings/phase6/round-<N>/`
-3. Re-run from Step 6.1 (`/comprehensive-review:full-review` picks up the new diff)
+3. Re-run from Step 6.1 (both `/comprehensive-review:full-review` and `/coderabbit:review` pick up the new diff)
 4. Regenerate `synthesis.md` and `review-report.md`
 
 After 2 rounds:
@@ -158,7 +171,7 @@ Present `review-report.md` to the user:
 
 SHOULD_FIX items are reported in the PR description but don't block shipping. NITS are captured in findings but usually omitted from the PR body.
 
-In **swarm mode** (default when agent teams available), `/comprehensive-review:full-review` and Phase 6 share the swarm protocol in [rules.md §7](rules.md#7-swarm-mode-file-ownership--convergence).
+In **swarm mode** (default when agent teams available), `/comprehensive-review:full-review`, `/coderabbit:review`, and Phase 6 share the swarm protocol in [rules.md §7](rules.md#7-swarm-mode-file-ownership--convergence).
 
 Update state.json per [rules.md §1.5](rules.md#15-statejson-update-ritual). Record checkpoint commit SHA per [rules.md §1.6](rules.md#16-checkpoint-commits-at-gates).
 
