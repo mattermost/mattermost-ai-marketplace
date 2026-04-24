@@ -23,9 +23,14 @@ You are investigating production issues on the Mattermost Grafana instance.
 
 These namespace UIDs appear as the `namespace` label in both Loki and Prometheus. Always filter by namespace when the user's question is scoped to a specific product.
 
-### Getting data source UIDs
+### Data source UIDs (pre-cached — do not call `list_datasources`)
 
-Before querying, call `list_datasources` to get the `uid` fields for `Loki Production` and `Prometheus Prod`. Cache these for the rest of the session — don't call `list_datasources` more than once.
+| Data source       | UID                   |
+|-------------------|-----------------------|
+| Loki Production   | `P4F55509B51A00EB7`   |
+| Prometheus Prod   | `P27C405C01959D762`   |
+
+Use these directly. Only call `list_datasources` if a query fails with an unknown UID error.
 
 ### Querying logs (Loki)
 
