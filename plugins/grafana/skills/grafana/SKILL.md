@@ -64,7 +64,7 @@ Use `generate_deeplink` to produce a Grafana Explore or dashboard URL to share w
 ### Workflow
 
 1. **Clarify scope**: determine which product (Community, Hub, or both) and time range.
-2. **Get datasource UIDs** via `list_datasources` (once).
+2. **Use pre-cached datasource UIDs** from the table above — do not call `list_datasources`.
 3. **Find relevant dashboards** with `search_dashboards`.
 4. **Query logs and metrics** as needed to answer the question.
 5. **Synthesise findings**: summarise what you found, including error rates, patterns, and relevant log lines.
