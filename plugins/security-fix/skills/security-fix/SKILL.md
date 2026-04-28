@@ -9,6 +9,7 @@ description: >-
   /security-fix:security-fix with a mattermost.atlassian.net browse URL, MM-*
   security work, backend permission or authorization bugs, or asks for this
   security TDD workflow.
+disable-model-invocation: true
 ---
 
 # Security fix (TDD, orchestrated)

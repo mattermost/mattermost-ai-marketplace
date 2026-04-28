@@ -1,0 +1,9 @@
+{
+  "name": "grafana",
+  "description": "Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jesse Hallam"
+  },
+  "keywords": ["grafana", "observability", "loki", "prometheus", "production", "monitoring"]
+}
