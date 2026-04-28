@@ -142,6 +142,17 @@
       }
     },
     {
+      "name": "security-fix",
+      "source": "./plugins/security-fix",
+      "description": "Orchestrates test-driven fixes for Mattermost security tickets: failing secure-behavior tests first, then implementation, then edge-case hardening, then a review-ready PR with a vague public description",
+      "version": "1.0.0",
+      "category": "security",
+      "tags": ["security", "tdd", "jira", "mattermost", "pull-request"],
+      "author": {
+        "name": "Nick Misasi"
+      }
+    },
+    {
       "name": "grafana",
       "source": "./plugins/grafana",
       "description": "Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance",
