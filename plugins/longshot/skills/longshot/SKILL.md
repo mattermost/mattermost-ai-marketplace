@@ -1,7 +1,7 @@
 ---
 name: Longshot
 description: Autonomous development pipeline for features, bug triage, and ideation. Drives planning, implementation, testing, quality, review, shipping, and release via specialist agents. Runs end-to-end or resumes from any phase.
-version: 4.6.0
+version: 4.7.0
 tags:
   - planning
   - implementation
@@ -10,7 +10,6 @@ tags:
   - shipping
   - orchestration
 user-invocable: true
-disable-model-invocation: true
 ---
 
 # Longshot
@@ -326,6 +325,11 @@ At completion (or stop), print:
 ### Files Changed
 | File | +/- |
 |------|-----|
+
+### Skipped Items
+(Every skip from state.json.phases[].skipped[]; print `None` if empty — see [rules.md §9](rules.md#9-no-silent-skipping))
+| Phase | Item | Reason | Authorization |
+|-------|------|--------|---------------|
 
 ### Review Notes
 - SHOULD_FIX items (deferred): [list if any]
