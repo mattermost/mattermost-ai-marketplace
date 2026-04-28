@@ -87,6 +87,14 @@ Only include dimensions that apply. These calibrate `comprehensive-review` — n
 - Consistency with existing design patterns
 - Keyboard and touch interaction patterns
 
+**Comment hygiene** (always runs — see [rules.md §1.8](rules.md#18-comment-discipline))
+- Scan the diff for added comments and apply §1.8 to each.
+- **MUST_FIX**: comments restating WHAT the code does; tracking/journal comments (`// added for MM-1234`, `// fix from PR review`, `// TODO`); commented-out code; author/timestamp/AI-attribution comments; banner/section comments. Any of these in the diff is a hard-fail finding — request deletion.
+- **SHOULD_FIX**: any new multi-line comment without a clear, specific WHY (non-obvious invariant, upstream-bug workaround with link, public-API contract, security/threat-model note). Length is a smell, not a verdict — flag and ask the author to defend it; if the comment can be replaced by a better-named function or a design-doc link, prefer that.
+- **NIT**: single-line comments that merely restate the next line's identifier or signature.
+- Do not flag pre-existing comments outside the diff. Scope this dimension to additions only.
+- **E2E exception** (see [rules.md §1.8](rules.md#18-comment-discipline) — "Exception — E2E and integration test scripts"): in E2E spec files (`*.e2e.{ts,js}`, files under `cypress/e2e/`, `playwright/`, `tests/e2e/`, mobile UI test files), step/scene narration comments (`// Navigate to settings`, `// Step 3: submit`) are **encouraged**, not flagged. Forbidden categories (tracking/journal, commented-out steps, banners) still apply. Do not raise findings against legitimate step narration in these files.
+
 **Security** (always runs; depth scales with `security.is_security_issue`)
 
 *Standard depth* (all tickets):
