@@ -27,6 +27,8 @@ Without swarm mode: implement sequentially in the leader context.
 
 Principle citation: [rules.md §8](rules.md#8-principle-applications) — production-ready, not just test-passing.
 
+**Comment discipline ([rules.md §1.8](rules.md#18-comment-discipline))**: default to no comments. Do not narrate the diff with `// added for <task>`, `// TODO`, or commented-out code — that context belongs in the commit message and ticket, not the source. Multi-line comments require a strong, specific WHY (non-obvious invariant, upstream-bug workaround with link, public-API contract). Before completing each task, re-scan the diff and delete any comment that fails the §1.8 test. Apply this in both leader-mode and swarm-mode; brief each layer agent on §1.8 in their dispatch prompt.
+
 ### Step 3.4: Auto-Review (MANDATORY)
 Run review agents scaled to what changed:
 - **Tier 1** (always): `simplicity-reviewer`, `error-handling-reviewer`, `duplication-reviewer`
