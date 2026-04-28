@@ -1,7 +1,7 @@
 {
   "name": "longshot",
   "description": "Autonomous development pipeline for features, bug triage, and ideation. Drives planning, implementation, testing, quality, review, shipping, and post-ship via specialist agents. Runs end-to-end or resumes from any phase.",
-  "version": "4.6.0",
+  "version": "4.7.0",
   "author": {
     "name": "Caleb Roseland"
   },

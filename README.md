@@ -34,7 +34,8 @@ Staff-contributed Claude Code plugins for Mattermost engineering workflows. Brow
 | [`mattermost-plugin-development`](plugins/plugin-development/) | Skills for developing Mattermost plugins                                                                      | development  | 1.0.0   |
 | [`review-migration`](plugins/review-migration/)                | Analyze schema migrations against best practices and generate a review report                                 | code-quality | 1.0.0   |
 | [`dev-workflows`](plugins/dev-workflows/)                      | Skills for common development workflows — dependency management, module hygiene, and routine maintenance tasks | devops       | 1.0.0   |
-| [`longshot`](plugins/longshot/)                                | Autonomous pipeline for features, bug triage, and ideation — planning through post-ship                        | productivity | 4.6.0   |
+| [`longshot`](plugins/longshot/)                                | Autonomous pipeline for features, bug triage, and ideation — planning through post-ship                        | productivity | 4.7.0   |
+| [`grafana`](plugins/grafana/)                                  | Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance | devops     | 1.0.0   |
 
 ## Auto-Setup for Your Projects
 

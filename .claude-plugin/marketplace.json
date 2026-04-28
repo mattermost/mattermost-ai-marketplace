@@ -145,11 +145,22 @@
       "name": "longshot",
       "source": "./plugins/longshot",
       "description": "Autonomous development pipeline for features, bug triage, and ideation — planning through post-ship via specialist agents, end-to-end or resumable",
-      "version": "4.6.0",
+      "version": "4.7.0",
       "category": "productivity",
       "tags": ["orchestration", "planning", "implementation", "testing", "code-review", "shipping", "triage", "ideation"],
       "author": {
         "name": "Caleb Roseland"
+      }
+    },
+    {
+      "name": "grafana",
+      "source": "./plugins/grafana",
+      "description": "Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance",
+      "version": "1.0.0",
+      "category": "devops",
+      "tags": ["grafana", "observability", "loki", "prometheus", "production", "monitoring"],
+      "author": {
+        "name": "Jesse Hallam"
       }
     }
   ]
