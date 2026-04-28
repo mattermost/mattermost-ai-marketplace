@@ -36,6 +36,8 @@
 
 **Reference**: Mattermost Schema Migration Guidelines (Agniva De Sarker, 2023). See also `/database-migrations:sql-migrations` command for general migration patterns. Guidelines inlined below.
 
+**Database scope: PostgreSQL only.** Mattermost deprecated MySQL support in v9.11 (June 2024) and current server versions ship PostgreSQL exclusively. All operation safety, locking semantics, and concurrency notes below assume PostgreSQL 11+. **Do not add MySQL notes, dual-engine guidance, or vendor-neutral abstractions** — they bloat the rules and risk masking PG-specific gotchas (e.g., CREATE INDEX CONCURRENTLY, CREATE UNIQUE INDEX CONCURRENTLY + ALTER TABLE ADD UNIQUE USING INDEX, transactional DDL, MVCC visibility) with cross-engine generalities. If a third-party plugin's DB is genuinely something else (rare), call it out explicitly in that plugin's profile, not here.
+
 **Three goals (non-negotiable)**:
 1. Migrations ALWAYS backwards compatible to last ESR
 2. Migrations NEVER lock the entire table
