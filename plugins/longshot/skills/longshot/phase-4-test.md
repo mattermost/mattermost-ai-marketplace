@@ -26,9 +26,64 @@ Read `<artifact_dir>/plan.md`, specifically the `## Test Plan` section, as the t
 Use the Test Plan's `### Regression Tests` list to identify related features that need regression verification. Run existing tests for those features before writing new tests.
 
 ### Step 4.2: Write Unit Tests
-Match project conventions (detected from existing test files). Use domain agents:
-- `test-coverage-reviewer`: validates coverage plan
-- `test-unit-expert`: unit test patterns
+
+**Decision gate — unit tests are REQUIRED unless all three are true**:
+1. No new logic and no modified branches were introduced (pure rename, comment-only, type-only refactor, dependency bump with no behavior delta).
+2. Every modified branch is fully exercised by integration or E2E tests in the same PR, with assertions on the specific input→output relation — not just "it didn't crash" or "the action was dispatched."
+3. The functions under test have no edge cases worth pinning: no nil / empty / zero handling, no permission / auth / security boundary, no error path, no boundary condition, and no semantically-significant default value (e.g. Go zero values like `TeamID == ""` that mean "DM/GM" rather than "unset").
+
+If any answer is **no**, unit coverage is required. Write it.
+
+**Required scope when unit tests are required** — every one of the following gets a test:
+- **Each new or modified branch** of the changed code, including the "did not enter the branch" path.
+- **Every error path** — explicit error returns, panics-converted-to-errors, validation rejections.
+- **Every permission / auth / security boundary** — allow path AND deny path. These are not optional, because E2E rarely exercises the deny path comprehensively.
+- **Edge values** — nil, empty string, empty slice, zero, max, "" vs not-set, type-defaulted fields with semantic meaning.
+- **Each public function whose contract changed** — even if the change was "now also handles X", pin the new contract.
+
+**Dodges to refuse** (these are not reasons to skip):
+- *"It's covered by E2E."* — E2E proves the wired-up happy path works. Unit tests pin the contract for each branch — particularly security/permission/error paths E2E can't reach efficiently. A DM/GM permission check that bypasses `canViewTeam` when `TeamID == ""` needs a unit test for both the allowed AND denied path; an E2E that happens to walk one path is not a substitute.
+- *"It's a small change."* — Bug class, not fix size, determines coverage. A one-line guard added to a security-sensitive function still needs both-paths assertion.
+- *"It's a private / internal function."* — If it has branches, exercise it through its public caller with the same precision; or, if Go, write a `_test.go` in the same package and call it directly.
+- *"It's pure plumbing."* — Plumbing that copies the wrong field, swallows an error, or selects the wrong branch is the most common regression class.
+- *"Coverage is already high."* — Line coverage measures lines hit, not assertions made. 100% coverage with `require.NoError(err)` and no return-value assertion is worse than 80% with strong assertions.
+- *"We have integration tests."* — Integration tests prove components compose; they don't pin individual function contracts.
+- *"spec.md said no new tests."* — Same rebuttal as 4.3: scope was set before the bug was fully understood. If new code paths exist, pin them.
+- *"N/A"* — Not an acceptable value. Either spell out which of the three exemption criteria applies with a concrete one-sentence justification, or write the test.
+
+**Match existing patterns** (deviation is a finding):
+- Before writing a single test, read **2–3 existing tests** in the same file or package. Copy their structural style — table-driven vs. flat, helper functions, fixture builders, mock setup, assertion library, naming.
+- Use the project's existing mock infrastructure (`server/app/mocks/`, `mock_app.go`, `mock_store.go`, generated gomock files, Jest module mocks). **Never hand-roll a new mock** when a generated/maintained one exists. If the existing mock lacks a method you need, regenerate per project convention; do not introduce a parallel mocking system.
+- Match the assertion library already in the file: testify/`assert` vs `require`, plain `t.Error*` vs `is.New(t)`, Jest `expect` vs Vitest `expect`. Mixing is a smell.
+- Match naming convention. Examples in MM Go code: `TestRunView`, `TestRunView_DMGM_AllowsChannelMember`, table entries `name: "denies non-member of DM"`. Examples in MM webapp: `describe('runView', ...)` + `it('allows channel members in DM channels')`.
+
+**Framework specifics**:
+- **Go** — table-driven tests via `for _, tt := range []struct{...}{...}`, subtests via `t.Run(tt.name, ...)`. Use `testify/require` for hard preconditions (setup must succeed) and `testify/assert` for behavior assertions, matching whichever the surrounding file uses. `t.Cleanup()` over deferred teardown when the project uses it. Parallelize with `t.Parallel()` only when there is no package-level shared state. Use the project's existing fixture builders / setup helpers — do not invent new ones for a single test file.
+- **JS/TS** — match the existing `describe/it` (or `test`) shape exactly. Mock modules with the same primitive the rest of the file uses (`jest.mock`, `vi.mock`, MSW handler). Use existing factories/builders for fixture data. Reset mocks in the same teardown style (`afterEach`, `beforeEach` reset, etc.).
+
+**Anti-patterns to refuse** (these will be flagged in Phase 6 by `test-coverage-reviewer` and `test-unit-expert`):
+- Tests that assert only "the function was called" without checking the inputs passed or the value returned.
+- Tests that mock the function under test (you're testing the mock, not the code).
+- Tests that copy the implementation's branching logic into the assertion (oracle problem — they pass by reproducing the bug).
+- Tests with only happy-path coverage when error/edge paths exist in the diff.
+- Tests that pass against the *previous* implementation as well as the new one (always-green tests aren't tests).
+- `require.NoError(err)` followed by no assertion on the return value.
+- Snapshot tests for anything but stable, intentionally-frozen output (rendered email templates, Markdown→HTML golden files). Don't snapshot React component structure or large objects.
+- Skipped (`t.Skip`, `it.skip`, `xit`) or commented-out tests left in the diff.
+- Tests that rely on execution order or package-level shared mutable state.
+- Console/log noise: tests that produce unexpected stdout/stderr beyond what the test asserts. Treat as a failure, mirroring 4.3's console-error gate.
+
+**Quality bar** — the falsifiability test:
+- A meaningful unit test FAILS when a plausible regression is introduced. Before declaring a test done, mentally (or actually) mutate the implementation in one plausible way (flip a comparison, drop a guard, return the wrong field) — does the test catch it? If not, the test is not pinning the contract.
+- Each test must be expressible in one sentence: "This test pins that `<function>` `<does specific thing>` when `<specific input condition>`." If you can't say it that way, the test is too broad or too narrow.
+- Test names describe **behavior**, not the function being called. `TestRunView_when_TeamID_empty_and_user_is_channel_member_allows_access` beats `TestRunView`. The second tells you nothing when it fails in CI.
+
+**Use domain agents** (per [rules.md §5.1](rules.md#51-agent-fallback)):
+- `test-coverage-reviewer` — validates the coverage plan against the diff (every changed branch has a test).
+- `test-unit-expert` — unit-test patterns, mock usage, anti-pattern detection.
+- For server-side Go code in MM/MM-plugin profiles, also consult `go-backend` for idiomatic patterns and `app-reviewer` / `store-reviewer` / `api-reviewer` for layer-appropriate assertion targets.
+
+**If skipping** (all three exemption criteria pass): write `<artifact_dir>/state.json.phases.4-test.unit_skip_reason` AND a line in the Phase 4 summary stating which of the three criteria applies, with a concrete one-sentence justification. Generic labels ("trivial", "covered elsewhere", "N/A") are rejected — name what regression class would slip through.
 
 ### Step 4.3: Write E2E Tests (Playwright preferred, Cypress fallback)
 
