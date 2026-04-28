@@ -78,6 +78,54 @@ After Phases 2, 3, 4, 6 (the gated phases), create a checkpoint commit and recor
 
 in `state.json.checkpoints[]`. These SHAs are what `--revert <phase>` consumes.
 
+### 1.7 No Silent Skipping
+
+**NO phase, sub-phase, step, task, or checklist item may be skipped without explicit user confirmation.** This applies everywhere in the pipeline. See [§9](#9-no-silent-skipping) for the full protocol, the confirmation format, and the state.json recording requirements.
+
+### 1.8 Comment Discipline
+
+**Default to writing no code comments.** Well-named identifiers, small functions, and obvious control flow already document themselves. Comments are a maintenance liability — the longer they live, the more likely they drift from the code they describe.
+
+A comment may be written ONLY when the **WHY is non-obvious from the code itself** — a hidden constraint, a non-trivial invariant, a workaround for a specific bug (with link/ticket), an upstream API quirk, surprising performance behavior, or a security/correctness gotcha that would trip up a future reader. If removing the comment wouldn't confuse anyone, it should not exist.
+
+**Multi-line comments require a strong, specific justification.** Length correlates with rot. Single-line is the default; multi-line means the WHY is genuinely complex and there is no better place for it. Multi-paragraph block comments and multi-line docstrings are almost never appropriate — prefer extracting a well-named helper or moving the explanation to a design doc.
+
+**Forbidden categories** (delete on sight during Phase 3 self-review and Phase 6):
+- Comments restating WHAT the code does (`// increment counter`, `# loop over users`).
+- Tracking/journal comments tied to the current task (`// added for MM-1234`, `// fix from PR review`, `// TODO: revisit later`, `// removed old code`). These belong in commit messages, PR descriptions, or tickets — not code.
+- Author/timestamp/AI-attribution comments (`// written by …`, `// generated …`, `// 2026-04-12 cr`).
+- Commented-out code blocks. Delete; git history is the archive.
+- Banner/section comments (`// ==== HELPERS ====`). Use functions and files instead.
+- Restating the type signature, the function name, or visible parameters in prose.
+
+**Where multi-line CAN be appropriate** (rare):
+- Documenting a non-obvious algorithmic invariant or proof obligation.
+- Explaining a workaround tied to a specific upstream bug — include the issue link and conditions for removal.
+- A public API doc comment when the project's documentation generator requires it (godoc, JSDoc on exported symbols, Python docstrings on public functions). Even then: terse, focused on contract and edge cases, no narrative.
+- A security/threat-model note where the absence of explanation would mislead a future maintainer.
+
+**Exception — E2E and integration test scripts.** End-to-end tests (Playwright, Cypress, Detox, mobile XCUITest/Espresso, similar) are the exception to the "default to no comments" rule. These tests are read primarily when a CI run fails, often by someone unfamiliar with the user journey, and they double as executable specifications of UX flows. **Step-level narrative comments at action sites are encouraged**, using the project's documentation style:
+
+- **Use the `// #` and `// *` convention** (Cypress repo style):
+  - `// # ...` indicates a **test step** (e.g. `// # Navigate directly to backstage detail`, `// # Go to a page`)
+  - `// * ...` indicates an **assertion / verification** (e.g. `// * Check the title`, `// * Verify the toolbar collapses`)
+  - This convention is documented at the top of each spec via the canonical legend header. Reproduce it verbatim when creating new spec files in repos that use it:
+    ```js
+    // ***************************************************************
+    // - [#] indicates a test step (e.g. # Go to a page)
+    // - [*] indicates an assertion (e.g. * Check the title)
+    // ***************************************************************
+    ```
+  - This legend block is the **one allowed banner** in E2E specs — it documents the convention itself. Other banner/section comments are still forbidden.
+- These act as scene-setters between the action and the assertions, so a failing snapshot or selector tells you which user-journey step broke without re-reading the whole spec.
+- **DO NOT comment `it(...)` or `describe(...)` block headers.** The block string IS the description — a comment immediately above it that restates or paraphrases the title is pure duplication. Put narration *inside* the block, at the action sites where it adds value.
+- **DO NOT bake plan-specific identifiers into spec text.** TC#, AC#, "task 3.2", plan section refs, internal QA matrix IDs, etc. are scaffolding for the implementation plan — they are meaningless (and often wrong) once the plan file is archived. The Jira ticket ID is fine in the commit message and the test file's *one-time* file-header reference (if the project convention requires one), but should not appear inline next to steps. Likewise, avoid `// AC2: user sees toast` — write the actual user-visible behaviour: `// * Toast appears with success message`.
+- Still avoid: tracking/journal comments (`// added for MM-1234`, `// fix from PR review`), commented-out steps, banners (`// ===== TEST 2 =====`), or restating the literal selector/assertion in prose (`// click the button` next to `cy.get('[data-testid=save]').click()`). The forbidden categories above still apply — the exception only relaxes the "default to none" stance for **step/scene narration at action sites**.
+- Multi-line comments in tests should be limited to setup explanations where the *why* of a fixture, wait, or workaround is non-obvious. Don't write essays.
+- This exception covers `*.e2e.{ts,js}`, `*.spec.{ts,js}` under E2E directories, `cypress/e2e/`, `playwright/`, `tests/e2e/`, mobile UI test files, and similar. It does NOT extend to unit/integration test files where assertions are self-describing — keep §1.8 strict there.
+
+This rule applies in Phase 3 (writing code), Phase 4 (writing E2E specs — apply the exception), Phase 5 (auto-fix should not introduce comments), Phase 6 (reviewers flag comment violations as MUST_FIX for forbidden categories, SHOULD_FIX for borderline multi-line cases; in E2E files, the bar for step-narration comments is relaxed per the exception). The `simplicity-reviewer` is the primary enforcer; absence of that agent does not relax the rule.
+
 ---
 
 ## 2. Git Safety
@@ -303,6 +351,102 @@ Connective tissue between [principles.md](principles.md) and phase behavior. A p
 | 7 (Ship) | *"Predictable, smooth processes beat raw speed."* | Fewer well-crafted PRs beat many sloppy ones. This PR should be appropriately sized, strongly self-reviewed, and a point of pride — not a burden for peers. |
 
 Phases reference this table rather than restating the principle inline. When the principle is the reason for a step, cite `rules.md §8` and move on.
+
+---
+
+## 9. No Silent Skipping
+
+Agents have a documented failure mode: under time/context pressure, they skip phases, collapse multi-step phases into a single step, or quietly drop checklist items and then claim the phase is "complete." This section exists to make that impossible without the user noticing.
+
+**Scope**: applies to every phase, sub-phase, numbered step, checklist item, dimension, layer, and tier referenced in any `phase-N-*.md`, `profiles.md`, or `SKILL.md`. If the pipeline defines it, it cannot be silently omitted.
+
+### 9.1 The Rule
+
+1. **No phase may be skipped without explicit user confirmation.** The *only* exceptions are:
+   - Flags the user passed on the command line (`--skip`, `--skip-to`, `--only`, `--skip pr`, `--skip review`, `--skip release`). These *are* the user's confirmation.
+   - Phases marked "not applicable" by deterministic profile rules (e.g., Phase 5.6 SQL migrations when the diff touches no migration files). NA decisions must still be recorded per §9.3.
+2. **No sub-phase, step, task, dimension, layer, tier, or checklist item within a phase may be skipped without explicit user confirmation** — again, unless already authorized by a user flag or a deterministic NA rule.
+3. **Partial completion is not completion.** A phase with skipped steps is `partial`, never `complete`, until every skip is confirmed by the user or justified by §9.1 rules 1–2.
+4. **"We'll come back to it" is a skip.** Deferrals count. Record them as skips, not as "done later."
+5. **Degraded execution is not a skip.** When a dimension is dropped per §5.1 (agent unavailable) or a tool falls back per §5.3/§5.4 (CLI/MCP missing), that is a *fallback*, already covered by those sections — log per §5, no user prompt required. If, however, an available capability is bypassed for any other reason, that IS a skip and §9 applies.
+
+### 9.2 Confirmation Protocol
+
+When the pipeline cannot complete a phase or step as specified and no pre-authorized flag covers it, STOP before proceeding and prompt the user:
+
+```text
+LONGSHOT SKIP REQUEST at Phase <N> (<phase-name>)
+Item: <phase / sub-phase / step / dimension / checklist-item>
+Reason: <why this cannot or should not be completed now>
+Impact: <what the pipeline loses by skipping — reviews missed, tests not run, etc.>
+Options:
+  (s) Skip — record as skipped, proceed
+  (r) Retry — attempt again (describe what changes)
+  (a) Abort phase — STOP per §6
+Your choice?
+```
+
+Do not default-select. Do not proceed on silence. Wait for the user's answer.
+
+Bulk confirmations are allowed when a single root cause produces multiple skips (e.g., "all Go backend reviewers are unavailable → skip all Tier 3 dimensions"). List every affected item in the prompt — one prompt, explicit list, one confirmation.
+
+### 9.3 Recording Skips in state.json
+
+Every skip — whether pre-authorized by flag, ruled NA, or user-confirmed via §9.2 — MUST be recorded in `state.json`:
+
+```json
+"phases": {
+  "6-review": {
+    "status": "complete-with-skips",
+    "skipped": [
+      {
+        "item": "6.7 security review",
+        "reason": "not a security issue (state.json.security.is_security_issue=false)",
+        "authorization": "na-rule",
+        "timestamp": "<RFC3339 UTC>"
+      },
+      {
+        "item": "6.4 accessibility dimension",
+        "reason": "accessibility-compliance:wcag-audit-patterns skill not installed",
+        "authorization": "user-confirmed",
+        "timestamp": "<RFC3339 UTC>"
+      }
+    ]
+  }
+}
+```
+
+`authorization` is one of: `flag` (user CLI flag), `na-rule` (deterministic not-applicable rule), `user-confirmed` (§9.2 prompt answered "s"), `fallback` (§5 agent/tool fallback).
+
+Status values:
+- `complete` — every defined item ran to completion
+- `complete-with-skips` — all skips are recorded per above and authorized
+- `partial` — phase stopped mid-way, skips not yet reconciled (transitional only)
+- `failed` — per §6
+
+`complete-with-skips` is valid and does not block the next phase, but MUST be surfaced in the Phase 6 review and the final Longshot Summary.
+
+### 9.4 Surfacing Skips to the User
+
+Skips must be visible, not buried:
+
+- **End of each phase**: print `Skipped: <count>` alongside the phase status. Zero is still printed (`Skipped: 0`) to prove the check ran.
+- **Phase 6 review**: enumerate every `skipped[]` entry from earlier phases in the review report. Reviewers need to see what was not done.
+- **Final Longshot Summary** (see [SKILL.md § Output Format](SKILL.md#output-format)): add a `### Skipped Items` block listing every skip with its authorization. If empty, print `None`.
+
+### 9.5 Anti-Patterns
+
+These are all skips pretending not to be skips. Catch yourself doing any of these:
+
+- Marking a phase `complete` when sub-steps were not run.
+- Collapsing "Phase 5.1 → 5.6" into "ran lint, done" — each numbered sub-step is independent.
+- Running a reduced checklist because "this looks like a small change" — size modifiers belong to the user (`--minimal`, `--solo`), not the executor.
+- Dropping the Phase 6 security dimension because the feature "doesn't look security-sensitive" — only `state.json.security.is_security_issue` controls that, set deterministically in Phase 1.1.5.
+- Treating a Phase 3 auto-review round as "the review phase" and skipping Phase 6.
+- Skipping `--triage` / `--ideate` branch steps in Phase 1 because the user "probably meant the default" — if the input is ambiguous, prompt, don't assume.
+- Skipping the PULL_REQUEST_TEMPLATE.md sections in Phase 7 because "it's obvious from the diff."
+
+When in doubt: run the step. If you cannot run it, invoke §9.2.
 
 ---
 
