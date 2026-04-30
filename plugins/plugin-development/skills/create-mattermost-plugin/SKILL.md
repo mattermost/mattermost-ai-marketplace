@@ -20,6 +20,7 @@ Check if pwd has files beyond dotfiles. If non-empty, warn the user with `AskUse
 
 ```bash
 TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT INT TERM
 git clone --depth 1 https://github.com/mattermost/mattermost-plugin-starter-template "$TMPDIR"
 rm -rf "$TMPDIR/.git"
 if command -v rsync >/dev/null 2>&1; then
@@ -27,7 +28,6 @@ if command -v rsync >/dev/null 2>&1; then
 else
   cp -R "$TMPDIR"/. ./
 fi
-rm -rf "$TMPDIR"
 ```
 
 ## Step 3: Customize (follow README "Getting Started" steps)
@@ -54,6 +54,12 @@ Derive values:
    ```bash
    git add -A
    git commit -m "Initial plugin scaffold from mattermost-plugin-starter-template"
-## Step 5: Summary
+   ```
 
-Print what was created and remind the user to run `make` to build.
+## Step 5: Verify the build
+
+Run `make` to confirm the scaffolded plugin builds end-to-end. If it fails, surface the error and stop — do not proceed to the summary until the build is green. Analyze the problems shown during the build and address them.
+
+## Step 6: Summary
+
+Print what was created and confirm that `make` completed successfully.
