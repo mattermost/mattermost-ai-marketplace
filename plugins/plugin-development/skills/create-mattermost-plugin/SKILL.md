@@ -2,6 +2,7 @@
 name: create-mattermost-plugin
 description: Create a new Mattermost plugin from the starter template in the current directory. Use when creating a new plugin from scratch, scaffolding a Mattermost plugin, or bootstrapping a plugin project.
 user-invocable: true
+disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, AskUserQuestion
 ---
 
