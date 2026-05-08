@@ -162,6 +162,17 @@
       "author": {
         "name": "Jesse Hallam"
       }
+    },
+    {
+      "name": "qa-analysis",
+      "source": "./plugins/qa-analysis",
+      "description": "Analyze a GitHub pull request for risk level and generate concrete QA recommendations using a multi-dimensional scoring framework",
+      "version": "1.0.0",
+      "category": "testing",
+      "tags": ["qa", "risk", "pull-request", "github", "code-review", "testing"],
+      "author": {
+        "name": "Dylan Haussermann"
+      }
     }
   ]
 }

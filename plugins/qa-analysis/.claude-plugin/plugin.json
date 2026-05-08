@@ -1,0 +1,9 @@
+{
+  "name": "qa-analysis",
+  "description": "Analyze a GitHub pull request for risk level and generate concrete QA recommendations using a multi-dimensional scoring framework.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Dylan Haussermann"
+  },
+  "keywords": ["qa", "risk", "pull-request", "github", "code-review", "testing"]
+}
