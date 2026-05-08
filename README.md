@@ -18,9 +18,9 @@ Then install individual plugins:
 
 ## Plugins
 
-| Plugin                          | Description                             | Skills                         |
-| ------------------------------- | --------------------------------------- | ------------------------------ |
-| `mattermost-plugin-development` | Tools for developing Mattermost plugins | `update-from-starter-template` |
+| Plugin                          | Description                             | Skills                                                  |
+| ------------------------------- | --------------------------------------- | ------------------------------------------------------- |
+| `mattermost-plugin-development` | Tools for developing Mattermost plugins | `update-from-starter-template`, `add-agents-mcp-server` |
 
 ### mattermost-plugin-development
 
@@ -32,6 +32,12 @@ Provides skills for developing and maintaining Mattermost plugins.
 
   ```
   /update-from-starter-template
+  ```
+
+- **add-agents-mcp-server** — Adds an MCP (Model Context Protocol) server to a Mattermost plugin so the [Mattermost Agents plugin](https://github.com/mattermost/mattermost-plugin-agents) can discover and call its tools, using the `pluginmcp` helper.
+
+  ```
+  /add-agents-mcp-server
   ```
 
 ## Contributing
