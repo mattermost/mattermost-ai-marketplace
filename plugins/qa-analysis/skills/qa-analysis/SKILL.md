@@ -24,10 +24,9 @@ Think like a senior QA engineer: what would keep you up at night?
 
 The user provides a PR reference, for example:
 
-```
+```text
 /qa-analysis:qa-analysis https://github.com/mattermost/mattermost/pull/35997
 /qa-analysis:qa-analysis mattermost/mattermost#35997
-```
 
 Parse the owner, repo, and PR number. Then fetch data:
 
