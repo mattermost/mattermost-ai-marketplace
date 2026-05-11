@@ -12,19 +12,19 @@ Skills for writing, reviewing, and auditing Go tests in the Mattermost server re
 
 ## Usage
 
-```
+```text
 /mattermost-go-testing:test-writer
 ```
 
 Point it at a source file or function and it will read existing tests in the package as analogues, then write comprehensive parallel-safe tests covering success paths, error paths, and edge cases.
 
-```
+```text
 /mattermost-go-testing:test-coverage-reviewer
 ```
 
 Run before committing. Scans staged Go changes for new functions without tests, incomplete coverage, and parallel-safety violations — including the `readOnlyFF` feature flag trap.
 
-```
+```text
 /mattermost-go-testing:parallel-test-writer
 ```
 

@@ -7,6 +7,7 @@ description: >-
   audits existing tests for t.Parallel() correctness including the readOnlyFF
   trap. Use when reviewing a PR, preparing to commit, or auditing a package
   for test debt.
+allowed-tools: Read, Glob, Grep, Bash
 ---
 
 # Go Test Coverage Reviewer
@@ -107,7 +108,7 @@ Produce a structured report with three sections.
 
 List each new or modified function without adequate tests:
 
-```
+```md
 ### Missing Coverage
 
 **`App.CreateSomething`** — server/channels/app/something.go:42
@@ -125,18 +126,18 @@ List each new or modified function without adequate tests:
 
 Use these tags for findings:
 
-| Tag | Meaning | Severity |
-|-----|---------|---------|
-| `parallel:ENV_MUTATION` | `os.Setenv` / `t.Setenv` in parallel test | MUST_FIX |
-| `parallel:CWD_MUTATION` | `os.Chdir` in parallel test | MUST_FIX |
-| `parallel:READONLY_FF` | `Setup(t)` + `UpdateConfig` for feature flags | MUST_FIX |
-| `parallel:FIXED_PATH` | Hardcoded `/tmp/` or absolute path | SHOULD_FIX |
-| `parallel:FIXED_PORT` | Hardcoded port number | SHOULD_FIX |
-| `parallel:FIXED_SLEEP` | `time.Sleep` for async waiting | SHOULD_FIX |
-| `parallel:CROSS_TEST_DEP` | Test depends on data from another test | MUST_FIX |
-| `parallel:GLOBAL_MUTATION` | Write to package-level variable | MUST_FIX |
+| Tag                        | Meaning                                       | Severity   |
+|----------------------------|-----------------------------------------------|------------|
+| `parallel:ENV_MUTATION`    | `os.Setenv` / `t.Setenv` in parallel test     | MUST_FIX   |
+| `parallel:CWD_MUTATION`    | `os.Chdir` in parallel test                   | MUST_FIX   |
+| `parallel:READONLY_FF`     | `Setup(t)` + `UpdateConfig` for feature flags | MUST_FIX   |
+| `parallel:FIXED_PATH`      | Hardcoded `/tmp/` or absolute path            | SHOULD_FIX |
+| `parallel:FIXED_PORT`      | Hardcoded port number                         | SHOULD_FIX |
+| `parallel:FIXED_SLEEP`     | `time.Sleep` for async waiting                | SHOULD_FIX |
+| `parallel:CROSS_TEST_DEP`  | Test depends on data from another test        | MUST_FIX   |
+| `parallel:GLOBAL_MUTATION` | Write to package-level variable               | MUST_FIX   |
 
-```
+```md
 ### Parallel Safety Violations
 
 **`TestHandleEvent`** — server/channels/app/something_test.go:88
@@ -154,7 +155,7 @@ Use these tags for findings:
 
 ### Summary
 
-```
+```md
 ### Summary
 
 | Category | Count |
