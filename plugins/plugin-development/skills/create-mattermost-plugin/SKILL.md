@@ -17,7 +17,44 @@ The **Go module path** is `github.com/mattermost/<plugin-name>`.
 
 Check if pwd has files beyond dotfiles. If non-empty, warn the user with `AskUserQuestion` and let them choose to proceed or abort.
 
-## Step 2: Clone template into pwd
+## Step 2: Scaffold from the starter template
+
+Prefer **Option A** so GitHub records the new repo as "Generated from `mattermost/mattermost-plugin-starter-template`" in its UI. Fall back to **Option B** when `gh` is unavailable or not authenticated.
+
+Decide which path to take with:
+
+```bash
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  # Option A
+else
+  # Option B
+fi
+```
+
+### Option A — create remote repo from template via `gh`
+
+1. Use `AskUserQuestion` to gather:
+   - **Owner**: the GitHub owner for the new repo. Default to `gh api user --jq .login`; offer `mattermost` as an alternative for staff plugins.
+   - **Visibility**: `--public`, `--private`, or `--internal`.
+2. Create the remote repo from the template, then clone it into pwd via a tmpdir so the `.git` (with the new remote already wired up) is preserved:
+
+   ```bash
+   TMPDIR=$(mktemp -d)
+   trap 'rm -rf "$TMPDIR"' EXIT INT TERM
+   gh repo create "$OWNER/$PLUGIN_NAME" \
+     --template mattermost/mattermost-plugin-starter-template \
+     "$VISIBILITY_FLAG"
+   git clone "https://github.com/$OWNER/$PLUGIN_NAME.git" "$TMPDIR"
+   if command -v rsync >/dev/null 2>&1; then
+     rsync -a "$TMPDIR"/ ./
+   else
+     cp -R "$TMPDIR"/. ./
+   fi
+   ```
+
+### Option B — fallback when `gh` is unavailable
+
+Plain shallow clone of the template, no remote:
 
 ```bash
 TMPDIR=$(mktemp -d)
@@ -43,19 +80,25 @@ Derive values:
 
 2. **Replace the old module path everywhere**: Use `Grep` to find all files containing `github.com/mattermost/mattermost-plugin-starter-template`, then `Edit` each with `replace_all` to substitute the new `MODULE_PATH`.
 
-## Step 4: Git init & first commit
+## Step 4: Git commit (and push if Option A)
 
-1. If `.git` does not exist, run `git init` to create a new repository.
-2. If `.git` already exists, use `AskUserQuestion` to ask whether to:
-   - reuse the existing repository and create a commit with the scaffolded files,
-   - skip all git operations for this step, or
-   - abort the skill to avoid modifying the existing repository.
-3. When it is appropriate to commit (either after initializing a new repo, or when the user chose to reuse the existing repo), run:
+- **Option A path**: `.git` is already present and tied to the new remote. Stage + commit, then push.
+- **Option B path** (no remote):
+  - If `.git` does not exist, run `git init` first.
+  - If `.git` already existed *before* the skill ran (i.e. pwd was an existing repo), use `AskUserQuestion` to choose: reuse and commit, skip all git ops, or abort.
 
-   ```bash
-   git add -A
-   git commit -m "Initial plugin scaffold from mattermost-plugin-starter-template"
-   ```
+Commit:
+
+```bash
+git add -A
+git commit -m "Initial plugin scaffold from mattermost-plugin-starter-template"
+```
+
+If Option A, push the initial commit to the new remote:
+
+```bash
+git push
+```
 
 ## Step 5: Verify the build
 
