@@ -1,6 +1,6 @@
 ---
 name: update-go-version
-description: Update the Go version in go.mod (and related config files) to the latest stable release. Fetches the current latest version from the web, updates all relevant files, runs go mod tidy, and commits.
+description: "Update the Go version in go.mod and related config files (CI workflows, Dockerfiles, Makefiles) to the latest stable release. Fetches the current version from go.dev, updates all relevant files, runs go mod tidy, and commits. Use when the user asks to update Go, upgrade the Go version, bump go.mod, migrate to a newer Go release, or keep Go toolchain current."
 user-invocable: true
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
@@ -14,32 +14,30 @@ Update all Go module files and CI configuration to the latest stable Go release.
 
 ### Phase 0: Discover the latest stable Go version
 
-Fetch the current release list from the official Go downloads API:
+Fetch the latest stable version from the official Go downloads API:
 
-```text
-https://go.dev/dl/?mode=json
+```bash
+curl -s 'https://go.dev/dl/?mode=json' | jq -r '[.[] | select(.stable == true)][0].version' | sed 's/^go//'
 ```
 
-Parse the JSON to find the latest stable release — the entry with `"stable": true` and the highest version number. Extract the version string (e.g. `1.24.1`). Also note the minor-only form (e.g. `1.24`) for use in `go.mod`.
+This returns the full patch version (e.g. `1.24.1`). Derive the minor-only form (e.g. `1.24`) by stripping the patch segment — use the minor form in `go.mod` and the full version everywhere else.
 
 ### Phase 1: Identify files to update
 
-Find all Go modules and config files in the repo:
+Find all Go modules and config files that reference a Go version:
 
 ```bash
 find . -name go.mod -not -path '*/vendor/*'
-find . -name '.github' -type d
 find . -name '*.yml' -path '*/.github/workflows/*'
-find . -name '.nvmrc'   # unrelated — skip
+grep -rl 'GO_VERSION\|golang:' Makefile Dockerfile docker-compose.yml .tool-versions 2>/dev/null
 ```
 
 Files that typically contain the Go version:
-- `go.mod` — `go X.Y` directive (use minor version, e.g. `go 1.24`)
-- `.github/workflows/*.yml` — `go-version:` fields (use full patch version, e.g. `1.24.1`)
+- `go.mod` — `go X.Y` directive and optional `toolchain goX.Y.Z`
+- `.github/workflows/*.yml` — `go-version:` fields (quoted or unquoted)
 - `Makefile` — `GO_VERSION ?= X.Y.Z` or similar variables
 - `Dockerfile` / `docker-compose.yml` — `FROM golang:X.Y.Z`
 - `.tool-versions` (asdf) — `golang X.Y.Z`
-- `toolchain` directive in `go.mod` — `toolchain goX.Y.Z`
 
 ### Phase 2: Check current versions
 
@@ -47,12 +45,15 @@ For each `go.mod`, read the current `go` directive. If it is already at the late
 
 ### Phase 3: Update files
 
-For each file identified above, update the Go version string using precise string replacements. Be careful to:
+For each file identified above, update the Go version string using precise replacements:
 
-- In `go.mod`: update only the `go` directive line (e.g. `go 1.23` → `go 1.24`). Also update the `toolchain` directive if present (e.g. `toolchain go1.23.5` → `toolchain go1.24.1`).
-- In CI YAML: update every `go-version:` value. Match both quoted and unquoted forms.
-- In Makefiles: update version variables only — do not touch logic.
-- In Dockerfiles: update the `golang:` image tag.
+- **`go.mod`**: Update the `go` directive (e.g. `go 1.23` → `go 1.24`) and `toolchain` if present (e.g. `toolchain go1.23.5` → `toolchain go1.24.1`).
+- **CI YAML**: Match both quoted and unquoted `go-version:` values:
+  ```bash
+  grep -n 'go-version:' .github/workflows/*.yml
+  ```
+- **Makefiles**: Update version variables only — do not touch logic.
+- **Dockerfiles**: Update the `golang:` image tag.
 
 ### Phase 4: Tidy and verify
 
