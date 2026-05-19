@@ -124,7 +124,7 @@ func (p *Plugin) ensureMCPServer() error {
         PluginID:       manifest.Id,
         Name:           serverName + " MCP",
         Path:           mcpBasePath,
-        ExposeExternal: true, // omit / set false if you don't want tools on the external aggregate
+        ExposeExternal: false, // Defaults false. Directive: Ask the user whether they want this MCP server exposed externally or not - false is the default for security reasons.
         Version:        manifest.Version,
     })
 
