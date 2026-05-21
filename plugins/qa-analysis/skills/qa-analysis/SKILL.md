@@ -8,8 +8,8 @@ description: >-
   user invokes /qa-analysis:qa-analysis with a GitHub PR URL or reference, or
   asks for a PR risk assessment, QA recommendations, or "what should I test?"
   for a given pull request.
-allowed-tools:
-  - Bash
+
+allowed-tools: Bash
 ---
 
 # QA Analysis
