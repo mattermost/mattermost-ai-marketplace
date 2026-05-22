@@ -6,7 +6,7 @@ Given a PR URL, this skill fetches the diff via `gh` CLI, computes blast radius 
 
 ## Usage
 
-```
+```text
 /qa-analysis:qa-analysis https://github.com/owner/repo/pull/123
 /qa-analysis:qa-analysis owner/repo#123
 ```
