@@ -173,6 +173,17 @@
       "author": {
         "name": "Dylan Haussermann"
       }
+    },
+    {
+      "name": "teamsecure",
+      "source": "./plugins/teamsecure",
+      "description": "Adversarial security review using a paranoid finder and a critical validator over a PR, local diff, or file list, with full-coverage accounting, finder/validator context isolation, and a code-traced attack-example gate",
+      "version": "1.0.0",
+      "category": "security",
+      "tags": ["security", "review", "vulnerability", "audit", "code-review"],
+      "author": {
+        "name": "Hassan Mohammed"
+      }
     }
   ]
 }
