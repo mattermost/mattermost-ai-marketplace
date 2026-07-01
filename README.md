@@ -37,6 +37,7 @@ Staff-contributed Claude Code plugins for Mattermost engineering workflows. Brow
 | [`security-fix`](plugins/security-fix/)                        | Orchestrated TDD workflow for Mattermost security tickets — red tests, fix, edge-case hardening, vague public PR | security     | 1.0.0   |
 | [`grafana`](plugins/grafana/)                                  | Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance | devops     | 1.0.0   |
 | [`qa-analysis`](plugins/qa-analysis/)                          | Analyze a GitHub pull request for risk level and generate concrete QA recommendations                            | testing    | 1.0.0   |
+| [`teamsecure`](plugins/teamsecure/)                            | Adversarial security review: paranoid finder + critical validator over a PR, diff, or file list                  | security     | 1.0.0   |
 
 ## Auto-Setup for Your Projects
 
