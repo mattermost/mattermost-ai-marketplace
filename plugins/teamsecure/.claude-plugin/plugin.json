@@ -1,0 +1,9 @@
+{
+  "name": "teamsecure",
+  "description": "Adversarial security review using a paranoid finder and a critical validator. Reviews a PR, a local working-tree diff, or an explicit file list. Enforces full-coverage accounting, finder/validator context isolation, and a code-traced attack-example gate. Pairs with teamimplement to secure freshly-implemented code automatically.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Hassan Mohammed"
+  },
+  "keywords": ["security", "review", "vulnerability", "audit", "appsec", "code-review", "team", "mattermost"]
+}
