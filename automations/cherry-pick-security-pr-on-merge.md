@@ -90,7 +90,7 @@ Launch one subagent per target branch. All subagents run in parallel. Each subag
 
 The cherry-pick branch name for each target is:
 
-```
+```text
 automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 ```
 
@@ -106,14 +106,27 @@ automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 2. **CHERRY-PICK AND RESOLVE CONFLICTS CORRECTLY (a single, properly-resolved cherry-pick commit):**
 
    Run `CMD`.
-   - **Clean apply:** the resulting commit is the cherry-pick as-is. There were no conflicts; proceed to lint.
+
+   **Empty cherry-pick (change already on branch):** The target branch may already contain the incoming change, producing an empty cherry-pick. Detect this when any of the following is true:
+   - Git reports that the cherry-pick is empty (e.g. "The previous cherry-pick is now empty").
+   - After a clean apply or conflict resolution, `git diff origin/release-X.Y` shows no changes.
+
+   When detected, abort — do NOT run `git cherry-pick --skip` or `git cherry-pick --continue`:
+
+   ```bash
+   git cherry-pick --abort
+   ```
+
+   Skip this branch and report `skipped: change already on release-X.Y`. Do not push or open a PR.
+
+   - **Clean apply (non-empty):** the resulting commit is the cherry-pick as-is. Confirm `git diff origin/release-X.Y` is non-empty, then proceed to lint.
    - **On conflict:** do NOT blindly accept either side. Never run `git checkout --theirs` / `git checkout --ours` (or any equivalent whole-file "take one side" resolution) — doing so can silently drop code or tests that exist on the release branch and lose data. Instead, resolve each conflict by understanding the incoming change and integrating it correctly:
      1. Inspect the intent of the incoming change with `git show <COMMIT_SHA>` (and the surrounding original PR context) so you understand exactly what the cherry-picked commit is trying to do.
      2. For each conflicted path (`git diff --name-only --diff-filter=U`), open the file and read every conflict hunk to understand BOTH the incoming (cherry-picked) change and the existing release-branch content.
      3. Manually edit each conflicted region so the incoming change is correctly applied to `release-X.Y`, re-applying any branch-specific logic that the incoming change would otherwise overwrite. Preserve all release-branch code and tests that are unrelated to the incoming change — never delete or weaken them to make the merge "go away".
      4. Keep a concise per-file note of exactly what you reconciled (for the PR body). Do NOT mention security, vulnerability, CVE, exploit, or any related terms in these notes; describe only the structural or logical change made to reconcile the code.
 
-     Once EVERY conflict is resolved and the working tree reflects a correct integration:
+     Once EVERY conflict is resolved and the working tree reflects a correct integration, re-check for an empty cherry-pick (`git diff origin/release-X.Y`). If empty, abort per the empty-cherry-pick steps above. Otherwise:
 
      ```bash
      git add -A
@@ -192,6 +205,7 @@ After all subagents complete, post the final results in two places simultaneousl
 ## CONSTRAINTS
 
 - Never force-push; never amend any commit; never `git cherry-pick --skip`.
+- On an empty cherry-pick (change already on the release branch), run `git cherry-pick --abort` and skip the branch — never use `--skip` or `--continue` for empty picks.
 - Resolve conflicts inside the cherry-pick itself (via `git cherry-pick --continue`) by correctly integrating the incoming change. Never resolve a conflict by blindly accepting one side (`git checkout --theirs` / `--ours` or equivalent), as this can lose data present on the release branch. Lint and type fixes go in a separate follow-up commit.
 - When resolving conflicts, do not remove or edit code that is not directly related to the incoming change. Do not delete tests in the release branch that are not part of the original commit.
 - Do not auto-resolve conflicts in config files, DB migrations, or anything marked "DO NOT AUTO-MERGE" — abort the cherry-pick and report those for human review.
