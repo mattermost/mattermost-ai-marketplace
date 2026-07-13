@@ -27,7 +27,7 @@ gh pr view <PR> --repo mattermost/mattermost --json number,title,author,body,bas
 
 ## STEP 2: Read the Priority
 
-- From the same issue, read the Priority field. Normalize to one of: Critical / High / Medium / Low (treat Highest as Critical-tier, Lowest as Low-tier).
+- From the same issue, read the Priority field. Normalize to one of: Critical / High / Medium / Low. If Priority is missing or unrecognised, exit with no action and report the unsupported priority.
 
 ## STEP 3: Determine target release branches
 
