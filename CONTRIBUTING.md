@@ -26,6 +26,7 @@ plugins/my-plugin/
 
 Optional directories:
 
+- `commands/` -- Explicitly-invoked slash commands (`<command-name>.md`), namespaced `/plugin-name:command-name`. Prefer a command over a skill for side-effecting, orchestrated flows; a command can delegate to the plugin's own skills.
 - `agents/` -- Subagent markdown files (e.g., `security-reviewer.md`)
 - `hooks/` -- Lifecycle hooks (`hooks.json`)
 - `scripts/` -- Helper scripts referenced by skills or hooks

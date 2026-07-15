@@ -20,7 +20,8 @@ This is the only "build/test" command. Run it after any structural change.
 .claude-plugin/marketplace.json    # Central catalog — lists every plugin
 plugins/<name>/                    # One directory per plugin
   .claude-plugin/plugin.json       # Plugin manifest (name, version, author, keywords)
-  skills/<skill-name>/SKILL.md     # Skill prompt with YAML frontmatter
+  skills/<skill-name>/SKILL.md     # Skill prompt with YAML frontmatter (model-invoked capability)
+  commands/<command-name>.md       # Optional: slash command prompt (explicitly invoked)
   README.md                        # Plugin-level docs
 templates/                         # Starter templates for new plugins/skills
 ```
@@ -46,5 +47,6 @@ Use `templates/plugin/` as a starting point. Plugin and skill names use kebab-ca
 - **marketplace.json entry fields**: `name`, `source`, `description`, `version`, `category`, `tags`, `author.name`.
 - **Categories**: `code-quality`, `conventions`, `testing`, `devops`, `git`, `docs`, `security`, `productivity`.
 - **Skill invocation pattern**: `/plugin-name:skill-name` (skills are namespaced by plugin).
+- **Commands**: optional `commands/<command-name>.md` files are explicitly-invoked slash commands, namespaced `/plugin-name:command-name`. Prefer a command over a skill for side-effecting, orchestrated procedures; a command can delegate to the plugin's own skills. `plugins/mattermost-cherry-pick/` ships both a command and skills.
 - **Keep SKILL.md under 500 lines** — move reference material to separate files loaded on demand.
 - **`${CLAUDE_PLUGIN_ROOT}`** — use this env var in hooks/scripts to reference files within the plugin (plugins are copied to a cache on install).
