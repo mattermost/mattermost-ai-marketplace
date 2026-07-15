@@ -17,7 +17,7 @@ Cherry-picks a merged security PR from `mattermost/mattermost` master onto every
 
 ## Usage
 
-```
+```text
 /mattermost-cherry-pick:cherry-pick-security-pr-merged 36316
 ```
 

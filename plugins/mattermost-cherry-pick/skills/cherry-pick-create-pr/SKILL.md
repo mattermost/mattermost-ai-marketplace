@@ -109,7 +109,7 @@ Use the `create_pr_tool` from the configured custom MCP (do NOT use `gh pr creat
 - `labels`: ["Changelog/Not Needed", "Docs/Not Needed", "Do Not Merge/Awaiting Next Release", "AI/Babysit"]
 - `body` (follow `.github/PULL_REQUEST_TEMPLATE.md`):
 
-  ```markdown
+  ````markdown
   #### Summary
   Cherry pick of #<PR_NUMBER> on release-X.Y.
 
@@ -121,7 +121,7 @@ Use the `create_pr_tool` from the configured custom MCP (do NOT use `gh pr creat
   ```release-note
   NONE
   ```
-  ```
+  ````
 
 ## Output
 
