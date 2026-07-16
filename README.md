@@ -18,9 +18,10 @@ Then install individual plugins:
 
 ## Plugins
 
-| Plugin                          | Description                             | Skills                         |
-| ------------------------------- | --------------------------------------- | ------------------------------ |
-| `mattermost-plugin-development` | Tools for developing Mattermost plugins | `update-from-starter-template` |
+| Plugin                          | Description                                          | Skills / Commands              |
+| ------------------------------- | ---------------------------------------------------- | ------------------------------ |
+| `mattermost-plugin-development` | Tools for developing Mattermost plugins              | `update-from-starter-template` |
+| `mattermost-flaky-tests`        | Diagnose and fix flaky Go unit tests in the server   | `server-flaky-test`            |
 
 ### mattermost-plugin-development
 
@@ -32,6 +33,18 @@ Provides skills for developing and maintaining Mattermost plugins.
 
   ```
   /update-from-starter-template
+  ```
+
+### mattermost-flaky-tests
+
+Provides commands for diagnosing and fixing flaky tests in the Mattermost server.
+
+**Commands:**
+
+- **server-flaky-test** — Takes one flaky Go unit test from the `mattermost/mattermost` server tree and either lands a tests-only fix PR against `master` or, when the root cause can't be determined with high confidence, opens a Jira ticket plus a skip PR.
+
+  ```
+  /server-flaky-test
   ```
 
 ## Contributing

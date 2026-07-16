@@ -1,0 +1,7 @@
+{
+  "name": "mattermost-flaky-tests",
+  "description": "Diagnose and fix flaky tests in the Mattermost server",
+  "author": {
+    "name": "Maria Nunez"
+  }
+}

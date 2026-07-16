@@ -20,6 +20,19 @@
       "license": "MIT",
       "keywords": ["mattermost", "plugin", "development"],
       "category": "development"
+    },
+    {
+      "name": "mattermost-flaky-tests",
+      "source": "./plugins/flaky-tests",
+      "description": "Diagnose and fix flaky tests in the Mattermost server",
+      "version": "0.1.0",
+      "author": {
+        "name": "mattermost"
+      },
+      "repository": "https://github.com/mattermost/mattermost-ai-marketplace",
+      "license": "MIT",
+      "keywords": ["mattermost", "flaky-tests", "testing", "go"],
+      "category": "development"
     }
   ]
 }
