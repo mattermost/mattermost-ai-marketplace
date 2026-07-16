@@ -1,9 +1,0 @@
-{
-  "name": "mattermost-cherry-pick",
-  "description": "Cherry-pick a merged security PR from mattermost/mattermost master onto every policy-required release branch and open a cherry-pick PR for each. Ships an orchestrator command plus reusable skills for release-target resolution and self-contained cherry-pick/conflict-resolution/PR creation.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Maria Nunez"
-  },
-  "keywords": ["cherry-pick", "backport", "release", "mattermost", "git"]
-}

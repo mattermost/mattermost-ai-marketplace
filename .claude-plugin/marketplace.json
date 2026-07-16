@@ -186,12 +186,12 @@
       }
     },
     {
-      "name": "mattermost-cherry-pick",
-      "source": "./plugins/mattermost-cherry-pick",
-      "description": "Cherry-pick a merged security PR onto every policy-required release branch and open a PR per branch, via an orchestrator command plus reusable release-target and cherry-pick/PR-creation skills",
+      "name": "cursor-automations",
+      "source": "./plugins/cursor-automations",
+      "description": "Internal Cursor automation commands for Mattermost engineering workflows. Intended to be invoked by Cursor Automations only — not for individual/manual use.",
       "version": "1.0.0",
-      "category": "git",
-      "tags": ["cherry-pick", "backport", "release", "mattermost", "git"],
+      "category": "devops",
+      "tags": ["cursor", "automation", "internal", "mattermost", "ci"],
       "author": {
         "name": "Maria Nunez"
       }
