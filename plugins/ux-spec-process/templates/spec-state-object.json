@@ -1,0 +1,393 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mattermost-ux-spec-state-v1",
+  "$comment": "Spec State Object — the single shared memory across all agents in the UX Spec Generation System. Initialize a copy of this template for each new feature spec.",
+
+  "$conventions": {
+    "$comment": "Authoring rules that MUST be honored when any agent or command writes to this object. These are contract, not decoration.",
+    "timestamps": {
+      "rule": "Every `created_at`, `last_updated`, audit-event `timestamp`, `resolved_at`, `chosen_at`, gate `approved_at`, and `*_at` field MUST be a REAL wall-clock ISO-8601 timestamp captured at the moment the action occurred (e.g., 2026-07-01T15:42:09Z).",
+      "forbidden": [
+        "Synthetic placeholders like 'T00:00:01', 'T00:00:0N', or monotonic fake sequences — these make iteration duration unmeasurable and are a protocol violation.",
+        "Using `last_updated` (or any timestamp field) to carry a STATUS STRING (e.g. last_updated: 'in review'). Status lives in `phase.status` / `gates.*.status` / `run_status`; timestamps carry only ISO datetimes."
+      ]
+    },
+    "audit_event_vocabulary": {
+      "$comment": "CLOSED set. `audit_log[]` entries MUST use exactly one of these `event` values. Do not invent new event strings; if no value fits, the action probably should not be logged or the vocabulary needs a deliberate revision.",
+      "events": [
+        "spec_created",
+        "tier_set",
+        "scope_locked",
+        "scope_change",
+        "phase_started",
+        "phase_completed",
+        "phase_skipped",
+        "phase_rerun",
+        "phase_blocked",
+        "phase_jump",
+        "intake_round",
+        "clarification_resolved",
+        "bulk_accept_recommended",
+        "clarification_gate_violation",
+        "clarification_escalation",
+        "gate_approved",
+        "gate_bypassed",
+        "gate_withheld",
+        "verify_item_raised",
+        "verify_item_moved",
+        "verify_item_resolved",
+        "verify_decision_checkpoint",
+        "confluence_draft_created",
+        "confluence_published",
+        "run_abandoned",
+        "run_resumed",
+        "injection_incident"
+      ],
+      "entry_shape": {
+        "timestamp": "REAL ISO-8601 (see timestamps rule)",
+        "event": "one of the closed vocabulary above",
+        "phase": "integer 0–7 or null when not phase-scoped",
+        "actor": "human | orchestrator | <agent-name>",
+        "details": "object — event-specific payload (e.g., {from, to} for scope_change; {clarification_id, chosen, chosen_via, user_message_ref} for clarification_resolved; {justification} for gate_bypassed)"
+      }
+    }
+  },
+
+  "schema_version": "2.0.0",
+
+  "meta": {
+    "feature_id": "MM-XXXXX",
+    "feature_name": "",
+    "feature_codename": "",
+    "feature_domain": "",
+    "mission_tier": "IL5",
+    "complexity_tier": "Tier 1 — Full Spec",
+    "created_at": "",
+    "last_updated": "",
+    "author": "",
+    "author_email": "",
+    "confluence_parent_page": "",
+    "jira_epic": "",
+    "figma_file": "",
+    "related_specs": [],
+    "page_pattern_type": null,
+    "prototype_root": "prototype-playground/mattermost-proto-playground/"
+  },
+
+  "scope_lock": {
+    "$comment": "Locked at Phase 1 intake (event: scope_locked) and RE-CONFIRMED before Phase 3. Any later change to a locked field is a deliberate `scope_change` audit event with rationale — never a silent rerun. Read by the orchestrator at Phase 1 close and at Phase 3 open.",
+    "locked": false,
+    "locked_at": null,
+    "complexity_tier": null,
+    "scope_summary": "",
+    "in_scope": [],
+    "out_of_scope": [],
+    "surface_count": null,
+    "comparator_count": null,
+    "reconfirmed_at_phase_3": false,
+    "reconfirmed_at": null,
+    "changes": []
+  },
+
+  "phase": {
+    "current": 0,
+    "sub_phase": null,
+    "status": "not_started",
+    "run_status": "active",
+    "$run_status_comment": "active | paused | abandoned | complete. Set `abandoned` (with a run_abandoned audit event) when a run is left incomplete rather than leaving a silent gap. Set `complete` after Phase 7 gate approval.",
+    "abandoned_reason": null,
+    "history": []
+  },
+
+  "gates": {
+    "phase_1": {
+      "name": "Problem Statement Approval",
+      "status": "pending",
+      "required_approvers": ["PM", "Security Architect"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "Intake clarifications recorded (or bulk-accepted)",
+        "BLUF problem statement (≤ 3 sentences)",
+        "Affected user roles identified",
+        "Current workaround and failure mode documented",
+        "Compliance risk if unaddressed",
+        "Out-of-scope adjacent problems listed",
+        "Clarifying questions answered by PM/stakeholders",
+        "Assumptions validated or flagged for research"
+      ]
+    },
+    "phase_2": {
+      "name": "Research Brief Approval",
+      "status": "pending",
+      "required_approvers": ["PM"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "Relevant NIST/DoD control IDs identified with [SOURCE] citations",
+        "UX implication documented per control",
+        "Competitive landscape analyzed (minimum 3 platforms)",
+        "Patterns to leverage identified",
+        "Patterns to avoid/adapt for classified environments identified",
+        "Differentiation opportunities documented",
+        "Research gaps flagged"
+      ]
+    },
+    "phase_3": {
+      "name": "PRD Approval",
+      "status": "pending",
+      "required_approvers": ["PM", "Eng Lead"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "Executive Summary in BLUF format",
+        "User stories by role with acceptance criteria",
+        "Functional requirements numbered and testable",
+        "Non-functional requirements with specific control citations",
+        "Success metrics quantified",
+        "Out of scope with reasoning",
+        "Dependencies listed with blockers flagged",
+        "All [VERIFY WITH PM] items resolved",
+        "Threat model reviewed — no unmitigated P1 risks",
+        "Pre-flight review passed — no vague/unmeasurable requirements"
+      ]
+    },
+    "phase_4": {
+      "name": "Solution Direction Approval",
+      "status": "pending",
+      "required_approvers": ["Design", "PM"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "carried_forward": [],
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "Minimum 3 distinct solution approaches documented",
+        "Evaluation matrix completed (7 criteria scored)",
+        "BLUF recommendation with justification",
+        "Top 3 risks of recommended approach with mitigations",
+        "Trade-offs explicitly stated",
+        "Approach aligns with compliance constraints from Phase 2"
+      ]
+    },
+    "phase_5": {
+      "name": "Flow Approval",
+      "status": "pending",
+      "required_approvers": ["PM", "Eng Lead"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "All PRD user stories have corresponding flows",
+        "Error paths documented for all flows",
+        "Security audit passed — no bypass vectors",
+        "Navigation patterns consistent with existing Mattermost UX",
+        "Mobile flows documented or explicitly marked desktop-only",
+        "Feedback disposition recorded ((a) real w/ sources / (b) labeled synthetic / (c) none w/ reason)"
+      ]
+    },
+    "phase_6": {
+      "name": "Prototype Design Options Approval",
+      "status": "pending",
+      "required_approvers": ["Design Lead", "PM"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "selected_option": null
+    },
+    "phase_7": {
+      "name": "UX Spec Approval",
+      "status": "pending",
+      "required_approvers": ["PM", "Eng Lead", "Security Architect", "Mobile Eng"],
+      "approved_by": [],
+      "approved_at": null,
+      "bypass": null,
+      "intake_clarifications": {
+        "rounds_completed": 0,
+        "questions_asked": 0,
+        "questions_resolved": 0,
+        "bulk_accept_used": false,
+        "escalated": false
+      },
+      "artifact_checklist": [
+        "All REQUIRED template sections populated; INCLUDE-WHEN-NEEDED sections only when they add value (menu model)",
+        "Edge case review completed — all P1 findings resolved (internal validation, not a separate appendix)",
+        "Internal traceability check passed — PRD requirements covered; gaps justified",
+        "No unresolved [TBD] items remain",
+        "All open questions have owners and target dates",
+        "Roles & Permissions documented when the permission model is non-trivial",
+        "Accessibility documented for non-standard interactions",
+        "Analytics events defined when PM requests tracking",
+        "Compliance appendix attached for Tier 1 / access-control features",
+        "Mobile behavior explicitly documented (parity or differences)"
+      ]
+    }
+  },
+
+  "artifacts": {
+    "brain_dump_raw": "",
+    "problem_statement": {
+      "content": "",
+      "confluence_url": "",
+      "version": 0,
+      "last_updated": ""
+    },
+    "research_brief": {
+      "content": "",
+      "confluence_url": "",
+      "version": 0,
+      "last_updated": ""
+    },
+    "prd": {
+      "content": "",
+      "confluence_url": "",
+      "jira_epic": "",
+      "version": 0,
+      "last_updated": "",
+      "threat_model": {
+        "findings": [],
+        "unmitigated_p1_count": 0
+      },
+      "preflight_report": {
+        "vague_requirements": [],
+        "missing_requirements": [],
+        "contradictions": []
+      }
+    },
+    "solution_direction": {
+      "selected_approach": "",
+      "evaluation_matrix": {},
+      "approaches_considered": [],
+      "confluence_url": "",
+      "version": 0,
+      "last_updated": ""
+    },
+    "$wireframe_review_comment": "holds per-direction flow audit output (key name retained for compatibility)",
+    "wireframe_review": {
+      "figma_url": "",
+      "flow_audit_findings": [],
+      "security_findings": [],
+      "feedback_synthesis": "",
+      "version": 0,
+      "last_updated": ""
+    },
+    "flow_definitions": {},
+    "prototype": {
+      "options": [],
+      "selected_option": null,
+      "option_comparison_matrix": {},
+      "index_page": "",
+      "component_inventory": [],
+      "build_status": "",
+      "prototype_base_url": "",
+      "screenshot_manifest": []
+    },
+    "spec_draft": {
+      "content": "",
+      "confluence_url": "",
+      "sections_completed": [],
+      "sections_pending": [],
+      "tbd_items": [],
+      "version": 0,
+      "last_updated": ""
+    },
+    "traceability_matrix": {
+      "content": "",
+      "total_requirements": 0,
+      "covered": 0,
+      "partial": 0,
+      "gaps": [],
+      "scope_creep": [],
+      "coverage_percentage": 0,
+      "version": 0
+    },
+    "edge_case_report": {
+      "findings": [],
+      "p1_count": 0,
+      "p2_count": 0,
+      "p3_count": 0,
+      "resolved": [],
+      "unresolved": [],
+      "version": 0
+    }
+  },
+
+  "context": {
+    "user_roles": [],
+    "affected_user_count_est": "",
+    "compliance_frameworks": [
+      "NIST SP 800-53",
+      "NIST SP 800-207",
+      "DoD ZT RA",
+      "DoDM 5200.01"
+    ],
+    "relevant_controls": [],
+    "competitive_platforms_analyzed": [],
+    "design_system_components_new": [],
+    "$open_questions_item_schema": {
+      "$comment": "Each entry in `open_questions[]` is a TYPED object of this shape — not a bare string. `[VERIFY WITH PM]` blockers live here. The decide-or-fork checkpoint (before Phase 5/6) reads `status`; any item still `open` with a load-bearing blocker must be decided or explicitly branched before the checkpoint passes.",
+      "id": "V-001 (stable, assigned once when raised)",
+      "text": "the question in plain language",
+      "owner": "pm | eng | design | security | <name> — who must resolve it",
+      "status": "open | resolved | deferred | branched",
+      "blocker": "true when this is a load-bearing [VERIFY WITH PM] that gates Phase 5/6; false for non-blocking tracking",
+      "raised_at": "REAL ISO-8601",
+      "phase_ref": "P<N> — the phase that raised it",
+      "resolved_at": "REAL ISO-8601 or null",
+      "resolution": "the decision text, or the branch rationale when status=branched, or the defer rationale when status=deferred",
+      "branch_spec_ref": "when status=branched: the sibling spec slug the alternative was forked into (never a silent same-day fork)"
+    },
+    "open_questions": [],
+    "verify_decision_checkpoints": [],
+    "$verify_decision_checkpoints_comment": "Records each pre-Phase-5 / pre-Phase-6 decide-or-fork checkpoint: {at_phase, timestamp, blockers_reviewed:[V-ids], outcome: 'all_decided' | 'branched', notes}. The orchestrator appends one here (and a verify_decision_checkpoint audit event) every time the checkpoint runs.",
+    "deprecated_explorations": [],
+    "key_decisions": [],
+    "clarifications": []
+  },
+
+  "audit_log": []
+}

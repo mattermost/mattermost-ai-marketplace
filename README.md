@@ -38,6 +38,7 @@ Staff-contributed Claude Code plugins for Mattermost engineering workflows. Brow
 | [`grafana`](plugins/grafana/)                                  | Investigate production issues, query logs and metrics, and explore dashboards on the Mattermost Grafana instance | devops     | 1.0.0   |
 | [`qa-analysis`](plugins/qa-analysis/)                          | Analyze a GitHub pull request for risk level and generate concrete QA recommendations                            | testing    | 1.0.0   |
 | [`mattermost-cherry-pick`](plugins/mattermost-cherry-pick/)    | Cherry-pick a merged security PR onto every policy-required release branch and open a PR per branch               | git          | 1.0.0   |
+| [`ux-spec-process`](plugins/ux-spec-process/)                  | 8-phase, gated UX specification pipeline for DoD/defense features — orchestrator + phase agents + composable skills | design       | 1.0.0   |
 
 ## Auto-Setup for Your Projects
 

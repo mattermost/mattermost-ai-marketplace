@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Edit(specs/*/spec-state.json)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"spec-state.json is orchestrator-managed; direct edits are blocked. Use the bundled spec-state CLI (${CLAUDE_PLUGIN_ROOT}/scripts/spec-state).\"}}'"
+          },
+          {
+            "type": "command",
+            "if": "Write(specs/*/spec-state.json)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"spec-state.json is orchestrator-managed; direct writes are blocked. Use the bundled spec-state CLI (${CLAUDE_PLUGIN_ROOT}/scripts/spec-state).\"}}'"
+          }
+        ]
+      }
+    ]
+  }
+}
