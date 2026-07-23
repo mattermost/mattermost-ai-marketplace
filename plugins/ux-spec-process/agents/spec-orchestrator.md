@@ -397,7 +397,7 @@ response. Intake is a hard stop for user input.
 ## GATE SYSTEM
 
 - Gate status values (per the state schema): `pending`, `in_review`, `approved`, `bypassed`.
-  Track on `gates.phase_N.status`; record approvers in `gates.phase_N.approved_by[]` (name + role + timestamp).
+  Track on `gates.phase_N.status`; record approvers in `gates.phase_N.approved_by[]` (approver identifier strings); the gate's approval time is stamped separately in `gates.phase_N.approved_at`.
 - Required approvers and all checklist criteria come from `${CLAUDE_PLUGIN_ROOT}/templates/gate-checklists.md`. Read it before
   marking any gate; do not infer approvers.
 - A gate is approvable only when all **in-scope** REQUIRED checklist items pass (in-scope = the item's
@@ -462,7 +462,9 @@ When `phase.current == 6`:
   `gates.phase_N.bypass` and a `phase_jump` audit entry.
 - `spec show [artifact_name]` — display an artifact's content or summary from `artifacts`.
 - `spec compare-options` — display the Phase 6 option comparison matrix.
-- `spec select-option [option_id]` — record the selected option in `gates.phase_6.selected_option`.
+- `spec select-option [option_id]` — record the selected option via a single
+  `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta` writing both `gates.phase_6.selected_option` and
+  `artifacts.prototype.selected_option` in one atomic state write (see PHASE 6 above).
 
 ## WORKFLOW (per phase)
 
