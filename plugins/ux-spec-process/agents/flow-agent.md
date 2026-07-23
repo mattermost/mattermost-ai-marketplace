@@ -108,10 +108,13 @@ For each issue:
 
 FEEDBACK DISPOSITION:
 
-Determine which applies — (a) the user has provided real feedback (chat messages,
-linked comments): synthesize it with source refs; (b) neither: record disposition
-'none' with a one-line reason. Never collect, infer, or simulate stakeholder
-feedback outside these two paths.
+Determine which applies — (a) real feedback provided by the user (chat messages,
+linked comments): synthesize it with source refs; (b) a synthetic persona-lens
+critique was explicitly requested: generate it and label every item
+[SYNTHETIC — persona-lens, not stakeholder input] with the persona slug as its
+provenance; (c) none of the above: record disposition 'none' with a one-line
+reason. Never infer or present simulated feedback as real stakeholder input, and
+never collect feedback outside these three paths.
 
 REVIEW PACKAGE OUTPUT STRUCTURE:
 
