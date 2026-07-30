@@ -22,8 +22,11 @@ gh pr view <PR> --repo mattermost/mattermost --json number,title,author,body,bas
 
 ## STEP 1: Find the Jira ticket and gate on `security`
 
-- Scan the PR body for a Jira ticket key. Match a `mattermost.atlassian.net/browse/<KEY>` link or a bare key of the form `MM-<digits>` (e.g. from a "Fixes:" / "Ticket Link" line).
-- If no Jira key is found, EXIT WITH NO ACTION (do not comment, branch, or open any PR).
+- Extract the Jira ticket key ONLY from a dedicated ticket declaration, never from prose. A valid match is either:
+  - A `Ticket Link` field/heading whose value is a `mattermost.atlassian.net/browse/<KEY>` link or a bare `MM-<digits>` key, or
+  - A line that explicitly reads `Fixes: <KEY>` (or `Fixes: <mattermost.atlassian.net/browse/<KEY>>`).
+- Do NOT pick up ticket keys mentioned inline in the summary/description text, keys that appear in narrative sentences, or keys that reference other/related tickets. Only the `Ticket Link` value or an explicit `Fixes:` declaration counts.
+- If no Jira key is found via those two sources, EXIT WITH NO ACTION (do not comment, branch, or open any PR).
 - Using the connected Atlassian (Jira) integration, fetch that issue and read its Labels.
 - If the issue does NOT carry the `security` label, EXIT WITH NO ACTION.
 
