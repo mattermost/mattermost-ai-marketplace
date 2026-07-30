@@ -44,7 +44,7 @@ gh pr view <PR> --repo mattermost/mattermost --json number,title,author,body,bas
 
 Before launching any subagents, send the following start message in two places simultaneously:
 
-**A) Post a comment on the original PR (#<PR_NUMBER>):**
+**A) Post a comment on the original PR (#`<PR_NUMBER>`):**
 
 > 🤖 Automation starting cherry-pick for the following target branches:
 > - release-X.Y
@@ -55,7 +55,7 @@ Before launching any subagents, send the following start message in two places s
 
 **B) Post to the Mattermost channel** using the `post_to_mattermost_cherry_pick` tool with `username: Cherry-pick Agent`, sending the identical message as above, with the triggering PR reference appended:
 
-> 🤖 Automation starting cherry-pick for `<PR_LINK>` for the following target branches:
+> 🤖 Automation starting cherry-pick for <PR_LINK> for the following target branches:
 > - release-X.Y
 > - release-X.Z
 > - ...
