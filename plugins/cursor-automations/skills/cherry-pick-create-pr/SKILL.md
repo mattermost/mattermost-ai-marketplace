@@ -16,7 +16,7 @@ Every follow-up commit created by this agent (lint/type fix-up commits, and any
 other commit you author) **must** end with the following trailer on its own
 line, separated from the rest of the message by a blank line:
 
-```
+```text
 Co-authored-by: mattermost-code <matty-code@mattermost.com>
 ```
 
