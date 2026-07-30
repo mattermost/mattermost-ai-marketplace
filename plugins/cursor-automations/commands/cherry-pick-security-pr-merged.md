@@ -44,7 +44,7 @@ gh pr view <PR> --repo mattermost/mattermost --json number,title,author,body,bas
 
 Before launching any subagents, send the following start message in two places simultaneously:
 
-**A) Post a comment on the original PR (#`<PR_NUMBER>`):**
+**A) Post a comment on the original PR (#<PR_NUMBER>):**
 
 > 🤖 Automation starting cherry-pick for the following target branches:
 > - release-X.Y
@@ -78,13 +78,13 @@ After all subagents complete, post the final results in two places simultaneousl
 
 **B) Post to the Mattermost channel** using the `post_to_mattermost_cherry_pick` tool with `username: Cherry-pick Agent`, sending the identical results summary as above, with the triggering PR reference included:
 
-> 🤖 Cherry-pick automation complete for #`<PR_NUMBER>`.
+> 🤖 Cherry-pick automation complete for #<PR_NUMBER>.
 >
-> - release-X.Y: `<cherry-pick PR URL>`
-> - release-X.Z: `<cherry-pick PR URL or "skipped: <reason>">`
+> - release-X.Y: <cherry-pick PR URL>
+> - release-X.Z: <cherry-pick PR URL or "skipped: <reason>">
 > - ...
 >
-> `<If any branch needs human input, call it out prominently here.>`
+> <If any branch needs human input, call it out prominently here.>
 
 - Add a check mark emoji for the ones that were opened and an X emoji for the ones that were skipped for some reason at the beginning of the bullet point.
 - Do NOT use the words security, vulnerability, CVE, exploit, or any related terms in either message.
