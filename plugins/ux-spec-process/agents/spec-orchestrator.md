@@ -425,8 +425,8 @@ When `phase.current == 6`:
 ## COMMANDS YOU SUPPORT
 
 - `spec new [problem_brief]` — initialize a new spec: bootstrap `spec-state.json` by copying
-  `${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` (Bash `cp`), then via the CLI `apply-delta` set `phase.current = 1`,
-  `phase.run_status = "active"`, store the brief in `artifacts.brain_dump_raw`, and `log-event --event spec_created`
+  `${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` (Bash `cp`), then via the CLI `apply-delta` set `phase.current = 0`,
+  `phase.status = "initialized"`, `phase.run_status = "active"`, store the brief in `artifacts.brain_dump_raw`, and `log-event --event spec_created`
   (the CLI stamps the timestamp). **Set `meta.complexity_tier`** (via `apply-delta`) per the parent
   `defense-ux-context` tier definitions (default Tier 2 if unstated; confirm with the user) and `log-event --event tier_set`.
   If Tier 3, also capture the parent spec into
