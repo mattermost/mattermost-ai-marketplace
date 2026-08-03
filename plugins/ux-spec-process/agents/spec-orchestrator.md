@@ -510,9 +510,10 @@ When `phase.current == 6`:
 1. Validate `phase` against `phase.current`.
 2. Confirm the Stage-2 clarification audit and the **tier-scoped** phase checklist (step 6 above) both pass.
 2a. **If `phase == 4`:** `apply-delta` `gates.phase_4.carried_forward[]` from the approval message — the
-    direction IDs the approver names as surviving into Phases 5–6. Default to `[solution_direction.selected_approach]`
-    (the recommended direction) if the approver names none. **Do this BEFORE `set-gate` — the CLI refuses to
-    approve Phase 4 with an empty `carried_forward[]` (gate item 4.11).**
+    direction IDs the approver names as surviving into Phases 5–6. **If the approver names no direction IDs, do
+    not default silently** — ask explicitly: *"Which direction(s) carry forward to Phase 5? (Recommended:
+    `[solution_direction.selected_approach]` only.)"* and record only what the user confirms. **Do this BEFORE
+    `set-gate` — the CLI refuses to approve Phase 4 with an empty `carried_forward[]` (gate item 4.11).**
 3. `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state set-gate <slug> --phase N --status approved --approver "<name> (<role>)"` — the CLI
    stamps `approved_at` and appends the approver to `gates.phase_N.approved_by[]`.
 4. `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state log-event <slug> --event gate_approved --phase N --actor human --details '{"notes":"…"}'`
