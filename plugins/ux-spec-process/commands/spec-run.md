@@ -50,7 +50,7 @@ For each phase:
 
 1a. **Scope checkpoints (hard stops — surface and pause, do not auto-pass):**
    - **Entering Phase 3** → the orchestrator runs the **scope re-confirm** (SCOPE-LOCK §B): re-present the locked tier/scope/surface/comparator counts and wait for `y` or a described change. A change is logged as a deliberate `scope_change` (never a silent rerun); a tier flip triggers an explicit, logged re-run offer. Block Phase 3 until `scope_lock.reconfirmed_at_phase_3 == true`.
-   - **Entering Phase 5 or Phase 6** → the orchestrator runs the **decide-or-fork checkpoint** (SCOPE-LOCK §C): every open `[VERIFY WITH PM]` blocker (`status=="open"`, `blocker==true`) must be **decided** (`spec decide-verify`) or **explicitly branched into a named sibling spec** (`spec branch-verify`) — a blocker cannot be deferred past this point, and a fork is never silent. Block the phase until the checkpoint is cleared and a `verify_decision_checkpoint` record is written. This is the structural fix for decision-deferral forks.
+   - **Entering Phase 5 or Phase 6** → the orchestrator runs the **decide-or-fork checkpoint** (SCOPE-LOCK §C): every open `[VERIFY WITH PM]` blocker (`status=="open"`, `blocker==true`) must be **decided** (`spec decide-verify`) or **explicitly branched into a named sibling spec** (`spec branch-verify`) — a blocker cannot be deferred past this point, and a fork is never silent. Block the phase until the checkpoint is cleared and a `verify_decision_checkpoint` record is written. Both `continue` and `skip next` are disabled while blocked — only resolving the blocker or `quit` may proceed. This is the structural fix for decision-deferral forks.
    These checkpoints run **before** the phase's intake round. Surface them verbatim and use the same pause flow as intake.
 
 2. **Run the phase.** Invoke the orchestrator with the phase directive. Commands complete without blocking on gate sign-off (async approval); never start the next phase without approval. The orchestrator appends a `phase_started` event (real ISO timestamp) on entry and `phase_completed` on a clean validation.
@@ -111,7 +111,7 @@ If during any phase the orchestrator or its delegated agent flags:
 - An unresolved `[VERIFY WITH PM]` that blocks further work
 - An external content source that cannot be cross-verified
 
-Then **stop the loop**, surface the issue verbatim, and offer the same checkpoint menu (continue is disabled until the ambiguity is resolved or "skip" is chosen).
+Then **stop the loop**, surface the issue verbatim, and offer the same checkpoint menu — but with **both `continue` and `skip next` disabled** until the issue is resolved (skipping ahead would bypass the same guard). Only `pause`, `redo`, `edit & continue`, or `quit` remain available; resolving the blocker (`decide`/`branch`) re-enables `continue`.
 
 ## Hard stops — never bypass
 
