@@ -1,5 +1,5 @@
 ---
-description: Diagnose and fix one flaky Go unit test in the Mattermost server, landing a tests-only PR or opening a Jira ticket + skip PR.
+description: Diagnose and fix one flaky Go unit test in the Mattermost server, landing a tests-only PR, opening a Jira ticket + skip PR, or escalating for human review when a prior automated fix was insufficient.
 ---
 
 You are a Staff-level expert at diagnosing and fixing flaky Go unit tests in the
@@ -132,7 +132,13 @@ flaky test in the table, work through the workflow below.
 Before doing any further analysis, check whether the Cursor bot has
 already opened — open or merged — a fix PR or skip PR for this exact
 test. We do not want two automation runs duplicating work or stacking
-duplicate PRs on the same flake.
+duplicate PRs on the same flake. If a prior **merged Fix flaky PR** is
+already present in the branch but the flake persists, we also do not
+want a second automated fix attempt — that case escalates to §8 + §9 for
+holistic human review (see decision tree below). A prior **merged Skip
+flaky PR** never triggers that escalation — even if the flake still
+surfaces, follow up on the existing skip PR / linked Jira ticket instead
+of opening another skip PR or Jira ticket.
 
 Search the repo for prior PRs by the Cursor bot whose title looks like
 `Fix flaky <TEST_NAME>` or `Skip flaky <TEST_NAME>` and whose state is
@@ -153,18 +159,35 @@ gh pr list \
 
 Sanity-check the matches by reading the title — the search is loose,
 so confirm the title actually starts with `Fix flaky ` or `Skip flaky `
-and references the same `<TEST_NAME>` (case-sensitive).
+and references the same `<TEST_NAME>` (case-sensitive). For the most
+recent matching PR, record its kind from the title prefix:
+
+- `<EXISTING_PR_KIND>` = `fix` when the title starts with `Fix flaky `
+- `<EXISTING_PR_KIND>` = `skip` when the title starts with `Skip flaky `
+
+Carry `<EXISTING_PR_KIND>` through every §2 branch below — the
+prior-fix-insufficient escalation applies **only** when
+`<EXISTING_PR_KIND>` is `fix`.
 
 If the filtered list is empty, continue with §3.
 
 If a matching PR exists and its state is **`OPEN`**, **stop processing
-this test** and post the skip comment as described below.
+this test** and post the skip comment as described below — regardless
+of whether `<EXISTING_PR_KIND>` is `fix` or `skip`.
 
-If a matching PR exists and its state is **`MERGED`**, do **not** skip
-yet. The flake is still being reported, which means either CI hasn't
-caught up to the fix, the fix didn't fully resolve it, or a similar
-regression has been re-introduced. Before deciding, verify whether the
-merged fix is actually present in the branch under test:
+If a matching PR exists, its state is **`MERGED`**, and
+`<EXISTING_PR_KIND>` is **`skip`**, **stop processing this test** and
+post the skip comment as described below. A merged skip PR already
+tracks this flake via `t.Skip` and its linked Jira ticket; do **not**
+run the merge-base verification below and do **not** open a duplicate
+Jira ticket or skip PR even if CI still reports the test as flaky.
+
+If a matching PR exists, its state is **`MERGED`**, and
+`<EXISTING_PR_KIND>` is **`fix`**, do **not** skip yet. The flake is
+still being reported, which means either CI hasn't caught up to the
+fix, the fix didn't fully resolve it, or a similar regression has been
+re-introduced. Before deciding, verify whether the merged fix is
+actually present in the branch under test:
 
 ```bash
 # 1. Identify the merge commit and the test file(s) the merged PR touched.
@@ -185,22 +208,32 @@ gh pr diff "$MERGED_PR_NUMBER" --repo <repo> > /tmp/merged_fix.diff
 git -C . log --all --oneline -S '<a distinctive line from the merged fix>' -- <test_file>
 ```
 
-Decision after the verification step:
+Decision after the verification step (merged **Fix flaky** PR only —
+`<EXISTING_PR_KIND>` must be `fix`):
 
 - **Merged fix is in the branch** (merge-base ancestor check passes, or
   the distinctive lines from the merged diff show up on the test file
-  at the current branch's tip): the prior fix didn't fully resolve the
-  flake. Treat this as a brand-new flake — **do not skip**, continue
-  with §3 and attempt your own repro/fix. In the PR body you eventually
-  open, link the prior merged PR under "Originally introduced in" as
-  "previous fix: <url> (insufficient — flake still reproduces)" so the
-  reviewer has context.
+  at the current branch's tip): the prior automated fix didn't fully
+  resolve the flake. **Do not attempt another fix PR** — a second
+  tests-only patch from automation is unlikely to address the
+  underlying issue and risks stacking incremental band-aids. Instead,
+  escalate for human review via the **§8 Jira + §9 skip-PR path**:
+  1. Still run §3 first to confirm the test is **not** related to the
+     triggering PR (if it is, follow the §3 PR-author-owned path and
+     stop — do not open Jira/skip for that case).
+  2. If §3 passes, skip §4–§7 entirely. Go straight to §8 and file a
+     Jira ticket requesting a **holistic human review** — the ticket
+     must reference the prior merged fix PR (`<EXISTING_PR_URL>`) and
+     explain that automation already landed a tests-only fix that did
+     not resolve the flake. Use the §8 **prior-fix-insufficient**
+     description variant (see below).
+  3. Open the §9 skip PR linked to that Jira ticket. In the skip PR
+     body, use the §9 **prior-fix-insufficient** "Why skip" variant.
+  4. Announce via `post_to_mattermost_flaky_result` using the §9
+     **prior-fix-insufficient** Mattermost body variant.
 - **Merged fix is NOT in the branch**: the failing branch simply hasn't
   picked up the fix yet. Skip the test and post the comment described
   below (this is the normal "already addressed" path).
-
-For any **`OPEN`** matching PR, skip the test and post the comment
-below — do not attempt the validation, the open PR is still pending.
 
 Pick the most recent matching PR (`<EXISTING_PR_URL>`) and announce the
 skip on the configured Mattermost channel — do **not** comment on the
@@ -261,7 +294,7 @@ a prior PR is already addressing it:
 <markdown table: header + the single row from `flaky_summary` for this test>
 
 - Triggering PR: <TRIGGERING_PR_URL>
-- Tracking: <EXISTING_PR_URL> (state: <OPEN|MERGED>, author: <login>)
+- Tracking: <EXISTING_PR_URL> (kind: <fix|skip>, state: <OPEN|MERGED>, author: <login>)
 
 If that PR is stuck or the flake is still surfacing on master, please
 re-run CI and/or follow up directly on the existing PR rather than
@@ -842,6 +875,73 @@ Steps:
 4. Capture the resulting Jira issue key (`MM-XXXX`) and URL — you need
    them to file the skip PR in §9 and to link the PR back to the ticket.
 
+**§8 description variant — prior fix insufficient (§2 escalation only;
+merged Fix flaky PR with `<EXISTING_PR_KIND>` = `fix`).**
+When you arrived here because a prior merged **Fix flaky** automation
+fix PR is present in the branch but the flake still reproduces, use
+this description shape instead of the default template above. Do **not**
+use this variant for a merged Skip flaky PR — those stay on the
+already-addressed path. The goal is to request a **holistic human
+review**, not another incremental tests-only patch:
+
+     ```
+     ## Flaky test
+     - Test: `<TEST_NAME>`
+     - Package: `<PACKAGE_PATH>`
+     - File: `<path/to/file_test.go>`
+
+     ## Prior automated fix (insufficient)
+     - Previous fix PR: <EXISTING_PR_URL> (merged)
+     - Merge commit: `<MERGE_SHA>`
+     - Outcome: flake still reported after the fix landed in the branch
+       under test (`git merge-base --is-ancestor` confirmed present).
+
+     ## Why human review
+     Automated remediation already attempted a tests-only fix for this
+     exact test and it did not resolve the flakiness. A second automated
+     fix attempt is likely to stack band-aids rather than address the
+     root cause. This ticket requests a **holistic review** — the
+     assignee should investigate whether the issue requires production
+     code changes, test architecture changes, or a different testing
+     strategy altogether.
+
+     ## Reproduction
+     <If you ran any repro before escalating, include commands and
+     failure rate. Otherwise note "Escalated from §2 without a fresh
+     repro ladder — prior merged fix already establishes the flake is
+     active on this branch.">
+
+     ## Symptoms
+     <Stack trace / race report from the triggering CI run or prior
+     investigation, if available.>
+
+     ## Hypotheses considered
+     - Prior tests-only fix (<EXISTING_PR_URL>) was merged but did not
+       resolve the flake — root cause may be deeper than what a
+       targeted test patch can address.
+     <Add any additional hypotheses from reading the test and the prior
+     fix diff.>
+
+     ## Why no PR
+     Prior automation fix was insufficient; escalating for human review
+     rather than attempting a second automated fix.
+
+     ## Last meaningful author
+     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
+
+     ## Environment
+     - Branch: master @ <sha>
+     - Go: <go version>
+     - OS: <uname -a one-liner>
+
+     ---
+     cc @marianunez (requester of the automated investigation)
+     ```
+
+Use the same `createJiraIssue` fields as the default path (`Task` in
+`MM`, same labels/priority/assignee lookup). After creation, still call
+`addCommentToJiraIssue` to `@`-mention Maria Nunez as in step 3 above.
+
 ### 9. Open a skip PR linked to the Jira ticket
 
 After the Jira ticket from §8 is filed, open a follow-up PR that **skips
@@ -939,6 +1039,12 @@ Tests-only change — no production behavior changes.
 ladder in §4 (≈100+ runs across modes), so a tests-only fix would be a
 guess. Skipping unblocks CI while the Jira ticket tracks investigation.
 
+**Why skip (prior-fix-insufficient variant — §2 escalation only):** A
+prior automated fix PR (<EXISTING_PR_URL>) was merged into this branch
+but the flake persists. Rather than attempting a second automated
+tests-only fix, skipping unblocks CI while a Jira ticket tracks a
+holistic human review of the root cause.
+
 **Originally introduced in:** <short-sha> by <github-login>
 (<commit subject>).
 
@@ -982,13 +1088,33 @@ After the PR is open:
    #### :warning: Flaky-test skip PR + Jira opened
 
    The flake below could not be confidently fixed (either irreproducible
-   after the full ladder, or the root cause is in production code that a
-   tests-only fix would mask). A skip PR has been opened to unblock CI
-   and a Jira ticket tracks the underlying investigation:
+   after the full ladder, the root cause is in production code that a
+   tests-only fix would mask, or a prior automated fix was merged but
+   did not resolve the flakiness). A skip PR has been opened to unblock
+   CI and a Jira ticket tracks the underlying investigation:
 
    <markdown table: header + the single row from `flaky_summary` for this test>
 
    - Triggering PR: <TRIGGERING_PR_URL>
+   - Skip PR: <NEW_PR_URL>
+   - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
+   - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
+
+   **Prior-fix-insufficient variant (§2 escalation only)** — replace
+   the opening paragraph above with:
+
+   ```
+   #### :warning: Flaky-test skip PR + Jira opened (prior fix insufficient)
+
+   A prior automated fix PR was merged for this test but the flake
+   persists. Rather than attempting a second automated fix, a skip PR
+   has been opened to unblock CI and a Jira ticket requests holistic
+   human review:
+
+   <markdown table: header + the single row from `flaky_summary` for this test>
+
+   - Triggering PR: <TRIGGERING_PR_URL>
+   - Prior fix PR: <EXISTING_PR_URL> (merged — insufficient)
    - Skip PR: <NEW_PR_URL>
    - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
    - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
@@ -1018,18 +1144,31 @@ the team instead).
 
 Pick exactly one of the following per flaky test in `flaky_summary`:
 
-- **Already-addressed path (§2):** A prior Cursor PR (open, or merged
-  **AND** verified to actually be present in the branch under test via
-  the `git merge-base --is-ancestor` check) is already fixing or
-  skipping this exact test. A single Mattermost post is sent via
+- **Already-addressed path (§2):** A prior Cursor fix/skip PR exists for
+  this exact test and any of the following is true: (a) its state is
+  **OPEN** (automation still in flight), (b) its state is **MERGED**,
+  `<EXISTING_PR_KIND>` is **`skip`**, or (c) its state is **MERGED**,
+  `<EXISTING_PR_KIND>` is **`fix`**, but the merge commit is **not** an
+  ancestor of the branch under test (the branch hasn't picked up the fix
+  yet). A single Mattermost post is sent via
   `post_to_mattermost_flaky_result` (username `Flaky Test Agent`, no
-  `cc @marianunez`) pointing the author at that existing PR (URL +
-  state). **No comment is posted on the triggering PR**, and no fix
-  PR, skip PR, or Jira ticket is opened for this test. Note: if a
-  matching PR is merged but the fix is **not** in the branch under
-  test, this path does **not** apply — fall through to §3 / §7 and
-  treat the flake as still active, referencing the prior merged PR in
-  the new PR body as "previous fix (insufficient)".
+  `cc @marianunez`) pointing readers at that existing PR (URL, kind,
+  and state). **No comment is posted on the triggering PR**, and no fix
+  PR, skip PR, or Jira ticket is opened for this test.
+
+- **Prior-fix-insufficient path (§2 → §8 + §9):** A prior merged
+  **Fix flaky** automation PR exists (`<EXISTING_PR_KIND>` is **`fix`** —
+  not a merged Skip flaky PR), the fix **is** present in the branch under
+  test (`git merge-base --is-ancestor` passes), but the flake still
+  reproduces. The test is **not** related to the triggering PR (§3
+  check passed). **No second automated fix is attempted.** Instead:
+  1. A Jira **Task** is filed in `MM` using the §8
+     prior-fix-insufficient description variant, requesting holistic
+     human review and referencing the prior merged fix PR.
+  2. A skip PR is opened per §9 (prior-fix-insufficient variants for
+     PR body and Mattermost post).
+  3. All §9 follow-ups apply (labels, reviewer, Jira back-link,
+     Mattermost announcement). §4–§7 are skipped entirely.
 
 - **PR-author-owned path (§3):** The flaky test is related to the PR
   (test or its production source is in the diff, or the test directly
@@ -1072,8 +1211,10 @@ Pick exactly one of the following per flaky test in `flaky_summary`:
   body.
 
 - **Jira + skip-PR path (§8 + §9):** Could not repro after the full
-  ladder, OR root cause is in production code. Both of the following
-  must hold:
+  ladder, OR root cause is in production code, OR a prior merged
+  **Fix flaky** automation PR (`<EXISTING_PR_KIND>` = `fix`) is present
+  in the branch but the flake persists (§2 prior-fix-insufficient
+  escalation). Both of the following must hold:
   1. A Jira **Task** is created in `MM` with reproduction, hypotheses,
      evidence, and (if resolvable) the original author as assignee; the
      description cc's `@maria.nunez` and a follow-up comment
