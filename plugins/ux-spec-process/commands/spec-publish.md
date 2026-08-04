@@ -22,7 +22,7 @@ Otherwise, **ask the user** for the target — do not guess or default to a hard
 - Confluence space key or name
 - Parent page title
 
-If `meta.confluence_parent_page` is already set on the spec state from a prior publish, offer it as the default and confirm before reusing it.
+If `meta.confluence_last_parent` (space + parent title) is already set on the spec state from a prior publish, offer it as the default and confirm before reusing it.
 
 ## Hard-stop confirmation protocol
 
@@ -47,7 +47,7 @@ Before any Confluence write:
 4. **Second confirmation for publishing.** Never publish (move from draft to live) without a separate, explicit instruction from the user. This command only creates drafts.
 
 5. **On success:** commit via the `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state` CLI only — never hand-edit `spec-state.json` (Edit/Write are hook-denied; bash redirection / `sed` is prohibited):
-   - `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta <slug>` to set `phase.current = 8` and `meta.confluence_parent_page = <page URL>`. **Do not pass any timestamp** — the CLI stamps `meta.last_updated`.
+   - `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta <slug>` to set `phase.current = 8`, `meta.confluence_draft_url = <page URL>` (the newly created draft — never reused as a parent target), and `meta.confluence_last_parent = {"space":"<space>","parent_title":"<parent title>"}` (the resolved target actually used, reusable as the next run's default). **Do not pass any timestamp** — the CLI stamps `meta.last_updated`.
    - `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state log-event <slug> --event confluence_draft_created --phase 8 --actor human --details '{"page_url":"<url>"}'` (closed-vocabulary event; the CLI stamps the timestamp).
 
 ## Report
