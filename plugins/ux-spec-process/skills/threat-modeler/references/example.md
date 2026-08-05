@@ -92,9 +92,9 @@ Map any "Critical/High/Medium/Low" or P0 inputs onto P1/P2/P3 — never introduc
     "analysis_timestamp": "2026-03-10T15:30:00Z",
     "mission_tier": "IL5",
     "total_threats_identified": 8,
-    "p1_count": 2,
+    "p1_count": 3,
     "p2_count": 4,
-    "p3_count": 2
+    "p3_count": 1
   },
   "executive_summary": {
     "key_findings": [
@@ -396,10 +396,10 @@ Input:
 - Previous incidents: 2 message misdirection incidents, 1 admin misconfiguration
 
 Analysis identifies:
-- 8 threats (2 P1, 4 P2, 2 P3)
+- 8 threats (3 P1, 4 P2, 1 P3)
 - P1: Incomplete AD clearance data, Mobile modal too dismissible
 - P1: Insider forwarding exfiltration
-- P2: Copy/paste spillage, Admin misconfiguration of mixed-classification channels
+- P2: Copy/paste spillage, Admin misconfiguration of mixed-classification channels, Admin accidentally leaves a channel public, Social engineering via fake system messages
 - P3: Desktop notifications showing classified content
 - Key mitigations: AD SLA + manual override, non-dismissible mobile modal + HOLD gesture, disable forward for classified messages, copy-disabled composer mode
 
