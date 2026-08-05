@@ -14,7 +14,7 @@ The Option Builder translates Phase 4 solution direction approaches into concret
 
 This skill is the entry point for Phase 6. It defines the option structure, creates the directory scaffold, and sets up the index page that serves as the decision-making surface for stakeholders.
 
-**Build one option per carried-forward direction** (count = `gates.phase_4.carried_forward[]` length; `approaches` array). The `recommended` flag and any scoring shown on the index page must match the canonical Phase 6 evaluation produced by `option-presenter` — both use the single rubric in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md)** (7 weighted criteria, 1–5 scores, normalized `X.XX / 5.00`). Option Builder scaffolds the pages; `option-presenter` scores them — don't invent a competing criteria set on the index.
+**Build one option per carried-forward direction** (count = `gates.phase_4.carried_forward[]` length; `approaches` array). The `recommended` flag and any scoring shown on the index page must match the canonical Phase 6 evaluation produced by `option-presenter` — both use the single rubric in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../templates/conventions.md)** (7 weighted criteria, 1–5 scores, normalized `X.XX / 5.00`). Option Builder scaffolds the pages; `option-presenter` scores them — don't invent a competing criteria set on the index.
 
 ## When to Use
 

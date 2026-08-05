@@ -15,7 +15,7 @@ The Option Presenter generates the decision-making artifacts stakeholders need t
 
 This skill runs AFTER all prototype options are built and validated. It is the final step before Phase 6 gate review.
 
-**Rubric source of truth:** the comparison matrix uses the **same 7 weighted criteria, per-IL-tier default weights, 1–5 scale, normalized-score math, anti-gaming rule, and tie-break** as Phase 4 — all defined in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md)**. This is the **Phase 6** consumer of that rubric (`solution-scorer` is the Phase 4 consumer), so a Phase-4 direction and its Phase-6 options score on the identical axes and are directly comparable. Do not invent a separate criteria set here.
+**Rubric source of truth:** the comparison matrix uses the **same 7 weighted criteria, per-IL-tier default weights, 1–5 scale, normalized-score math, anti-gaming rule, and tie-break** as Phase 4 — all defined in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../templates/conventions.md)**. This is the **Phase 6** consumer of that rubric (`solution-scorer` is the Phase 4 consumer), so a Phase-4 direction and its Phase-6 options score on the identical axes and are directly comparable. Do not invent a separate criteria set here.
 
 ## When to Use
 

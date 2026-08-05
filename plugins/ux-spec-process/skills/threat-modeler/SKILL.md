@@ -13,7 +13,7 @@ The Threat Modeler performs systematic UI-layer threat modeling for classified i
 
 **Output framing:** The threat model is an internal input artifact for design decisions. It should NOT appear in the final UX spec body. Relevant findings get incorporated into the spec as design decisions or constraints. The full threat model can be attached as a sub-page if stakeholders request it.
 
-> **Shared vocabularies:** threat `severity` is the single P1/P2/P3 scale in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md) §1 (do not redefine; no Critical/High/Medium/Low or P0). `mission_tier` is the classification enum in conventions §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). The `likelihood`/`impact`/`recoverability` fields are the qualitative *inputs* you weigh to land a severity — the published rating is always P1/P2/P3.
+> **Shared vocabularies:** threat `severity` is the single P1/P2/P3 scale in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../templates/conventions.md) §1 (do not redefine; no Critical/High/Medium/Low or P0). `mission_tier` is the classification enum in conventions §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). The `likelihood`/`impact`/`recoverability` fields are the qualitative *inputs* you weigh to land a severity — the published rating is always P1/P2/P3.
 
 > **Heavy detail lives in `references/`:** full input/output JSON in [`references/schema.md`](references/schema.md); the complete per-category probe lists, a full worked example, design principles, and troubleshooting in [`references/example.md`](references/example.md).
 

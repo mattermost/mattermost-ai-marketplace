@@ -13,7 +13,7 @@ The Interview Synthesizer transforms raw interview and observational research no
 
 This is especially critical for defense platforms, where user research surfaces zero-trust concerns, classification issues, and operational security patterns that don't fit commercial UX research frameworks.
 
-> **Shared vocabularies:** `mission_context` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). Map any clearance/audit concern to its real control (NIST SP 800-53 AC-2/AC-3/AC-16/AU-2, NIST SP 800-162 for ABAC), never to a commercial framework. The urgency/severity labels (CRITICAL/HIGH/MEDIUM) rank research findings; when these feed a gate finding, translate to the P1/P2/P3 scale in conventions §1.
+> **Shared vocabularies:** `mission_context` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). Map any clearance/audit concern to its real control (NIST SP 800-53 AC-2/AC-3/AC-16/AU-2, NIST SP 800-162 for ABAC), never to a commercial framework. The urgency/severity labels (CRITICAL/HIGH/MEDIUM) rank research findings; when these feed a gate finding, translate to the P1/P2/P3 scale in conventions §1.
 
 > **Heavy detail lives in `references/`:** full input/output JSON in [`references/schema.md`](references/schema.md); the complete example input, synthesized output, and consumer-team notes in [`references/example.md`](references/example.md).
 

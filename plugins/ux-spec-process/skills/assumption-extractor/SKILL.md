@@ -15,7 +15,7 @@ The Assumption Extractor surfaces hidden dependencies, implicit user knowledge r
 
 This is particularly critical for DoD/defense platforms where unstated assumptions about security boundaries, clearance levels, network topology, or mission context can have operational consequences.
 
-> **Shared vocabularies:** `mission_tier` uses the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). The `risk_level` column (HIGH/MEDIUM/LOW) rates *how damaging it is if an assumption is wrong* — it is an input to design risk, distinct from the P1/P2/P3 finding-severity scale in conventions §1, which the downstream `edge-case-hunter`/`threat-modeler` apply.
+> **Shared vocabularies:** `mission_tier` uses the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). The `risk_level` column (HIGH/MEDIUM/LOW) rates *how damaging it is if an assumption is wrong* — it is an input to design risk, distinct from the P1/P2/P3 finding-severity scale in conventions §1, which the downstream `edge-case-hunter`/`threat-modeler` apply.
 
 ## When to Use
 

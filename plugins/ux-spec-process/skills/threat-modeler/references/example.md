@@ -1,6 +1,6 @@
 # Threat Modeler — Category Checklists & Worked Example
 
-Companion to the lean SKILL.md. Contains the full per-category probe lists (the System Prompt names the four categories and a few probes each; the exhaustive lists live here), a complete worked example, design principles, and troubleshooting. Schemas: [`schema.md`](schema.md). Severity is the canonical P1/P2/P3 scale in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §1](../../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md).
+Companion to the lean SKILL.md. Contains the full per-category probe lists (the System Prompt names the four categories and a few probes each; the exhaustive lists live here), a complete worked example, design principles, and troubleshooting. Schemas: [`schema.md`](schema.md). Severity is the canonical P1/P2/P3 scale in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §1](../../../templates/conventions.md).
 
 ## Full category probe lists
 

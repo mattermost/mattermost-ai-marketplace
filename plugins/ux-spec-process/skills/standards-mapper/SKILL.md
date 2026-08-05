@@ -14,7 +14,7 @@ The Standards Mapper bridges the gap between compliance requirements and UX desi
 
 This skill is essential for DoD/defense platforms where compliance is not optional and where many controls are commonly misimplemented (creating audit findings). By mapping controls to design implications upfront, you avoid rework during ATO reviews.
 
-> **Shared vocabularies:** `impact_level` and `data_handled` use the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). If you rate a finding's **severity**, use the P1/P2/P3 scale in conventions §1. The `control_id` values produced here are the traceability keys downstream skills (`prd-generator`, `threat-modeler`, `traceability-checker`) reuse — keep them stable.
+> **Shared vocabularies:** `impact_level` and `data_handled` use the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). If you rate a finding's **severity**, use the P1/P2/P3 scale in conventions §1. The `control_id` values produced here are the traceability keys downstream skills (`prd-generator`, `threat-modeler`, `traceability-checker`) reuse — keep them stable.
 
 ## When to Use
 

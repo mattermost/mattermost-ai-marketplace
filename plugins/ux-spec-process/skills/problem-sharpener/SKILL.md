@@ -12,7 +12,7 @@ tags: [problem-definition, requirements, bluf, defense-ux, zero-trust]
 
 The Problem Sharpener transforms raw, unstructured problem descriptions ("brain dumps") into precise, BLUF-format problem statements that are optimized for defense and national security contexts. A sharpened problem statement articulates the operational challenge, its consequences, and the assumptions embedded in it—without proposing a solution.
 
-> **Shared vocabularies:** `impact_level` uses the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). Cite real controls by their owning framework — NIST SP 800-53 for AC-2/AC-3/AU-2 etc., NIST SP 800-207 for Zero Trust, NIST SP 800-162 for ABAC, DoDM 5200.01 for marking — never attribute a NIST control to a commercial framework.
+> **Shared vocabularies:** `impact_level` uses the canonical classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md`](../../templates/conventions.md) §2 (IL2/IL4/IL5/IL6/UNCLASSIFIED/MIXED; default IL5). Cite real controls by their owning framework — NIST SP 800-53 for AC-2/AC-3/AU-2 etc., NIST SP 800-207 for Zero Trust, NIST SP 800-162 for ABAC, DoDM 5200.01 for marking — never attribute a NIST control to a commercial framework.
 
 This skill is essential for defense contexts where problem statements must:
 - Distinguish between the operational problem and the proposed solution

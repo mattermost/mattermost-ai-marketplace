@@ -1,6 +1,6 @@
 # Interview Synthesizer — Input & Output Schemas
 
-Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §2](../../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md). The urgency/severity labels (CRITICAL/HIGH/MEDIUM) rank research findings; when these feed a gate finding, translate to the P1/P2/P3 scale in conventions §1.
+Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §2](../../../templates/conventions.md). The urgency/severity labels (CRITICAL/HIGH/MEDIUM) rank research findings; when these feed a gate finding, translate to the P1/P2/P3 scale in conventions §1.
 
 ## Input Schema
 

@@ -1,6 +1,6 @@
 # Threat Modeler — Input & Output Schemas
 
-Full JSON schemas for `threat-modeler`. Severity is the canonical P1/P2/P3 scale ([`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §1](../../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md)); `mission_tier` is the classification enum (§2). The `likelihood`/`impact`/`recoverability` fields are the qualitative *inputs* you weigh to land a severity — the published rating is always P1/P2/P3.
+Full JSON schemas for `threat-modeler`. Severity is the canonical P1/P2/P3 scale ([`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §1](../../../templates/conventions.md)); `mission_tier` is the classification enum (§2). The `likelihood`/`impact`/`recoverability` fields are the qualitative *inputs* you weigh to land a severity — the published rating is always P1/P2/P3.
 
 ## Input Schema
 

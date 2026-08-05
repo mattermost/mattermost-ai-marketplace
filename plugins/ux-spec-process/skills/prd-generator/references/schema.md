@@ -1,6 +1,6 @@
 # PRD Generator — Input & Output Schemas
 
-Full JSON schemas for `prd-generator`. `mission_tier` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §2](../../../.${CLAUDE_PLUGIN_ROOT}/templates/conventions.md); finding/risk severity uses the P1/P2/P3 scale (§1). The `risk_assessment.probability`/`impact` fields describe likelihood and consequence (not severity) and may stay qualitative.
+Full JSON schemas for `prd-generator`. `mission_tier` uses the classification enum in [`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §2](../../../templates/conventions.md); finding/risk severity uses the P1/P2/P3 scale (§1). The `risk_assessment.probability`/`impact` fields describe likelihood and consequence (not severity) and may stay qualitative.
 
 ## Input Schema
 
