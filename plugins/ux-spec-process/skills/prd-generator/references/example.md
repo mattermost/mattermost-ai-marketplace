@@ -89,7 +89,7 @@ Full input + partial output for the canonical classified-message-composition PRD
           "criterion_id": "AC-2.1.1",
           "given": "A coordinator is in an unclassified channel",
           "when": "He composes a message containing information that is classified, he should be able to add a classification marker",
-          "then": "In the message composer, a dropdown allows selecting message classification: [UNCLASSIFIED | CONFIDENTIAL | SECRET | TOP SECRET]. When he selects [CLASSIFIED], the composer shows a large colored badge and says 'This message will be classified. Recipients must have clearance.'"
+          "then": "In the message composer, a dropdown allows selecting message classification: [UNCLASSIFIED | CONFIDENTIAL | SECRET | TOP SECRET]. When he selects a classified level (e.g., [SECRET]), the composer shows a large colored badge and says 'This message will be classified. Recipients must have clearance.'"
         }
       ]
     }
@@ -109,7 +109,7 @@ Full input + partial output for the canonical classified-message-composition PRD
       "category": "Message Composition",
       "role_affected": "Fighter Pilot, Mission Coordinator",
       "requirement": "When a user in an IL5 environment sends a message to a channel, the system SHALL display a pre-send confirmation modal showing: (1) Channel name and classification level, (2) List of recipients with their clearance level (retrieved from Active Directory), (3) Message classification level, (4) A 'Confirm Send' button and a 'Cancel' button. Send SHALL NOT be triggered without explicit user confirmation.",
-      "traces_to_story": "US-1.1, US-1.2",
+      "traces_to_story": "US-1.1",
       "rationale": "This is the primary control to prevent misdirection. User research showed pilots want confirmation before send, especially for classified messages. Threat model identified message misdirection as the #1 spillage vector.",
       "acceptance_test": "Pilot in classified channel types a message. Hits Send. Confirmation modal appears with recipients and clearance levels. Modal blocks further action until Confirm is clicked. If pilot clicks Cancel, message is not sent but is not lost (remains in composer)."
     },
