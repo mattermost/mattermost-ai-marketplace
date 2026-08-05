@@ -690,7 +690,7 @@ When invoked with a spec folder path and target artifact type:
 - [ ] **Light default:** initial paint is light with no JS and no stored preference; theme is not chosen from `localStorage`/`prefers-color-scheme` at load
 - [ ] **JS-off survival:** every collapsible is native `<details>` (completed-phase blocks carry `open`); `<noscript>` fallback block present right after `<body>`; no content reachable only via JS
 - [ ] **No external CDN:** grep the emitted file for `cdn.`, `jsdelivr`, `unpkg`, `cdnjs`, `https://` (in `src`/`href`), `<script src`, `<link rel="stylesheet"`, `@import url`, `fetch(` — zero hits
-- [ ] **Diagrams pre-rendered:** any Mermaid/diagram is inline `<svg>` built via `mmdc`; **no runtime mermaid CDN script** anywhere in the file
+- [ ] **Diagrams pre-rendered:** any Mermaid/diagram is inline `<svg>` — built via `mmdc`, or hand-authored per the fallback pattern (§16) when `mmdc` is unavailable, provided it still satisfies the inline-SVG and accessibility checks; **no runtime mermaid CDN script** anywhere in the file
 - [ ] **WCAG 2.1 AA:** every status/severity badge pairs color + text (never color alone); contrast ≥ 4.5:1 body / 3:1 large+UI in both themes
 - [ ] **ARIA + keyboard:** interactive elements (heatmap cells, flowchart nodes, kanban cards, toggle) have meaningful `role`, `aria-label`, `tabindex`, Enter/Space handlers, and a visible `:focus-visible` style
 - [ ] **Self-resolving refs:** every `FR-N`/`EC-N`/threat/control ID renders its full gloss inline (in the DOM + `aria-label`), not a bare code
