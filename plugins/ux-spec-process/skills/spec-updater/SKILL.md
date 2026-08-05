@@ -4,6 +4,7 @@ description: Apply feedback-driven changes to a UX spec and update it in Conflue
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux, spec, confluence, feedback, update, maintenance]
+disable-model-invocation: true
 ---
 
 # Spec Updater
