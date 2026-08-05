@@ -41,7 +41,7 @@ The Prototype Scaffolder generates the complete file structure for a new prototy
     },
     "route_path": {
       "type": "string",
-      "description": "URL path for the route (e.g., '/channel-settings'). Must start with '/' and use kebab-case.",
+      "description": "URL path for the route (e.g., '/channel-settings'). Must start with '/' and use kebab-case. This is a sub-path; the manifest route is `/prototypes` + this value, never used verbatim.",
       "pattern": "^/[a-z0-9-]+(/[a-z0-9-]+)*$",
       "example": "/channel-settings"
     },
@@ -199,7 +199,9 @@ export default function {ScreenName}({ }: {ScreenName}Props) {
 Prototypes are registered in the `PROTOTYPES` array in `src/manifests/prototypes.ts` (NOT in `src/router/index.tsx` — the router maps over this manifest). First read the file to confirm the current `PrototypeEntry` shape, then:
 1. Add an `import` for the page component at the top
 2. Append a `PrototypeEntry` to the `PROTOTYPES` array. Match the existing fields exactly — at time of writing these are `id`, `label`, `path`, `component`, `group`, optional `description`, `addedAt` (ISO `YYYY-MM-DD`), and optional `isPrimary`. Use the input `page_title` as `label`.
-3. Routes follow the pattern `/prototypes/{route-slug}`; the path is the manifest entry's `path` field.
+3. Routes follow the pattern `/prototypes/{route-slug}`, where `{route-slug}` is `route_path` with its leading `/`
+   stripped — i.e. the manifest entry's `path` field is `/prototypes` + `route_path` (input `/channel-settings` →
+   path `/prototypes/channel-settings`). Never write `route_path` verbatim as the manifest path.
 
 Re-read the interface before writing — do not hardcode the field list if the manifest has changed.
 
