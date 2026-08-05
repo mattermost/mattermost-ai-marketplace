@@ -26,7 +26,7 @@ Based on the example input above.
 
 1. **Bulk User Onboarding**
    - Finding: Admins regularly onboard large cohorts (10–100+ users/month) and need to add them faster than the current one-at-a-time invite flow allows.
-   - Evidence: Two team admins explicitly stated this need. One quoted: "I have 50 new people joining each month from rotation" and "If there was a copy-paste bulk invite, I'd use it every day." The other mentioned spending ~15min per user.
+   - Evidence: Two team admins explicitly stated this need. One quoted: "I have 50 new people joining each month from rotation" and "If a rule could just add the right people automatically, I'd use it every day." The other mentioned spending ~15min per user.
    - Urgency: CRITICAL
    - Operational Impact: Admins currently lose 7–12 hours/month to invites. They risk adding people to wrong teams or missing new hires during busy rotations.
 
@@ -42,13 +42,7 @@ Based on the example input above.
    - Urgency: CRITICAL
    - Operational Impact: Compliance gap; risk of unauthorized access to classified information; ATO findings.
 
-4. **Membership Change Visibility**
-   - Finding: End-users want to know when new team members join, but they don't expect to control membership. They need situational awareness.
-   - Evidence: One end-user noted they don't care how admins add people; they just want to be notified when new arrivals occur.
-   - Urgency: MEDIUM (low compliance risk; medium UX quality impact)
-   - Operational Impact: New team members may not be effectively integrated; missed team cohesion opportunities.
-
-5. **Granular Audit Trails for Bulk Operations**
+4. **Granular Audit Trails for Bulk Operations**
    - Finding: Security officers need to audit who added which users and when, with the ability to trace back bulk operations to individual adds.
    - Evidence: Security officer stated: "Every invite needs to be a record we can trace back." Mentioned incident where bulk add wasn't logged clearly enough.
    - Urgency: HIGH
@@ -83,13 +77,6 @@ Based on the example input above.
    - Severity: HIGH
    - Operational Consequence: Compliance gap; slower incident response; inability to perform forensics on unauthorized access.
    - Current Workaround: Manual incident review; post-hoc investigation of who might have added the contractor.
-
-5. **No Visibility Into Team Membership Changes**
-   - Finding: End-users don't see when new team members join and aren't notified of roster changes.
-   - Evidence: One end-user noted they don't know when new people arrive unless they happen to see them in the team roster.
-   - Severity: MEDIUM
-   - Operational Consequence: Missed integration of new team members; reduced cohesion; missed opportunities for onboarding or briefing.
-   - Current Workaround: Users manually check the team roster periodically or ask the admin.
 
 ### 3. CONFLICTING MENTAL MODELS
 
