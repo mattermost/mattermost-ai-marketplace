@@ -10,7 +10,7 @@ tags: [prototype, ui-states, react, phase-6, gate-checklist, defense-ux]
 
 ## Purpose
 
-The State Matrix Builder takes a default-state screen composition (JSX) and generates all 6 required UI state variants mandated by the Phase 6 gate checklist (items 6.2-6.7). Every prototype screen must demonstrate how it behaves across all states before it can pass gate review.
+The State Matrix Builder takes a default-state screen composition (JSX) and generates all 6 required UI state variants mandated by the Phase 6 gate checklist (items 6.2-6.7). Every prototype screen must demonstrate its required state coverage before it can pass Phase 6 gate review — the required set is tier-scoped by gate item 6.4 (Tier 1: all 6; Tier 2/3: at minimum default + error + empty, others where applicable).
 
 The 6 required states are:
 1. **Default** -- Initial render with representative data (already provided as input)
@@ -36,7 +36,7 @@ This skill is critical because:
 - Before the default state is composed (use `component-composer` first)
 - For interaction states within a single component (that is component-level work, not screen-level)
 - For animation or transition states (those are implementation details, not gate artifacts)
-- When the screen is purely static/informational with no data dependencies (only default + empty states apply)
+- When the screen is purely static/informational with no data dependencies — generate the tier-required floor from gate 6.4 (Tier 1: all 6; Tier 2/3: default + error + empty), omitting only states genuinely inapplicable to a static screen (e.g., no loading state when there's no async fetch)
 
 ## Input Requirements
 
