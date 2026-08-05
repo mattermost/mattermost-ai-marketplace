@@ -159,9 +159,9 @@ Full input + partial output for the canonical classified-message-composition PRD
     "performance": [
       {
         "req_id": "NFR-P-1",
-        "requirement": "Message composition time (from 'start typing' to 'send delivered') SHALL not exceed 3 seconds in tactical networks with 2Mbps bandwidth, including pre-send confirmation modal display and clearance verification.",
-        "threshold": "<3 seconds at 2Mbps",
-        "test_scenario": "Send a classified message from a mobile device on a throttled 2Mbps connection. Measure end-to-end latency including AD query for clearance levels."
+        "requirement": "The pre-send confirmation modal (clearance lookup + recipient display) SHALL render within 3 seconds of the user tapping Send, in tactical networks with 2Mbps bandwidth. This is a system-latency budget, distinct from SM-2's end-to-end task-time metric (which includes user compose time and is not a system NFR).",
+        "threshold": "<3 seconds at 2Mbps, measured from Send tap to modal fully rendered",
+        "test_scenario": "Send a classified message from a mobile device on a throttled 2Mbps connection. Measure latency from tapping Send to the confirmation modal — with clearance levels populated via the AD query — being fully rendered."
       },
       {
         "req_id": "NFR-P-2",
