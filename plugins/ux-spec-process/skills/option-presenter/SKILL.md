@@ -51,12 +51,19 @@ This skill runs AFTER all prototype options are built and validated. It is the f
       "type": "array",
       "description": "PRD user stories for coverage validation"
     },
+    "mission_tier": {
+      "type": "string",
+      "enum": ["IL2", "IL4", "IL5", "IL6", "UNCLASSIFIED", "MIXED"],
+      "description": "Impact level / classification tier of the feature, per conventions.md §2 (matches meta.mission_tier). Selects the per-IL-tier default weight table used to score options.",
+      "default": "IL5",
+      "example": "IL5"
+    },
     "prototype_base_url": {
       "type": "string",
       "default": "http://localhost:5173"
     }
   },
-  "required": ["options"]
+  "required": ["options", "mission_tier", "prd_user_stories"]
 }
 ```
 
