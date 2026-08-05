@@ -157,11 +157,11 @@ You are a Principal UX Designer specializing in national security platforms and 
 ### 1. Problem Statement (BLUF Format)
 
 ```
-[Operational Context] Admins must onboard 50+ new users monthly, with an average of [X] minutes per user using the current one-by-one invite flow.
+[Operational Context] Admins must grant classified-channel access based on multiple changing attributes (clearance, program affiliation, device posture), not just static role membership.
 
-[Problem] This manual, serial workflow consumes [X hours/month] and lacks granular audit logging required for IL4 compliance (NIST SP 800-53 AU-2, AU-6).
+[Problem] The current manual, ACL-by-hand workflow cannot express attribute-based rules or keep pace with personnel rotation, and produces no explainable record of why a given access decision was made — a gap against NIST SP 800-162 (ABAC) and NIST SP 800-53 AU-2 (auditable events).
 
-[Consequence] As a result, admins experience operational friction that delays onboarding, and the organization incurs compliance risk due to missing audit trails for access grants.
+[Consequence] As a result, admins either under-restrict access (compliance and spillage risk) or over-restrict it (operational friction for cleared personnel), and security officers cannot reconstruct why any single access grant or denial occurred.
 ```
 
 Keep to ≤ 3 sentences. Focus on the operational and compliance consequences, not the solution.
@@ -177,9 +177,9 @@ For each assumption, provide:
 ```
 | Assumption | Testable Hypothesis | Risk if False | Validation Method |
 |-----------|-------------------|---------------|------------------|
-| Admins can format bulk-invite data correctly (email addresses, team mappings) | If we provide a CSV template with inline validation, 90%+ of admins will format data correctly on first try | Bulk-add fails silently; wrong users added to wrong teams | Usability testing with 5 admins using CSV upload |
-| Current LDAP configuration can support real-time or near-real-time sync | If LDAP group changes are synced within [X] minutes, admins will trust LDAP as the source of truth | Admins revert to manual verification, negating automation benefit | Technical spike: audit LDAP sync timing; interview security ops |
-| Access control can be enforced at the bulk-add entry point (before users are added) | If we require clearance verification before bulk-add executes, we satisfy AU-2 and AC-2 controls | Unauthorized users added; compliance gap; potential data breach | Security requirements review; design spike on verification flow |
+| Admins can author a correct attribute-based rule (clearance/program/device) on the first try | If the policy builder shows a live preview of who currently matches the rule, 90%+ of admins will produce the intended access set without a security-officer correction | Rule silently grants or denies the wrong personnel; spillage or operational lockout | Usability testing with 5 admins using a live-preview policy builder |
+| Device-compliance status is available and current enough to gate access decisions in real time | If device posture is queried at decision time (not cached beyond a defined TTL), stale-compliance-based access grants drop to near zero | A non-compliant device is granted access based on stale cached status; ATO finding | Technical spike: audit device-posture data freshness and query latency |
+| Every access allow/deny decision can be explained in terms of the specific attribute(s) that decided it | If the system logs the deciding attribute(s) for every decision, security officers can answer "why was this person allowed/denied" without engineering support | Audit and incident-response requests can't be answered; AU-2/AU-6 gap | Security officer review of decision-log samples against real access requests |
 ```
 
 ### 3. Clarifying Questions
@@ -187,15 +187,15 @@ For each assumption, provide:
 Questions that must be answered before moving to design. These should be answerable through research, audit, or technical investigation.
 
 ```
-1. **Clearance Verification**: How is user clearance currently verified before bulk-add? Is there a database, a manual step, or a third-party service? (Security architecture audit + security officer interview)
+1. **Attribute Source of Truth**: Where do clearance, program affiliation, and device-compliance attributes come from today (CAC/PKI, personnel system, MDM), and how current is each? (Attribute architecture audit + security officer interview)
 
-2. **Volume & Frequency**: Do all admin roles bulk-add 50+ users monthly, or is this specific to command centers with rotation-based staffing? (Admin survey or follow-up interviews with 5–8 admins across different org types)
+2. **Policy Authoring Scope**: Which roles can author or modify ABAC policies for classified channels — System Admin only, or can channel owners propose rules subject to security review? (Role/access design review)
 
-3. **Data Source**: Where do admins currently source the list of email addresses for bulk-add? (HR systems, manual roster, LDAP export?) (Admin interview + workflow observation)
+3. **Rotation Handling**: When a user's program affiliation or clearance changes, how quickly must access re-evaluate (real-time, on next login, batch)? (Technical spike on attribute-change propagation)
 
-4. **Current Audit Trail**: What does the current audit log capture for per-user invites? Is there a per-user record that we can leverage for bulk-invites? (Audit logging system review + DBA interview)
+4. **Decision Explainability**: What level of detail must the "why allowed/denied" record capture — the matched rule only, or every attribute evaluated including near-misses? (Security officer interview on incident-response needs)
 
-5. **LDAP Readiness**: Is LDAP the authoritative source for user identity, or is it a supplementary system? Can we safely auto-sync, or does manual verification need to stay in the workflow? (LDAP architecture review + security officer interview)
+5. **Mobile/TOC Constraints**: What bandwidth and interaction constraints apply to policy authoring and access-decision review on mobile devices in the TOC? (Field observation with operators)
 ```
 
 ### 4. Out-of-Scope Adjacent Problems
@@ -203,10 +203,10 @@ Questions that must be answered before moving to design. These should be answera
 These are related problems mentioned in the brain dump but not part of this problem statement. Clarify scope.
 
 ```
-- **Mobile bulk-invite**: The current problem focuses on desktop admin workflows. Mobile bulk-invite is a separate use case; defer to Phase 2.
-- **LDAP bi-directional sync**: Auto-syncing users from LDAP to Mattermost is a related problem but distinct from the manual bulk-add workflow. Defer to a separate effort.
-- **Team membership visibility for end-users**: Notifying end-users when new members join is a separate feature; out of scope.
-- **Contractor access lifecycle**: Managing contractor access requests and expiration is a related security concern but requires separate workflows; defer.
+- **Automated attribute provisioning**: Real-time sync of clearance/program data from an authoritative personnel system is a related but distinct integration effort; defer.
+- **Cross-domain policy portability**: Exporting or importing ABAC policies across separate classification enclaves is a separate, higher-risk effort; out of scope.
+- **End-user-facing access-denial explanations**: Showing operators (not just security officers) why they were denied access is a related UX question; defer to a follow-up effort.
+- **Legacy ACL migration**: Converting existing hand-maintained ACLs into equivalent ABAC rules is a one-time migration project, not part of this problem statement.
 ```
 
 ---
@@ -217,7 +217,7 @@ Based on the example input above:
 
 ### 1. Problem Statement (BLUF Format)
 
-**Admins cannot onboard new personnel cohorts at the scale and frequency required by the mission.** Current per-user invite workflow consumes 7–12 hours/month per admin (for cohorts of 50+ monthly arrivals) and lacks the granular audit trail required for IL4 compliance (NIST SP 800-53 AU-2: audit events for access grants; AU-6: audit monitoring). **As a result, admins experience operational friction that delays critical onboarding, and the organization incurs compliance risk due to insufficient audit evidence.**
+**Admins cannot express or enforce classified-channel access as a function of clearance, program affiliation, and device posture — only as static, hand-maintained ACLs.** Manual ACL management does not scale under frequent personnel rotation and produces no record of *why* a given user was allowed or denied access, a gap against NIST SP 800-162 (ABAC) and NIST SP 800-53 AU-2/AC-3. **As a result, admins either over-grant access (spillage risk to uncleared or off-program personnel) or under-grant it (operational friction for correctly cleared operators), and security officers cannot reconstruct access decisions during an audit or incident review.**
 
 ---
 
@@ -225,30 +225,25 @@ Based on the example input above:
 
 | Assumption | Testable Hypothesis | Risk if False | Validation Method |
 |-----------|-------------------|---------------|------------------|
-| Admins can format bulk-invite lists correctly (email addresses, team mappings) without errors | If we provide a CSV template with inline validation and error recovery, 90%+ of admins will successfully upload data on first try | Bulk-add silently adds users to wrong teams; compliance and operational failure | Usability testing with 5 team admins; prototype CSV upload flow |
-| Clearance verification can be automated or delegated without slowing the onboarding workflow | If we add a pre-sync verification step (< 5 min overhead), admins will accept the additional step as necessary for compliance | Admins bypass verification to save time, creating an ATO finding | Security requirements review; design spike on verification UX |
-| Current LDAP infrastructure can support real-time or near-real-time sync (< 5 min latency) | If LDAP changes are reflected in Mattermost within 5 minutes, admins will trust it as the source of truth | Admins revert to manual verification, negating the automation benefit and adding time back | Technical spike: audit LDAP batch-sync frequency and add real-time CDC (Change Data Capture) if feasible |
-| All target users for bulk-add have functional email addresses and are available to receive invites | If we provide a dry-run preview (showing which users have valid emails), we can catch invalid addresses before sending | Invites fail silently; new users aren't onboarded; compliance gap | Data quality audit with IT; design spike on dry-run preview |
-| Bulk-add operations must be logged at the individual user level (not as a single batch event) to satisfy AU-2 audit requirements | If each user added generates a separate audit log entry (even in a bulk operation), we can trace every access grant back to the admin who authorized it | Insufficient audit evidence; ATO finding; inability to perform forensics | Audit logging system review with DBA; compliance architecture review |
-| Admin role authorization can be checked at the entry point (some admins can author classified-channel policies; others cannot) | If we restrict policy authoring to the System Admin role, only authorized admins can change classified-channel access | Unauthorized admins widen classified access; AC-2 violation | Role/attribute access design; security policy review |
+| Admins can correctly author a compound attribute rule (clearance >= SECRET AND program = OVERWATCH AND device compliant) without a security-officer correction | If the policy builder shows a live preview of exactly who currently matches the rule before it's saved, 90%+ of admins will produce the intended access set on first try | Rule silently grants access to uncleared/off-program personnel, or locks out correctly cleared operators | Usability testing with 5 system admins using a live-preview policy builder |
+| Device-compliance status is available at decision time and current enough to gate access | If compliance is queried fresh (not cached beyond a defined TTL) at each access decision, stale-compliance-based grants drop to near zero | A non-compliant device is granted access based on stale cached status; ATO finding | Technical spike: audit MDM/compliance-attribute query latency and staleness window |
+| Every allow/deny decision can be explained in terms of the specific attribute(s) that decided it | If the system logs the deciding attribute(s) — not just "allowed"/"denied" — security officers can answer "why was this person allowed/denied" without escalating to engineering | Audit and incident-response requests go unanswered; AU-2/AU-6 gap | Security officer review of sample decision logs against real access requests |
+| Operators authoring or reviewing policy on mobile in the TOC have sufficient screen space and connectivity to do so correctly | If the mobile policy-review flow is usable at TOC bandwidth and screen size, admins won't revert to a desktop-only workaround that delays access changes | Policy changes queue until an admin reaches a desktop, delaying time-sensitive access grants during operations | Field observation + prototype testing with operators on mobile in a simulated TOC environment |
+| Personnel-rotation-driven attribute changes (clearance/program) propagate to the access decision fast enough to avoid stale grants | If attribute changes take effect within [X minutes] of the source system update, access reflects a person's current status during high-rotation periods | A rotated-out user retains access after their program affiliation changes; compliance gap | Technical spike: measure attribute-change-to-enforcement latency end-to-end |
 
 ---
 
 ### 3. Clarifying Questions
 
-1. **Clearance Verification Infrastructure**: Is there a single authoritative source for user clearance levels (e.g., a cleared personnel database, CAC identity provider, or DISS lookup service) that the system can query before allowing access? (Approach: Security architecture audit + security officer interview)
+1. **Attribute Source of Truth**: Where do clearance, program affiliation, and device-compliance attributes come from today (CAC/PKI, personnel system, MDM), and how current is each? (Approach: Attribute architecture audit + security officer interview)
 
-2. **Bulk-Add Volume Across Admin Roles**: Do all team admins perform bulk-adds of 50+ users monthly, or is this specific to command centers with rotation-based staffing? How many team admins are there, and what is the typical bulk-add size and frequency? (Approach: Admin survey or follow-up interviews with 8–10 admins across different org types and mission areas)
+2. **Policy Authoring Scope**: Which roles can author or modify ABAC policies for classified channels — System Admin only, or can channel owners propose rules subject to security review? (Approach: Role/access design review)
 
-3. **Current LDAP Sync Behavior**: Is LDAP currently configured for real-time sync, batch sync (daily/weekly), or manual sync? What is the current refresh rate? (Approach: LDAP architecture review with IT; technical audit of sync logs)
+3. **Rotation Handling**: When a user's program affiliation or clearance changes, how quickly must access re-evaluate — real-time, on next login, or batch? (Approach: Technical spike on attribute-change propagation)
 
-4. **Data Source for Bulk-Add Lists**: Where do admins currently source the lists of email addresses or user identifiers for bulk-invite? (HR system export, manual roster, LDAP group export, Teams/SharePoint list?) (Approach: Admin workflow observation + interview with 3–5 admins)
+4. **Decision Explainability**: What level of detail must the "why allowed/denied" record capture — the matched rule only, or every attribute evaluated including near-misses? (Approach: Security officer interview on incident-response needs)
 
-5. **Current Audit Trail Granularity**: For the current per-user invite flow, does the audit log contain a per-user record (e.g., "admin@mail.mil added user@mail.mil to team-x on 2026-03-10 14:32 UTC"), or only batch/summarized events? Can we leverage this structure for bulk-invites? (Approach: Audit logging system review with DBA; compliance architecture review)
-
-6. **Contractor vs. Employee Access**: Are there separate access workflows or audit requirements for contractors, temporary personnel, or external partners? (Approach: Security policy review + security officer interview)
-
-7. **Integration with Third-Party Services**: If we implement bulk-add via LDAP sync or CSV upload, do we need to integrate with HR systems (e.g., Workday) or identity providers? (Approach: Identity architecture review with IT/IAM team)
+5. **Mobile/TOC Constraints**: What bandwidth and interaction constraints apply to policy authoring and access-decision review on mobile devices in the TOC? (Approach: Field observation with operators)
 
 ---
 
@@ -256,15 +251,17 @@ Based on the example input above:
 
 Clearly mark these as "defer to future effort" to manage expectations and prevent scope creep:
 
-- **Mobile bulk-invite workflow**: This problem statement focuses on desktop admin workflows (where data entry and verification are easier). Mobile bulk-invite is a separate use case; defer to Phase 2.
+- **Automated attribute provisioning**: Real-time sync of clearance/program data from an authoritative personnel system is a related but distinct integration effort; defer.
 
-- **LDAP bi-directional sync**: Auto-syncing users from LDAP to Mattermost is a related problem but requires separate technical and security architecture work. Out of scope for this effort; address in parallel as a separate feature initiative.
+- **Cross-domain policy portability**: Exporting or importing ABAC policies across separate classification enclaves is a separate, higher-risk effort; out of scope.
 
-- **Team membership visibility and notifications for end-users**: Notifying end-users when new team members join is a separate feature request. Out of scope.
+- **End-user-facing access-denial explanations**: Showing operators (not just security officers) why they were denied access is a related UX question; defer to a follow-up effort.
 
-- **Contractor access lifecycle management**: Managing contractor access requests, approval workflows, and automatic expiration is a related security concern but requires distinct design and compliance work. Defer.
+- **Legacy ACL migration**: Converting existing hand-maintained ACLs into equivalent ABAC rules is a one-time migration project, not part of this problem statement.
 
-- **Mobile app support for bulk-add**: The system should support desktop bulk-add first; mobile app support (if needed) is a Phase 2 item.
+- **Contractor/temporary-personnel attribute lifecycle**: Automatically expiring or downgrading a contractor's clearance/program attributes when their engagement ends is a related security concern but requires distinct design and compliance work. Defer.
+
+- **Bulk policy import/export**: Authoring one policy at a time via the live-preview builder is in scope; bulk import of many policies via file upload is a separate workflow. Defer.
 
 ---
 
