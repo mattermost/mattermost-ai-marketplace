@@ -46,6 +46,7 @@ Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classi
 {
   "top_5_needs": {
     "type": "array",
+    "maxItems": 5,
     "items": {
       "type": "object",
       "properties": {
@@ -58,7 +59,8 @@ Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classi
             "roles_mentioned": {"type": "array", "items": {"type": "string"}},
             "frequency": {"type": "string", "enum": ["once", "2-3 times", "multiple", "unanimous"]},
             "quotes": {"type": "array", "items": {"type": "string"}}
-          }
+          },
+          "required": ["roles_mentioned", "frequency", "quotes"]
         },
         "urgency": {"type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM"]},
         "operational_impact": {"type": "string"}
@@ -68,13 +70,22 @@ Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classi
   },
   "top_5_pain_points": {
     "type": "array",
+    "maxItems": 5,
     "items": {
       "type": "object",
       "properties": {
         "rank": {"type": "integer"},
         "title": {"type": "string"},
         "finding": {"type": "string"},
-        "evidence": {"type": "object"},
+        "evidence": {
+          "type": "object",
+          "properties": {
+            "roles_mentioned": {"type": "array", "items": {"type": "string"}},
+            "frequency": {"type": "string", "enum": ["once", "2-3 times", "multiple", "unanimous"]},
+            "quotes": {"type": "array", "items": {"type": "string"}}
+          },
+          "required": ["roles_mentioned", "frequency", "quotes"]
+        },
         "severity": {"type": "string", "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"]},
         "operational_consequence": {"type": "string"},
         "current_workaround": {"type": "string"}
