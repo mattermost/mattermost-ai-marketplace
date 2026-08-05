@@ -470,9 +470,15 @@ Structure:
 5. Modal can be dismissed via Cancel button, Esc key, or click-outside-modal
 
 **Persistence:**
-- All board state (tickets + pending moves + history) persists to `localStorage` under key `verify-board.v1`
-- Refresh restores state; "Reset" / "Clear local state" wipes localStorage and reverts to `INITIAL`
-- Persistence is per-browser, per-machine — not collaborative
+- Board state (tickets + pending moves + history) is **in-memory only by default** — a page refresh/reload
+  clears it. This is the safe default for SCIF / classified review (per Line 28's air-gap guarantee): nothing
+  survives in browser storage for a later user of the same profile to recover.
+- Users must export state explicitly via **Copy as markdown** or **Copy for agent** before closing/reloading
+  the page.
+- An **explicit opt-in** "Enable local persistence" toggle may store state in `localStorage` under key
+  `verify-board.v1` **only when the reviewer confirms the environment is not classified/SCIF**. When enabled,
+  "Reset" / "Clear local state" wipes it — but this is a convenience clear, not a secure-erasure guarantee, and
+  the UI must label it as such. Persistence, when enabled, is per-browser, per-machine — not collaborative.
 
 **Two export buttons:**
 - **Copy as markdown** — human-readable GitHub-flavored markdown grouped by column. Includes last comment per card. For pasting into Slack, 1:1 docs, status updates.
