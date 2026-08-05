@@ -57,7 +57,7 @@ This skill is the entry point for Phase 6. It defines the option structure, crea
         },
         "required": ["id", "name", "title", "philosophy"]
       },
-      "minItems": 3,
+      "minItems": 1,
       "maxItems": 5
     },
     "page_pattern": {
