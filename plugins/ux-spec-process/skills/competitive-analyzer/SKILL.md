@@ -145,7 +145,11 @@ Ground observations in concrete interactions and user mental models.
       "strengths": [
         {
           "strength": "string",
-          "evidence": "string (where this is documented or evident)"
+          "evidence": {
+            "source": "string (URL, doc title, or vendor reference; use '[REQUIRES VENDOR DOCUMENTATION]' if unverifiable — never fabricate a source)",
+            "as_of": "string (ISO 8601 publication or access date; omit only if the source is undated)",
+            "confidence": "string (verified | reported | inferred)"
+          }
         }
       ],
       "failures_for_il5": [
@@ -220,11 +224,18 @@ Ground observations in concrete interactions and user mental models.
       "strengths": [
         {
           "strength": "Simple, low-cognitive-load composition flow",
-          "evidence": "Slack's adoption metrics show power users compose messages in under 5 seconds"
+          "evidence": {
+            "source": "Slack Engineering Blog — composition UX benchmarks",
+            "as_of": "2025-11",
+            "confidence": "reported"
+          }
         },
         {
           "strength": "Familiar mental model from email",
-          "evidence": "Users already understand 'select recipient, type, send' from decades of email usage"
+          "evidence": {
+            "source": "[REQUIRES VENDOR DOCUMENTATION]",
+            "confidence": "inferred"
+          }
         }
       ],
       "failures_for_il5": [
@@ -280,11 +291,19 @@ Ground observations in concrete interactions and user mental models.
       "strengths": [
         {
           "strength": "Team-level sensitivity labels provide org-context awareness",
-          "evidence": "Microsoft 365 DLP and sensitivity labels are adopted across DoD contractors; users understand 'this team is internal-only' or 'this team is partner-accessible'"
+          "evidence": {
+            "source": "Microsoft Purview Information Protection documentation — sensitivity labels for Teams",
+            "as_of": "2025-09",
+            "confidence": "verified"
+          }
         },
         {
           "strength": "Integration with Microsoft Entra ID (formerly Azure AD) clearance/group membership",
-          "evidence": "Teams can restrict Team membership to specific Entra ID groups, reducing user error in adding people"
+          "evidence": {
+            "source": "Microsoft Entra ID — Teams membership governance documentation",
+            "as_of": "2025-09",
+            "confidence": "verified"
+          }
         }
       ],
       "failures_for_il5": [
