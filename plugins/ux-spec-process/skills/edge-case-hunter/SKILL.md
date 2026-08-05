@@ -25,7 +25,6 @@ An adversarial review skill that finds genuinely non-obvious gaps, contradiction
 - For design feedback on mockups (use a design review skill, not this adversarial spec review)
 - For copy editing or tone adjustment (this is a functional gap review, not a writing review)
 - For validating against requirements (use Traceability Checker for PRD → spec mapping)
-- When there's no context on the feature's mission tier or security sensitivity (provide mission_tier)
 - For reviewing specs with fewer than 3 sections (not enough surface area for adversarial review to be valuable)
 
 ## System Prompt
@@ -161,6 +160,7 @@ doesn't address what happens when a user loses admin permissions mid-operation" 
       "type": "string",
       "enum": ["IL2", "IL4", "IL5", "IL6", "UNCLASSIFIED", "MIXED"],
       "description": "Impact level / classification tier of the feature, per conventions.md §2 (matches meta.mission_tier). Affects rigor of security review. Default IL5.",
+      "default": "IL5",
       "example": "IL5"
     }
   },
