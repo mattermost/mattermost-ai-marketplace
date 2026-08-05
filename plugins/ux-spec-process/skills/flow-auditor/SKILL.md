@@ -4,6 +4,7 @@ description: Reviews user flows for missing paths, security bypasses, and naviga
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux-spec, security-review, user-flows, dod-compliance, threat-modeling]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Flow Auditor

@@ -4,6 +4,7 @@ description: Catches AI-slop language patterns in UI copy and design proposals, 
 version: 1.0.0
 author: Mattermost Design Team
 tags: [copy, writing, ui-text, quality-assurance, anti-ai-slop]
+allowed-tools: Read, Grep, Glob
 ---
 
 # UX Copy Reviewer

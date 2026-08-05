@@ -4,6 +4,7 @@ description: Writes concise, decision-focused UX spec sections for DoD collabora
 version: 2.0.0
 author: Mattermost Design Team
 tags: [ux-spec, spec-writing, dod-compliance, section-authoring]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Section Writer

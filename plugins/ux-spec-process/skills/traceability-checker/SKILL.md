@@ -4,6 +4,7 @@ description: Generates PRD-to-spec traceability matrix, identifying requirements
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux-spec, requirements-traceability, qa, scope-management, compliance-tracking]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Traceability Checker

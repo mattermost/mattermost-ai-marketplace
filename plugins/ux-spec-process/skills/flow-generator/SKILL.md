@@ -4,6 +4,7 @@ description: Drafts screen-level flow definitions from a selected solution direc
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux-spec, flows, phase-5, ai-draft]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Flow Generator

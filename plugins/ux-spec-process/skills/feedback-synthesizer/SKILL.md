@@ -4,6 +4,7 @@ description: Categorizes raw stakeholder feedback into actionable priority tiers
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux-spec, feedback-management, gate-review, stakeholder-management, decision-support]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Feedback Synthesizer

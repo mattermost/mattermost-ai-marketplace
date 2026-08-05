@@ -3,6 +3,7 @@ name: Solution Scorer
 description: Evaluates multiple solution approaches using a multi-criteria matrix and produces a BLUF recommendation with risk analysis.
 version: 1.1.0
 tags: [solution-evaluation, decision-matrix, trade-offs, recommendation, prd-support]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Solution Scorer

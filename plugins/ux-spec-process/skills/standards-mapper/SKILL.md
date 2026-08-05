@@ -4,6 +4,7 @@ description: Identifies specific compliance controls relevant to a feature and m
 version: 1.0.0
 author: Mattermost Design Team
 tags: [compliance, standards, zero-trust, ato, nist-sp-800-53, dod-requirements, security-by-design]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Standards Mapper
