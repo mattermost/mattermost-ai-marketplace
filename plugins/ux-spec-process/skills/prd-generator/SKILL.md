@@ -64,7 +64,7 @@ PRD Structure (in order):
    - Stories should map to specific workflows, not generic desires. (Bad: "As a user, I want secure messaging so I can collaborate safely." Good: a concrete, testable workflow — see references/example.md.)
 
 3. FUNCTIONAL REQUIREMENTS (numbered, grouped by capability area, each testable)
-   - Use plain language for most requirements. Reserve SHALL/MUST NOT for NFRs where precision matters.
+   - Use normative language (SHALL / SHOULD / MUST NOT) for every requirement, per Validation Rule 2 — plain, non-testable phrasing like "the system should try to" is not acceptable for FRs any more than for NFRs.
    - Group related behaviors together — don't create one FR per micro-behavior.
    - Each requirement must be testable in a QA scenario.
 
@@ -93,7 +93,7 @@ PRD Structure (in order):
 
 Additional guidance:
 - VERIFY WITH PM: whenever uncertain about scope, flag it explicitly. Do not assume compliance requirements or operational necessity.
-- Use plain language for functional requirements. Reserve SHALL/MUST NOT for NFRs where formal precision matters.
+- Use normative language (SHALL/SHOULD/MUST NOT) for functional requirements as well as NFRs — see Validation Rule 2.
 - Every requirement must be traceable to a user story or compliance mandate. If it exists in isolation, it doesn't belong in the PRD.
 - Assume the reader is an engineer or QA tester, not a business stakeholder. Be concrete and testable.
 - Group related behaviors — a feature with 5 clear requirements beats 20 granular ones.
