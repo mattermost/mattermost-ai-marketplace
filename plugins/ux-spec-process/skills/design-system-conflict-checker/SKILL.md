@@ -4,6 +4,7 @@ description: Verifies proposed UI elements (icons, components, color tokens, bad
 version: 1.0.0
 author: Mattermost Design Team
 tags: [design-system, ui-review, icon-audit, conflict-detection]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Design System Conflict Checker

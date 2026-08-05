@@ -4,6 +4,7 @@ description: Adversarial review of completed UX specs to find missing states, co
 version: 1.0.0
 author: Mattermost Design Team
 tags: [ux-spec, quality-assurance, security-review, threat-modeling, testing-strategy]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Edge Case Hunter

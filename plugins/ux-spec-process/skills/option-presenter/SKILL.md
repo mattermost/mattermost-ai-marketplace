@@ -4,6 +4,7 @@ description: Generates option comparison matrix, BLUF recommendation, and screen
 version: 1.0.0
 author: Mattermost Design Team
 tags: [prototype, comparison, decision-aid, phase-6, scoring]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Option Presenter

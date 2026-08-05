@@ -4,6 +4,7 @@ description: The cite-don't-restate pass for every phase artifact. Before writin
 version: 1.0.0
 author: Mattermost Design Team
 tags: [consumability, token-efficiency, cite-dont-restate, all-phases]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Dedup — cite, don't restate

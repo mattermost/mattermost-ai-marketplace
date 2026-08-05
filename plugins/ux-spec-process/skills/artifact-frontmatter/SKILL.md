@@ -4,6 +4,7 @@ description: Emits the skimmable two-layer skim block at the TOP of every phase 
 version: 1.0.0
 author: Mattermost Design Team
 tags: [consumability, skim-layer, two-layer, frontmatter, all-phases]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Artifact Frontmatter — the 60-second skim layer

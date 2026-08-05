@@ -4,6 +4,7 @@ description: Identifies unstated assumptions in early-phase artifacts that could
 version: 1.0.0
 author: Mattermost Design Team
 tags: [requirements-analysis, risk-mitigation, problem-discovery, defense-ux]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Assumption Extractor

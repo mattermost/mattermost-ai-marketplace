@@ -4,6 +4,7 @@ description: Reusable contract for surfacing multiple-choice clarifying question
 version: 1.2.1
 author: Mattermost Design Team
 tags: [governance, intake, ambiguity, decision-aid, all-phases, complexity-tier]
+allowed-tools: Read, Grep, Glob
 ---
 
 # Clarification Protocol
