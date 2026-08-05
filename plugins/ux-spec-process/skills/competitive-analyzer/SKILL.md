@@ -79,8 +79,7 @@ Ground observations in concrete interactions and user mental models.
     "type": "string",
     "description": "Specific UX problem area to analyze (e.g., 'preventing accidental cross-channel messaging', 'managing classification levels on messages', 'handling mobile offline sync in low-bandwidth environments')",
     "minLength": 20,
-    "maxLength": 300,
-    "required": true
+    "maxLength": 300
   },
   "platforms": {
     "type": "array",
@@ -97,8 +96,7 @@ Ground observations in concrete interactions and user mental models.
     "type": "string",
     "description": "DoD classification level, user population, operational tempo (e.g., 'IL5 classified, Air Force tactical operations, high-stress time-critical decisions', or 'IL4 contractor collaboration, distributed teams, asynchronous')",
     "minLength": 20,
-    "maxLength": 500,
-    "required": true
+    "maxLength": 500
   },
   "depth": {
     "type": "string",
@@ -110,7 +108,8 @@ Ground observations in concrete interactions and user mental models.
     "type": "boolean",
     "description": "If true, emphasize security and compliance gaps over general UX strengths",
     "default": true
-  }
+  },
+  "required": ["feature_area", "environment_context"]
 }
 ```
 

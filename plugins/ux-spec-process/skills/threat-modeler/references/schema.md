@@ -10,21 +10,18 @@ Full JSON schemas for `threat-modeler`. Severity is the canonical P1/P2/P3 scale
     "type": "string",
     "description": "The full text of the PRD, specification, or UI design document to threat model. Include user stories, requirements, UI flows, and acceptance criteria.",
     "minLength": 500,
-    "maxLength": 20000,
-    "required": true
+    "maxLength": 20000
   },
   "artifact_type": {
     "type": "string",
     "enum": ["PRD", "spec", "design_brief", "user_story_set", "ui_flow_description"],
-    "description": "Type of artifact (affects analysis focus)",
-    "required": true
+    "description": "Type of artifact (affects analysis focus)"
   },
   "mission_tier": {
     "type": "string",
     "enum": ["IL2", "IL4", "IL5", "IL6", "UNCLASSIFIED", "MIXED"],
     "description": "Classification / impact level. Canonical enum per ${CLAUDE_PLUGIN_ROOT}/templates/conventions.md §2; default IL5.",
-    "default": "IL5",
-    "required": true
+    "default": "IL5"
   },
   "focus_areas": {
     "type": "array",
@@ -56,7 +53,8 @@ Full JSON schemas for `threat-modeler`. Severity is the canonical P1/P2/P3 scale
     },
     "description": "Any known prior security incidents in this domain (e.g., 'user sent classified message to wrong channel', 'admin accidentally left channel public')",
     "minItems": 0
-  }
+  },
+  "required": ["artifact_to_review", "artifact_type", "mission_tier"]
 }
 ```
 

@@ -9,8 +9,8 @@ Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classi
   "raw_notes": {
     "type": "string",
     "description": "Concatenated interview/observation notes. Can include timestamps, researcher observations, direct quotes, and research question markers.",
-    "min_length": 500,
-    "max_length": 50000
+    "minLength": 500,
+    "maxLength": 50000
   },
   "interview_count": {
     "type": "integer",
@@ -22,14 +22,14 @@ Full JSON schemas for `interview-synthesizer`. `mission_context` uses the classi
     "type": "array",
     "items": {"type": "string"},
     "description": "User roles represented in the research (e.g., ['team-admin', 'security-officer', 'end-user', 'it-support'])",
-    "min_items": 1,
-    "max_items": 20
+    "minItems": 1,
+    "maxItems": 20
   },
   "research_questions": {
     "type": "array",
     "items": {"type": "string"},
     "description": "The framing questions the research was designed to answer (optional; helps prioritize findings)",
-    "max_items": 10
+    "maxItems": 10
   },
   "mission_context": {
     "type": "string",

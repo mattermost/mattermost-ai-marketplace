@@ -10,15 +10,13 @@ Full JSON schemas for `prd-generator`. `mission_tier` uses the classification en
     "type": "string",
     "description": "The business/operational problem this feature solves. Should include: what is broken, who is affected, what is the impact (operational/compliance/security)",
     "minLength": 100,
-    "maxLength": 1000,
-    "required": true
+    "maxLength": 1000
   },
   "research_brief": {
     "type": "string",
     "description": "Summary of research findings that inform the PRD (user interviews, competitive analysis, threat model findings, etc.). Should include key insights about user workflows, pain points, and constraints.",
     "minLength": 200,
-    "maxLength": 2000,
-    "required": true
+    "maxLength": 2000
   },
   "user_roles": {
     "type": "array",
@@ -40,15 +38,13 @@ Full JSON schemas for `prd-generator`. `mission_tier` uses the classification en
       },
       "required": ["role_name"]
     },
-    "minItems": 1,
-    "required": true
+    "minItems": 1
   },
   "mission_tier": {
     "type": "string",
     "enum": ["IL2", "IL4", "IL5", "IL6", "UNCLASSIFIED", "MIXED"],
     "description": "Classification / impact level this feature must support. Canonical enum per ${CLAUDE_PLUGIN_ROOT}/templates/conventions.md §2; default IL5. MIXED = spans multiple impact levels (cross-domain).",
-    "default": "IL5",
-    "required": true
+    "default": "IL5"
   },
   "compliance_frameworks": {
     "type": "array",
@@ -57,8 +53,7 @@ Full JSON schemas for `prd-generator`. `mission_tier` uses the classification en
       "enum": ["NIST_800-53", "NIST_800-207", "NIST_800-162", "DoD_ZT_RA", "DoDM_5200.01", "DISA_STIGs", "Section_508", "WCAG_2.1_AA", "Custom"]
     },
     "description": "Which compliance frameworks must this feature satisfy (defense scope per parent CLAUDE.md). If Custom, include in research_brief.",
-    "minItems": 1,
-    "required": true
+    "minItems": 1
   },
   "timeline": {
     "type": "string",
@@ -82,7 +77,8 @@ Full JSON schemas for `prd-generator`. `mission_tier` uses the classification en
     },
     "description": "Known technical/organizational constraints (e.g., 'cannot modify CAC reader integration until Q4', 'mobile team has 2 engineers', 'no offline capability in Phase 1')",
     "minItems": 0
-  }
+  },
+  "required": ["problem_statement", "research_brief", "user_roles", "mission_tier", "compliance_frameworks"]
 }
 ```
 

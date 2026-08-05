@@ -46,15 +46,15 @@ This skill is essential for defense contexts where problem statements must:
   "brain_dump": {
     "type": "string",
     "description": "Raw, unstructured description of the problem. Can include context, initial ideas, stakeholder quotes, or pain points.",
-    "min_length": 100,
-    "max_length": 2000
+    "minLength": 100,
+    "maxLength": 2000
   },
   "user_roles": {
     "type": "array",
     "items": {"type": "string"},
     "description": "User roles affected by the problem (e.g., ['team-admin', 'security-officer', 'end-user'])",
-    "min_items": 1,
-    "max_items": 10
+    "minItems": 1,
+    "maxItems": 10
   },
   "mission_context": {
     "type": "string",
@@ -70,7 +70,7 @@ This skill is essential for defense contexts where problem statements must:
     "type": "array",
     "items": {"type": "string"},
     "description": "Any known compliance controls or frameworks related to this problem (e.g., ['NIST SP 800-53 AC-2', 'DoD ZT RA'])",
-    "max_items": 10
+    "maxItems": 10
   }
 }
 ```
