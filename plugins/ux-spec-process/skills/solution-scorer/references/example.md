@@ -187,11 +187,11 @@ Full input + output for the canonical classified-messaging scenario: three appro
       },
       {
         "risk_rank": 2,
-        "risk_name": "Channel ACL misconfiguration still occurs, exposing lower-clearance users to higher-classification messages",
-        "description": "Admin creates [SECRET] channel but forgets to set ACL. A user with [CONFIDENTIAL] clearance joins and sees [SECRET] content (via an admin-approved override). This is a compliance violation.",
-        "likelihood": "Medium (same misconfiguration risk as Approach B)",
-        "impact": "Classified data exposed to unauthorized user. Incident report required. Training gap identified.",
-        "mitigation": "DESIGN: When admin creates a classified channel, require explicit ACL configuration before channel can be published (no 'create and configure later'). Show a warning: 'This channel is [SECRET]. Only users with SECRET+ clearance can join. Who should have access?' Force admin to select users or groups. OPERATIONAL: Audit classified channels monthly for ACL correctness. Escalate any public or overly-permissive channels. SYSTEM: Implement read-ahead validation in pre-send modal: check if this recipient can actually read the channel (verify ACL before send is confirmed)."
+        "risk_name": "Channel ACL misconfiguration, if not caught before send, could expose lower-clearance users to higher-classification messages",
+        "description": "Admin creates a [SECRET] channel but forgets to set its ACL. A user with [CONFIDENTIAL] clearance joins. Without a blocking check, an admin-approved override could deliver [SECRET] content to that user — a compliance violation.",
+        "likelihood": "Medium (same misconfiguration risk as Approach B) — but likelihood of actual exposure, not just misconfiguration, is Low given the required blocking check below",
+        "impact": "Classified data exposed to unauthorized user if the blocking check is bypassed or absent. Incident report required. Training gap identified.",
+        "mitigation": "DESIGN: When admin creates a classified channel, require explicit ACL configuration before channel can be published (no 'create and configure later'). Show a warning: 'This channel is [SECRET]. Only users with SECRET+ clearance can join. Who should have access?' Force admin to select users or groups. SYSTEM (REQUIRED, blocking — not advisory): The pre-send modal SHALL verify, for every recipient, that their channel membership clearance is >= the message's classification. If any recipient fails this check, the system SHALL block the send — not merely warn — until the admin corrects the ACL or the sender removes that recipient. This is the control that actually eliminates the threat, not just reduces its likelihood. OPERATIONAL: Audit classified channels monthly for ACL correctness as defense-in-depth; escalate any public or overly-permissive channels."
       },
       {
         "risk_rank": 3,
@@ -202,7 +202,7 @@ Full input + output for the canonical classified-messaging scenario: three appro
         "mitigation": "OPERATIONAL: Establish a policy: override logs are reviewed weekly by a second security officer (dual approval for auditing). Random spot-checks are performed (10% of overrides reviewed in detail). DESIGN: Highlight override requests in a dashboard with summary metrics: 'security officers approved X overrides this week'. Unusual patterns (one officer approving >10/week) trigger alerts. SYSTEM: Flag overrides that send to users with lower-than-message clearance (even if override was approved, this is a red flag for review)."
       }
     ],
-    "threat_model_coverage": "Approach C mitigates most known threats: Message Misdirection (addressed by channel-level ACL + pre-send verification), Incomplete AD Clearance Data (no issue because Approach C does not require real-time AD queries for regular message sends), Admin Misconfiguration (partially; still vulnerable to ACL misconfiguration), Copy/Paste Spillage (same risk as all approaches). Overall coverage: HIGH for this threat model.",
+    "threat_model_coverage": "Approach C mitigates most known threats: Message Misdirection (addressed by channel-level ACL + pre-send verification), Incomplete AD Clearance Data (no issue because Approach C does not require real-time AD queries for regular message sends), Admin Misconfiguration (mitigated by a required, blocking pre-send clearance check — a misconfigured ACL is caught and blocked before delivery, not silently exploited), Copy/Paste Spillage (same risk as all approaches). Overall coverage: HIGH for this threat model, with no unresolved P1.",
     "unmitigated_threats": [
       {
         "threat_name": "Copy/Paste Spillage of Classified Content",
@@ -241,7 +241,7 @@ Full input + output for the canonical classified-messaging scenario: three appro
   ],
   "go_no_go_assessment": {
     "recommendation": "PROCEED WITH CONDITIONS",
-    "reasoning": "Approach C scores highest (4.11 / 5.00 normalized) and is the best fit for this IL5 tactical environment. It balances compliance, usability, and engineering feasibility. However, two conditions must be met before launch: (1) Security team must define override approval criteria in writing, (2) Security officers must complete override training, (3) On-call security officer rotation must be established for tactical operations hours.",
+    "reasoning": "Approach C scores highest (4.11 / 5.00 normalized) and is the best fit for this IL5 tactical environment. It balances compliance, usability, and engineering feasibility. Anti-gaming check: no unresolved P1 threat remains — Message Misdirection is addressed by channel-level ACL + pre-send verification, and the Channel ACL misconfiguration risk is closed by a required, blocking pre-send clearance check (not just a warning), so this recommendation does not trigger RECONSIDER. The remaining conditions are operational readiness, not open security gaps: (1) Security team must define override approval criteria in writing, (2) Security officers must complete override training, (3) On-call security officer rotation must be established for tactical operations hours.",
     "conditions_if_conditional": [
       "Security team (Infosec leadership) approves the override approval criteria document (what qualifies as a valid override reason) by [DATE]",
       "All 8 security officers complete 2-hour override training and pass a short quiz before Phase 1 launch",
