@@ -202,7 +202,8 @@ Follow the table with a narrative summary addressing:
 | IA-2 | IA | NIST SP 800-53 | Authenticate users (incl. multifactor / CAC-PIV) before privileged actions | Editing a classified-channel policy is a privileged action; UI must reflect the authenticated identity (CAC/PIV) and step up auth if required. | Low: Auth state display is not a burden. | Medium — privileged policy edits are sometimes allowed on a stale session | Yes — reviewers want privileged actions tied to a verified identity |
 | SI-4 | SI | NIST SP 800-53 | Monitor and detect unusual activity (insider threat, abuse, compromise) | If the system detects suspicious policy edits (e.g., an admin widening access to many classified channels at once), the UI should warn or require Security Officer co-approval. | Low: Warnings are standard UX. | Medium — application-layer monitoring is often absent; only network/OS monitoring exists | Low to Medium — depends on security architecture; often satisfied by backend |
 | SC-8 | SC | NIST SP 800-53 | Protect information confidentiality/integrity in transit | Attribute lookups (clearance, device posture) from the IdP/ICAM and device-posture service travel over TLS; UI provides a secure-state indicator. | None: Encryption is transparent. | NO | No — reviewers check transport config, not UI |
-| 1.4.3 | (Section 508 / WCAG 2.1 AA) | Section 508 / WCAG 2.1 AA | Text and meaningful UI carry ≥ 4.5:1 contrast; meaning is not color-alone | Allow/deny chips and classification badges must pair color with a text/icon label and meet contrast minima. | None when designed in from the start. | YES — security UIs lean on red/green color alone, failing 1.4.1/1.4.3 | YES — Section 508 is mandatory for IL4/5/6; color-only status is an audit finding |
+| WCAG 1.4.3 | ACCESSIBILITY | WCAG 2.1 AA | Text and meaningful UI carry ≥ 4.5:1 contrast; meaning is not color-alone | Allow/deny chips and classification badges must pair color with a text/icon label and meet contrast minima. | None when designed in from the start. | YES — security UIs lean on red/green color alone, failing 1.4.1/1.4.3 | YES — WCAG 2.1 AA is mandatory for IL4/5/6; color-only status is an audit finding |
+| 1194.22(a) | ACCESSIBILITY | Section 508 | Text and meaningful UI carry equivalent contrast/non-color-alone protections under the Section 508 refresh (harmonized with WCAG 2.0/2.1 AA) | Same allow/deny chip and classification-badge treatment as the WCAG row satisfies this control; no separate design work needed once WCAG 1.4.3 is met. | None when designed in from the start. | YES — same root cause as the WCAG row (color-alone status indicators) | YES — Section 508 is mandatory for IL4/5/6; color-only status is an audit finding |
 
 ### Narrative Summary
 
@@ -269,7 +270,7 @@ All other controls are either backend/infrastructure concerns or lower-priority 
         },
         "family": {
           "type": "string",
-          "enum": ["AC", "AU", "AT", "CM", "IA", "IR", "MA", "MP", "PS", "PE", "PL", "RA", "CA", "SC", "SI", "SA"]
+          "enum": ["AC", "AU", "AT", "CM", "IA", "IR", "MA", "MP", "PS", "PE", "PL", "RA", "CA", "SC", "SI", "SA", "ACCESSIBILITY"]
         },
         "framework": {
           "type": "string",
