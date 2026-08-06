@@ -41,8 +41,8 @@ This is particularly critical for DoD/defense platforms where unstated assumptio
   "artifact_text": {
     "type": "string",
     "description": "The artifact to analyze: brain dump, problem statement, feature brief, design proposal, or research notes",
-    "min_length": 100,
-    "max_length": 5000
+    "minLength": 100,
+    "maxLength": 5000
   },
   "feature_domain": {
     "type": "string",

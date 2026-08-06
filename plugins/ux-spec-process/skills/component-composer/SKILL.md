@@ -55,8 +55,8 @@ This skill is critical because:
     "screen_description": {
       "type": "string",
       "description": "Natural language description of the screen from the flow audit, wireframe, or spec. Should describe what the user sees, not how to build it.",
-      "min_length": 50,
-      "max_length": 3000,
+      "minLength": 50,
+      "maxLength": 3000,
       "example": "A channel header showing the channel name, classification label (SECRET), member count, and action buttons for pinned posts, search, and channel settings. Below it, a message list with 3 posts: one from a human user with a file attachment, one from an AI bot with a structured card, and one system message about a user joining."
     },
     "target_file": {

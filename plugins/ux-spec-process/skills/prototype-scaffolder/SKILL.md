@@ -67,8 +67,8 @@ The Prototype Scaffolder generates the complete file structure for a new prototy
         "required": ["name", "description"]
       },
       "description": "List of sub-screens or panels within the page. Each becomes a component file in the page's components/ subdirectory.",
-      "min_items": 0,
-      "max_items": 20
+      "minItems": 0,
+      "maxItems": 20
     },
     "layout_type": {
       "type": "string",

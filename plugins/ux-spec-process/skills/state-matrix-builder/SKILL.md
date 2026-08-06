@@ -49,7 +49,7 @@ This skill is critical because:
     "default_composition": {
       "type": "string",
       "description": "The full TSX source code for the default-state screen, as output by component-composer.",
-      "min_length": 100
+      "minLength": 100
     },
     "target_file": {
       "type": "string",

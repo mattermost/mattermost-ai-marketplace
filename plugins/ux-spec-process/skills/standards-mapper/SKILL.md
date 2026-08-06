@@ -42,8 +42,8 @@ This skill is essential for DoD/defense platforms where compliance is not option
   "feature_description": {
     "type": "string",
     "description": "Description of the feature, its use cases, and user roles involved",
-    "min_length": 100,
-    "max_length": 2000
+    "minLength": 100,
+    "maxLength": 2000
   },
   "feature_domain": {
     "type": "string",
@@ -310,8 +310,8 @@ All other controls are either backend/infrastructure concerns or lower-priority 
       },
       "required": ["control_id", "family", "framework", "what_it_requires", "ux_implication", "usability_tension", "commonly_misimplemented", "ato_critical"]
     },
-    "min_items": 4,
-    "max_items": 20
+    "minItems": 4,
+    "maxItems": 20
   },
   "narrative_summary": {
     "type": "string",
