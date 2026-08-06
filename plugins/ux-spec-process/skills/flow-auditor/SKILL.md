@@ -160,7 +160,7 @@ Do not be polite about gaps. A missing flow here becomes a scope creep or securi
     "total_flows_reviewed": 1,
     "user_roles_covered": ["Team Admin"],
     "user_roles_missing_flows": ["Team User", "Team Guest", "Workspace Admin"],
-    "critical_findings_count": 4,
+    "critical_findings_count": 5,
     "gate_recommendation": "REJECT"
   },
   "findings": [
@@ -177,6 +177,13 @@ Do not be polite about gaps. A missing flow here becomes a scope creep or securi
       "description": "PRD Req 1.2 requires handling duplicate invites (same email invited twice), but flow shows no decision point or error path for this case.",
       "severity": "P1",
       "recommendation": "Add validation step after email entry that checks 'Email already invited to this team?' If yes, show specific error message and prevent send."
+    },
+    {
+      "finding_type": "MISSING_COMPLIANCE_FLOW",
+      "affected_flows": ["Invite User"],
+      "description": "PRD Req 1.3 requires all invitations to be logged for compliance audit, but no flow shows an audit-log entry being written, or any confirmation that the invite action was recorded. This is a DoD compliance requirement (see 'Audit trails' in Notes for DoD/Defense Context) and cannot be silently omitted from the flow.",
+      "severity": "P1",
+      "recommendation": "Add an explicit step after 'email is sent' showing the system writing an audit-log entry (who invited whom, what role, when)."
     },
     {
       "finding_type": "MISSING_TASK_FLOW",
