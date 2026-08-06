@@ -199,7 +199,11 @@ Your output should help a product manager quickly understand:
           "enum": ["APPROVE", "CONDITIONAL_APPROVAL", "REJECT"],
           "description": "ADVISORY ONLY — a recommendation, not a gate decision. The orchestrator owns gate outcomes per gate-checklists.md; this sub-skill never gates."
         },
-        "gate_rationale": {"type": "string"}
+        "gate_rationale": {"type": "string"},
+        "advisory_note": {
+          "type": "string",
+          "description": "Fixed qualification restating that gate_recommendation is advisory to the orchestrator, not a gate decision — the orchestrator owns gate outcomes per gate-checklists.md. Always emit this field so the safety context survives even if a downstream consumer reads only the JSON output, not this schema's prose."
+        }
       }
     },
     "feedback_table": {
