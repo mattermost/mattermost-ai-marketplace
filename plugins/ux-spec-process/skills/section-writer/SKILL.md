@@ -195,8 +195,19 @@ OUTPUT FORMAT:
 **Output:**
 ```json
 {
-  "section_markdown": "## 3. Admin / Configuration UX\n\n### System Console\n\nA new toggle, \"Enable Managed Channel Categories,\" appears in **System Console > Experimental > Features**. Default: off.\n\nWhen enabled, Channel Admins see a \"Managed category\" input in the Channel Settings modal (Info tab). When disabled, the input is hidden and any existing category assignments are preserved but not displayed.\n\n### Channel Settings\n\nIf this feature is enabled, a \"Managed category\" input field appears in the Info tab of the Channel Settings modal ([see mockup](figma-link)). The dropdown lists all managed categories that the channel admin has visibility of. Selection is optional — channels don't require a category assignment.\n\nThe dropdown is a standard searchable select. Typing filters the list. If no categories exist, the dropdown shows \"No categories available\" with a link to category management (visible to System Admins only).",
-  "tbds_flagged": []
+  "section_markdown": "## 3. Admin / Configuration UX\n\n### System Console\n\nA new toggle, \"Enable Managed Channel Categories,\" appears in **System Console > Experimental > Features**. Default: off.\n\nWhen enabled, Channel Admins see a \"Managed category\" input in the Channel Settings modal (Info tab). When disabled, the input is hidden and any existing category assignments are preserved but not displayed.\n\n### Channel Settings\n\nIf this feature is enabled, a \"Managed category\" input field appears in the Info tab of the Channel Settings modal. The dropdown lists all managed categories that the channel admin has visibility of. Selection is optional — channels don't require a category assignment.\n\nThe dropdown is a standard searchable select. Typing filters the list. [TBD: empty-state behavior when the channel admin has visibility of zero managed categories — not specified in the supplied design decisions or Figma description] [TBD: whether this dropdown surfaces any category-management affordance — not specified in the supplied artifacts]",
+  "tbds_flagged": [
+    {
+      "location": "Section 3, Channel Settings — dropdown empty state",
+      "reason": "No empty-state behavior was specified in figma_descriptions or design_decisions for when the channel admin has zero managed categories to choose from.",
+      "source_to_clarify": "Figma frame for the empty-category-list state, or an explicit design decision"
+    },
+    {
+      "location": "Section 3, Channel Settings — dropdown affordances",
+      "reason": "No supplied artifact mentions a category-management link or any admin-only affordance inside this dropdown; do not assume one exists.",
+      "source_to_clarify": "figma_descriptions or design_decisions — confirm whether this affordance is in scope"
+    }
+  ]
 }
 ```
 
