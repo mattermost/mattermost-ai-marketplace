@@ -101,7 +101,7 @@ git push -u origin automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 ## 5. Open the cherry-pick PR
 
 Use the `create_pr_tool` from the configured custom MCP (do NOT use `gh pr create` or the Cursor OpenGitPr tool). Pass the following parameters:
-- `repo`: mattermost/mattermost
+- `repo`: [`<REPO_NAME>`, mattermost/mattermost] (`<REPO_NAME>` is an optional value, if it's missing use mattermost/mattermost )
 - `base`: release-X.Y
 - `head`: automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 - `title`: Automated cherry pick of #`<PR_NUMBER>`
