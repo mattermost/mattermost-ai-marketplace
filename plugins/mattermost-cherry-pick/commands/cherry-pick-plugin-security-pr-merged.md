@@ -13,7 +13,7 @@ The `REFERENCE PROCEDURES` section at the bottom of this prompt contains three p
 
 - **PROCEDURE A** (`security-release-targets`) — resolve the target `release-X.Y` branches for a priority. Used by STEP 3.
 - **PROCEDURE B** (`cherry-pick-create-pr`) — cherry-pick one commit onto one release branch. Used by STEP 4.
-- **PROCEDURE C** (`create_pr_tool`) — open the cherry-pick PR. Used by PROCEDURE B, step B.5.
+- **PROCEDURE C** (`create_pr_tool`) — open the cherry-pick PR via the configured custom MCP. Used by PROCEDURE B, step B.5.
 
 Follow the STEPs below in order; read a procedure only when a step sends you to it.
 
@@ -50,37 +50,13 @@ gh pr view <PR> --repo mattermost/mattermost-plugin-jira --json number,title,aut
 ## STEP 3.1: Find the target backport versions for the plugin
 
 - Based on the output from the previous step, open the page that contains the contents of the Makefile for a given release (e.g. for the 11.7 release, read the contents of https://raw.githubusercontent.com/mattermost/mattermost/refs/heads/release-11.7/server/Makefile).
-- Grep the name of the plugin that requires a security fix backporting (e.g. `mattermost-plugin-jira`). Ensure that the grepping excludes fips packages and ensure that it fetches the full name of the plugin up until the semver string 
-- Verify the current plugin’s name and confirm the version (e.g. If we are looking for the mattermost-plugin-jira plugin, we may see a mention of `mattermost-plugin-jira-v4.7.0`, which tells us this release is prepackaged with v4.7.0).
+- Grep the name of the plugin that requires a security fix backporting (e.g. `mattermost-plugin-jira`). Ensure that the grepping excludes fips packages and ensure that it fetches the full name of the plugin up until the semver string.
+- Verify the current plugin's name and confirm the version (e.g. If we are looking for the mattermost-plugin-jira plugin, we may see a mention of `mattermost-plugin-jira-v4.7.0`, which tells us this release is prepackaged with v4.7.0).
 - Map each candidate version `vX.Y` to the branch `release-X.Y` (drop the leading `v`, keep major.minor only, e.g. `v11.7 -> release-11.7`). Make sure to deduplicate entries so that even if 2 of the Mattermost Platform releases ship with the same plugin version, we will only be cherry-picking to the `release-X.Y` of that plugin once.
 - Make note of the list of `release-X.Y` releases that will require backporting.
-- Whether the list is empty or populated, ALWAYS proceed to STEP 3.2 (credential check) first — no comment may be posted to GitHub before the token is verified.
-- After STEP 3.2 passes: if the list is empty, proceed with STEP 3.3. If populated, proceed with STEP 3.4.
+- If the list is empty, proceed with STEP 3.2. If populated, proceed with STEP 3.3.
 
-## STEP 3.2: Verify PR-creation credentials (fail fast)
-
-Branches are pushed and PRs are opened with `gh`/`git` (see PROCEDURE C), which needs a write-capable token. The automation MUST have a `GH_TOKEN` secret configured that provides write access. The run must confirm this BEFORE posting any comment or notification to GitHub — never reveal to the outside world that this automation ran or what it intends to do until you have confirmed you can complete the job.
-
-**CRITICAL — never overwrite, replace, or re-authenticate the token.** Do NOT run `gh auth login`, `gh auth setup-git` with a different token, set `GH_TOKEN` to any other value, or call any command that would replace the configured credential. The `GH_TOKEN` secret is the ONLY token this automation is permitted to use for writes. If it is insufficient, the run fails — it never substitutes another credential.
-
-Run these checks now, once, not per branch:
-
-```bash
-gh auth status
-gh api user --jq .login
-gh api repos/<REPO_NAME> --jq '.permissions, .private'
-gh api -i user | grep -i '^x-oauth-scopes:'
-```
-
-- Save `<GH_ACTOR>` (the `login` from `gh api user`) — PROCEDURE C needs it, because GitHub rejects a review request from the account that opened the PR.
-- Require `.permissions.push == true`. If it is false, or `gh auth status` fails, or `gh api` returns 401/403, the token cannot push or open PRs.
-- If the `x-oauth-scopes` header is present, the token is a classic PAT: require `repo`, or `public_repo` when `.private == false`. A classic token with neither cannot write even when `.permissions.push` is true, because that field reports the account's repo role rather than the token's scopes. An absent or empty header means a fine-grained token, where the equivalent grants are Contents write, Pull requests write, and Issues write (Issues is what labels are gated on).
-
-If the token is not write-capable, EXIT WITH NO FURTHER ACTION. Do NOT post any comment to the PR — the run ends silently so no information about it leaks to the repository's public history.
-
-**If a push is rejected mid-run** for an authentication, scope, or permission reason — including GitHub's "refusing to allow a Personal Access Token to create or update workflow ... without `workflow` scope" rejection — abort the ENTIRE run silently rather than skipping just that branch, because every remaining branch would fail identically. Do NOT post a comment explaining the failure.
-
-## STEP 3.3: Notify lack of actions available
+## STEP 3.2: Notify lack of actions available
 
 If the list from STEP 3.1 is empty (no plugin release branches found), post this comment on the original PR (#`<PR_NUMBER>`) and EXIT WITH NO ACTION:
 
@@ -89,7 +65,7 @@ If the list from STEP 3.1 is empty (no plugin release branches found), post this
 
 Do NOT mention what kind of fix this is, why it needs cherry-picking, or use words like backport, security, vulnerability, CVE, or exploit.
 
-## STEP 3.4: Post start notifications
+## STEP 3.3: Post start notifications
 
 Before starting any cherry-pick, send the following start message:
 
@@ -108,7 +84,7 @@ Work through the target branches SEQUENTIALLY — one branch fully finished befo
 
 For each `release-X.Y` in turn:
 
-1. Follow **PROCEDURE B** (`cherry-pick-create-pr`) verbatim with: `<REPO_NAME>`, `<PR_NUMBER>`, `<PR_AUTHOR>`, `<COMMIT_SHA>`, `<ORIGINAL_BRANCH>`, `<GH_ACTOR>`, and this `release-X.Y`. That procedure fetches and branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, and opens the cherry-pick PR via **PROCEDURE C** (`create_pr_tool`).
+1. Follow **PROCEDURE B** (`cherry-pick-create-pr`) verbatim with: `<REPO_NAME>`, `<PR_NUMBER>`, `<PR_AUTHOR>`, `<COMMIT_SHA>`, `<ORIGINAL_BRANCH>`, and this `release-X.Y`. That procedure fetches and branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, and opens the cherry-pick PR via **PROCEDURE C** (`create_pr_tool`).
 2. Record this branch's outcome (PR URL, or "skipped: `<reason>`", or "needs-input: `<reason>`") before moving on.
 3. Leave a clean slate for the next branch: confirm no cherry-pick is still in progress (`git cherry-pick --abort` if one is) and that the working tree has no uncommitted changes. Never carry state from one target branch into the next.
 4. If a branch fails, is skipped, or needs human input, record it and CONTINUE to the next branch — one bad branch never stops the rest.
@@ -135,9 +111,8 @@ After every target branch has been processed, post the final results:
 
 - Never force-push; never amend any commit; never `git cherry-pick --skip`.
 - If anything blocks a branch, skip that branch and keep going with the others; report all outcomes at the end.
-- **Token protection:** Never overwrite, replace, or re-authenticate the `GH_TOKEN`. Do NOT run `gh auth login`, do NOT set `GH_TOKEN` to another value, do NOT call `gh auth setup-git` with a different credential. The configured secret is the only write token this automation may use. If it is insufficient, the run fails silently — it never substitutes another credential.
 - **Information discipline:** Never use the words security, vulnerability, CVE, exploit, backport, patch, or semantically related terms in any PR title, PR body, conflict resolution notes, or comments posted to GitHub. Never reference Jira ticket keys, priority levels, or the reason a cherry-pick was triggered in any GitHub-visible output. The public record should show only that a cherry-pick happened — not why.
-- Always open PRs by following **PROCEDURE C**, which uses `gh pr create` with an explicit `--base`. Never use the automation's built-in Open Pull Request tool: it has no base/head/reviewer/label parameters and always targets the branch the run forked from (master), which is never a valid base for a cherry-pick PR.
+- Always open PRs by following **PROCEDURE C**, which uses `create_pr_tool` from the configured custom MCP. Do not use `gh pr create` or the Cursor OpenGitPr tool.
 - Process target branches one at a time. Never run cherry-picks for two branches concurrently in this shared working tree.
 - Always include the original PR author (`<PR_AUTHOR>`) as a reviewer on every cherry-pick PR.
 
@@ -221,10 +196,7 @@ You receive:
 - `<PR_AUTHOR>`: the original PR author's `login`.
 - `<COMMIT_SHA>`: the merge/commit SHA to cherry-pick.
 - `<ORIGINAL_BRANCH>`: the `headRefName` of the merged PR (the source branch of the PR being cherry-picked) — never the active/local branch name.
-- `<GH_ACTOR>`: the `login` of the account the automation's `gh` token authenticates as, saved in STEP 3.4.
 - `release-X.Y`: the single target release branch for this run.
-
-Mattermost squash-merges to master, so `<COMMIT_SHA>` is always a single-parent commit and the cherry-pick is `git cherry-pick <COMMIT_SHA>`.
 
 The cherry-pick branch name for this target is:
 
@@ -233,6 +205,17 @@ automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 ```
 
 **Important:** `<ORIGINAL_BRANCH>` must always be the `headRefName` from the merged PR — never the name of the active Cursor branch or any other locally derived name.
+
+### B.0. Determine cherry-pick form
+
+Decide the cherry-pick command once from the merge commit's parents:
+
+```bash
+git cat-file -p <COMMIT_SHA> | head -20
+```
+
+- one parent  -> `CMD = git cherry-pick <COMMIT_SHA>`
+- two parents -> `CMD = git cherry-pick -m 1 <COMMIT_SHA>`
 
 ### B.1. Fetch and branch off the release tip
 
@@ -243,11 +226,7 @@ git checkout -B automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y origin/re
 
 ### B.2. Cherry-pick and resolve conflicts correctly (a single, properly-resolved cherry-pick commit)
 
-Run the cherry-pick:
-
-```bash
-git cherry-pick <COMMIT_SHA>
-```
+Run `CMD` (determined in B.0).
 
 **Empty cherry-pick (change already on branch):** The target branch may already contain the incoming change, producing an empty cherry-pick. Detect this when any of the following is true:
 - Git reports that the cherry-pick is empty (e.g. "The previous cherry-pick is now empty").
@@ -275,7 +254,7 @@ Skip this branch and report `skipped: change already on release-X.Y`. Do not pus
   git cherry-pick --continue --no-edit
   ```
 
-  This yields one correctly-resolved cherry-pick commit — there is no separate "take-theirs" dump commit and no follow-up "resolve conflicts" commit; the resolution lives inside the cherry-pick itself.
+  This yields one correctly-resolved cherry-pick commit — there is no separate "take-theirs" dump commit and no follow-up "resolve conflicts" commit; the resolution lives inside the cherry-pick itself. Leave this commit's message and authorship as-is — do not amend it or add a trailer to it.
 
 **Conflict resolution constraint:** When resolving conflicts, do NOT remove or edit any code that is not directly related to the incoming change. Do not delete tests or other code present in the release branch that are not part of the original commit being cherry-picked.
 
@@ -311,7 +290,6 @@ Follow **PROCEDURE C** (`create_pr_tool`) verbatim with:
 - `<CHERRY_PICK_BRANCH>`: `automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y` (the PR head, just pushed in B.4)
 - `<PR_NUMBER>`
 - `<PR_AUTHOR>`
-- `<GH_ACTOR>`
 - `<CONFLICT_NOTES>`: the per-file notes you kept in B.2 — empty on a clean cherry-pick
 
 PROCEDURE C owns the exact PR fields, the reviewers, the labels, and the PR body template. Take its returned outcome as the outcome of this procedure.
@@ -329,7 +307,7 @@ or `needs-input: <reason>` for a branch that needs human review.
 - When resolving conflicts, do not remove or edit code that is not directly related to the incoming change. Do not delete tests in the release branch that are not part of the original commit.
 - Do not auto-resolve conflicts in config files, DB migrations, or anything marked "DO NOT AUTO-MERGE" — abort the cherry-pick and report those for human review.
 - Never use the words security, vulnerability, CVE, exploit, backport, patch, or semantically related terms in the PR title, PR body, or conflict resolution notes. Never reference Jira tickets, priority, or the reason for the cherry-pick in any GitHub-visible output.
-- Always open the PR by following **PROCEDURE C**. Never use the automation's built-in Open Pull Request tool — it cannot target `release-X.Y`.
+- Always open the PR by following **PROCEDURE C**. Do not use `gh pr create` or the Cursor OpenGitPr tool.
 - Always include the original PR author (`<PR_AUTHOR>`) as a reviewer.
 
 ## PROCEDURE C — Open the cherry-pick PR (`create_pr_tool`)
@@ -338,9 +316,7 @@ or `needs-input: <reason>` for a branch that needs human review.
 
 **Side effects:** Yes — opens a pull request. Never run this on your own initiative; only when PROCEDURE B sends you here, and only once per cherry-pick branch.
 
-You open the PR with `gh pr create`, passing `--base` explicitly. Do NOT use the automation's built-in **Open Pull Request** tool: it accepts no base, head, reviewer, or label arguments and always opens against the branch the run forked from (master), which is never a valid base for a cherry-pick PR. `gh` is the only mechanism here that can target `release-X.Y`.
-
-`gh` authenticates with the write-capable `GH_TOKEN` secret configured on the automation; STEP 3.4 already proved it can write, so a 403 at this point means the token changed mid-run — report it rather than working around it.
+Use the `create_pr_tool` from the configured custom MCP to open the PR. Do NOT use `gh pr create` or the Cursor OpenGitPr tool. The custom MCP tool creates the PR under the automation's identity (not as any personal account), which means the original PR author can always be assigned as a reviewer.
 
 ### C. Inputs
 
@@ -349,12 +325,11 @@ You open the PR with `gh pr create`, passing `--base` explicitly. Do NOT use the
 - `<CHERRY_PICK_BRANCH>`: `automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y`. This is the PR **head** — always the pushed cherry-pick branch, never the active Cursor branch or any other locally derived name.
 - `<PR_NUMBER>`: the original merged PR number.
 - `<PR_AUTHOR>`: the original PR author's `login`.
-- `<GH_ACTOR>`: the `login` the `gh` token authenticates as, from STEP 3.4.
 - `<CONFLICT_NOTES>`: per-file notes of what was reconciled while resolving conflicts. Empty on a clean cherry-pick.
 
 ### C.1. Preflight — never open a PR that cannot be valid
 
-Run all four checks before creating the PR. If any check fails, do NOT open a PR; return `needs-input: <reason>` and stop.
+Run these checks before calling `create_pr_tool`. If any check fails, do NOT open a PR; return `needs-input: <reason>` and stop.
 
 1. The head branch exists on origin (it must already be pushed):
 
@@ -382,17 +357,16 @@ Run all four checks before creating the PR. If any check fails, do NOT open a PR
 
    If one already exists, return that existing URL as the outcome and do NOT create a second PR.
 
-### C.2. Assemble the PR fields
+### C.2. Assemble the PR fields and open it
 
-These are the intended values. C.3 filters the reviewers and labels down to what the repo will accept, and C.4 passes the result to `gh pr create`.
+Pass the following parameters to `create_pr_tool`:
 
 - `repo`: `<REPO_NAME>` (if missing, `mattermost/mattermost`)
 - `base`: release-X.Y
 - `head`: `<CHERRY_PICK_BRANCH>`
 - `title`: Automated cherry pick of #`<PR_NUMBER>`
-- `draft`: false
-- `reviewers`: [`<PR_AUTHOR>`]
-- `labels`: []
+- `reviewers`: [`<PR_AUTHOR>`, amyblais] (always include `<PR_AUTHOR>`; if `<PR_AUTHOR>` is amyblais, pass only amyblais)
+- `labels`: ["Changelog/Not Needed", "Docs/Not Needed", "Do Not Merge/Awaiting Next Release", "AI/Babysit"]
 - `body` (follow `.github/PULL_REQUEST_TEMPLATE.md`), with the Conflict Resolution Changes bullets taken from `<CONFLICT_NOTES>`:
 
   ````markdown
@@ -411,73 +385,18 @@ These are the intended values. C.3 filters the reviewers and labels down to what
 
 Never use the words security, vulnerability, CVE, exploit, backport, patch, or semantically related terms in the title or the body. Never reference Jira tickets or priority levels.
 
-### C.3. Resolve reviewers and labels so they cannot break the PR
-
-`gh pr create` fails the whole call if a requested reviewer cannot be requested or a label does not exist in the repository. Resolve both BEFORE creating the PR — a missing label must never cost you the PR.
-
-**Reviewers.** Drop `<GH_ACTOR>` from the reviewer list if it appears there: GitHub rejects a review request from the account opening the PR. If that leaves the list empty, create the PR without `--reviewer` and note it for the report.
-
-**Labels.** List the labels that actually exist in the repo and intersect them with the required set:
-
-```bash
-gh label list --repo <REPO_NAME> --limit 200 --json name --jq '.[].name'
-```
-
-Pass only the labels present in that output to `--label`. Record any required label that does not exist in the repo — it goes in the report as `needs-attention`, and it is NOT a reason to skip the PR.
-
-### C.4. Create the PR
-
-Write the C.2 body to a file first so the markdown (including the nested `release-note` fence) survives shell quoting, then create the PR:
-
-```bash
-gh pr create \
-  --repo <REPO_NAME> \
-  --base release-X.Y \
-  --head <CHERRY_PICK_BRANCH> \
-  --title "Automated cherry pick of #<PR_NUMBER>" \
-  --body-file <BODY_FILE> \
-  --reviewer <resolved reviewers, comma-separated> \
-  --label "<each resolved label, repeat the flag per label>"
-```
-
-- `--base` is mandatory and is always `release-X.Y`. Without it `gh` falls back to the repository default branch, which is the exact failure this procedure exists to prevent.
-- `--head` is mandatory and is always `<CHERRY_PICK_BRANCH>`, so the PR never picks up whatever branch happens to be checked out.
-- Never pass `--draft`.
-- If the call fails, do NOT alter `--base`, `--head`, `--title`, or the body and retry. The only permitted retry is one attempt with `--reviewer` and/or `--label` removed when the error names a reviewer or label problem; apply those afterwards per C.5. Any other failure: return `needs-input: could not open PR — <error>`.
-- Never push, force-push, or amend anything to make this call succeed.
-
-### C.5. Verify and report
-
-- Capture the PR URL printed by `gh pr create`.
-- Confirm the PR landed with the intended base, head, reviewers, and labels:
-
-  ```bash
-  gh pr view <PR_URL> --json baseRefName,headRefName,reviewRequests,labels
-  ```
-
-- Require `baseRefName == release-X.Y`. If it is anything else, the PR is wrong and dangerous to leave open — return `needs-attention: PR opened against <baseRefName> instead of release-X.Y` with the URL so a human can retarget it with `gh pr edit -B release-X.Y`.
-- If reviewers or labels are missing, attempt one repair:
-
-  ```bash
-  gh pr edit <PR_URL> --add-reviewer <PR_AUTHOR> --add-label "<label>"
-  ```
-
-- If the repair still cannot apply them (missing label, reviewer not a collaborator), return the PR URL together with `needs-attention: reviewers/labels not applied — <detail>` so a human can finish it. Never let this block or discard an otherwise correct PR.
-
 ### C. Output
 
 Return exactly one of:
 
-- `<PR_URL>` — the created (or pre-existing) cherry-pick PR, correctly based on `release-X.Y`.
-- `<PR_URL>` plus `needs-attention: <reason>` — PR opened, but a human is needed: a wrong base to retarget, a missing label, or a reviewer that could not be requested.
-- `needs-input: <reason>` — no PR was opened.
+- `<PR_URL>` — the created (or pre-existing) cherry-pick PR.
+- `needs-input: <reason>` — no PR was opened (preflight failed or `create_pr_tool` returned an error).
 
 ### C. Constraints
 
-- Always open the PR with `gh pr create` and an explicit `--base release-X.Y` and `--head <CHERRY_PICK_BRANCH>`. Never use the automation's built-in Open Pull Request tool, which cannot set a base and would target master.
-- Never accept a PR whose `baseRefName` is not `release-X.Y` — report it for retargeting instead of leaving it unflagged.
+- Always use `create_pr_tool` from the configured custom MCP. Do not use `gh pr create` or the Cursor OpenGitPr tool.
 - Never force-push, amend a commit, or push anything to make the PR call succeed.
 - Never open a PR for an empty diff, for a branch that is not pushed, or for a head that already has an open PR.
-- Always include the original PR author (`<PR_AUTHOR>`) as a reviewer, unless `<PR_AUTHOR>` is `<GH_ACTOR>`.
-- A missing label or an unrequestable reviewer is a `needs-attention` note, never a reason to skip or close the PR.
+- The base is always the resolved `release-X.Y`; the head is always `<CHERRY_PICK_BRANCH>`.
+- Always include the original PR author (`<PR_AUTHOR>`) and amyblais as reviewers.
 - Never use the words security, vulnerability, CVE, exploit, backport, patch, or semantically related terms in the PR title or body. Never reference Jira tickets or priority levels in any GitHub-visible output.
