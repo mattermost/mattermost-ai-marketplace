@@ -13,7 +13,7 @@ The `REFERENCE PROCEDURES` section at the bottom of this prompt contains three p
 
 - **PROCEDURE A** (`security-release-targets`) — resolve the target `release-X.Y` branches for a priority. Used by STEP 3.
 - **PROCEDURE B** (`cherry-pick-create-pr`) — cherry-pick one commit onto one release branch. Used by STEP 4.
-- **PROCEDURE C** (`create_pr_tool`) — open the cherry-pick PR via the configured custom MCP. Used by PROCEDURE B, step B.5.
+- **PROCEDURE C** (`create_pr_tool`) — open the cherry-pick PR via the configured custom MCP. Used by PROCEDURE B, step B.5. ABSOLUTELY NO OTHER METHODS SHOULD BE USED FOR OPENING THE PRs
 
 Follow the STEPs below in order; read a procedure only when a step sends you to it.
 
@@ -262,10 +262,7 @@ Skip this branch and report `skipped: change already on release-X.Y`. Do not pus
 
 ### B.3. Lint before opening the PR
 
-Determine changed areas (`git diff --name-only` against `origin/release-X.Y`) and run the matching checks, applying auto-fixes:
-- `server/`  -> (in `server/`) `make check-style`; run relevant generation checks (`make mocks`, `make store-layers`, `make i18n-extract` etc.) if those files changed and stage regenerated output.
-- `webapp/`  -> (in `webapp/`) `npm run check` and `npm run check-types`; for i18n, run `npm run i18n-extract` in `webapp/channels` and only ever edit `en.json`.
-- `e2e-tests/*` -> the matching `npm run check` / `make check-shell`.
+- Run `make check-style` to run linters for both server-side and client-side directories
 
 Fix ALL lint and type errors — whether auto-fixable or requiring manual code edits. Analyze each error, apply the correct fix directly in the source, and re-run the check to confirm it passes before proceeding. Commit all lint and type fixes SEPARATELY from the cherry-pick:
 
@@ -320,7 +317,7 @@ Use the `create_pr_tool` from the configured custom MCP to open the PR. Do NOT u
 
 ### C. Inputs
 
-- `<REPO_NAME>`: the `owner/repo` to open the PR in. Optional — if missing, use `mattermost/mattermost`.
+- `<REPO_NAME>`: the `owner/repo` to open the PR in, corresponding to the org / repository that triggered this automation run
 - `release-X.Y`: the resolved target release branch. This is the PR **base** — never master/main.
 - `<CHERRY_PICK_BRANCH>`: `automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y`. This is the PR **head** — always the pushed cherry-pick branch, never the active Cursor branch or any other locally derived name.
 - `<PR_NUMBER>`: the original merged PR number.
