@@ -66,7 +66,15 @@ Before launching any subagents, send the following start message in two places s
 
 ## STEP 4: Cherry-pick onto each target branch (one cherry-pick PR per branch)
 
-Launch one subagent per target branch. All subagents run in parallel. Each subagent invokes the `cherry-pick-create-pr` skill with: `<PR_NUMBER>`, `<PR_AUTHOR>`, `<COMMIT_SHA>`, `<ORIGINAL_BRANCH>`, and its assigned `release-X.Y`. That skill fetches and branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, and opens the cherry-pick PR via `create_pr_tool`.
+Launch one subagent per target branch. All subagents run in parallel. Each subagent invokes the `cherry-pick-create-pr` skill with:
+
+- `<REPO_NAME>`: `mattermost/mattermost`
+- `<PR_NUMBER>`, `<PR_AUTHOR>`, `<COMMIT_SHA>`, `<ORIGINAL_BRANCH>`
+- `release-X.Y`: the branch assigned to this subagent
+- `<REVIEWERS>`: [`<PR_AUTHOR>`, amyblais] (if `<PR_AUTHOR>` is amyblais, pass only amyblais)
+- `<LABELS>`: ["Changelog/Not Needed", "Docs/Not Needed", "Do Not Merge/Awaiting Next Release", "AI/Babysit"]
+
+That skill fetches and branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, and opens the cherry-pick PR via `create_pr_tool`.
 
 Each subagent reports its outcome (PR URL, or "skipped: `<reason>`", or "needs-input: `<reason>`") back to you upon completion.
 

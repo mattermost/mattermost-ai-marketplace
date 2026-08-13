@@ -1,6 +1,6 @@
 ---
 name: security-release-targets
-description: Given a Mattermost priority/severity level (Critical/High/Medium/Low), resolve the target release-X.Y branches to cherry-pick onto by parsing the Mattermost release policy (ESR/active/upcoming) and keeping only branches that exist on origin. Use when you need the list of release branches a fix must be backported to for a given severity.
+description: Given a Mattermost priority/severity level (Critical/High/Medium/Low), resolve the target release-X.Y branches to cherry-pick onto by parsing the Mattermost release policy (ESR/active/upcoming) and keeping only branches that exist on mattermost/mattermost. Use when you need the list of release branches a fix must be backported to for a given severity.
 allowed-tools: Read, Bash(git ls-remote:*), WebFetch
 ---
 
@@ -35,10 +35,10 @@ resolve branches. Ticket handling and gating live in the caller.
 ## Step 3: Map to branches and filter to what exists
 
 - Map each candidate version `vX.Y` to the branch `release-X.Y` (drop the leading `v`, keep major.minor only, e.g. `v11.7 -> release-11.7`).
-- Keep only branches that already exist on origin:
+- Keep only branches that already exist on the `mattermost/mattermost` remote. Always use the explicit URL — never bare `origin`, which may point to a different repository when this skill is invoked from a plugin checkout:
 
   ```bash
-  git ls-remote --heads origin release-X.Y
+  git ls-remote --heads https://github.com/mattermost/mattermost.git release-X.Y
   ```
 
   (This enforces "upcoming version only if its branch has already been created"; ESR and shipped active branches will exist, an uncut upcoming branch will be skipped.)
