@@ -70,13 +70,11 @@ git checkout -B automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y origin/re
 
 ## 2. Cherry-pick and resolve conflicts correctly (a single, properly-resolved cherry-pick commit)
 
-Mattermost repositories merge pull requests by squash or rebase, so `<COMMIT_SHA>` is a single-parent commit:
+Run the cherry-pick:
 
 ```bash
 git cherry-pick <COMMIT_SHA>
 ```
-
-If git instead reports that the commit is a merge with more than one parent, that repository permits merge commits: rerun as `git cherry-pick -m 1 <COMMIT_SHA>`.
 
 **Empty cherry-pick (change already on branch):** The target branch may already contain the incoming change, producing an empty cherry-pick. Detect this when any of the following is true:
 - Git reports that the cherry-pick is empty (e.g. "The previous cherry-pick is now empty").
@@ -180,13 +178,15 @@ Run these checks first and read each command's OUTPUT — do not treat a zero ex
 
    Empty output means the base is missing. Stop and return `needs-input: base branch release-X.Y not found`.
 
-4. No open PR already targets this head — never open a duplicate. This makes the skill safe to re-run: a merge trigger that fires twice, or a manual re-invocation for the same branch, would otherwise open a second identical PR. It only detects PRs from this same generated head branch, so a hand-made cherry-pick on a differently named branch is out of scope.
+4. No open PR already pairs this head with this base — never open a duplicate. This makes the skill safe to re-run: a merge trigger that fires twice, or a manual re-invocation for the same branch, would otherwise open a second identical PR. It only detects PRs from this same generated head branch, so a hand-made cherry-pick on a differently named branch is out of scope.
 
    ```bash
-   gh pr list --repo <REPO_NAME> --head automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y --state open --json url --jq '.[].url'
+   gh pr list --repo <REPO_NAME> --head automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y --base release-X.Y --state open --json url --jq '.[].url'
    ```
 
-   If this prints a URL, that PR already exists: return that captured URL verbatim as this run's outcome and do NOT call `create_pr_tool`. Only continue when the output is empty.
+   Match on base as well as head. A PR opened from this head against some other base (for example one that wrongly landed on master) is not the PR this run needs to produce, so it must not suppress creating the correct one.
+
+   If this prints a URL, the PR this run would create already exists: return that captured URL verbatim as this run's outcome and do NOT call `create_pr_tool`. Only continue when the output is empty.
 
 ### 5.2. Assemble the PR fields and open it
 
