@@ -14,15 +14,18 @@ Follow the STEPs below in order.
 
 ## STEP 0: Identify the triggering PR
 
-Determine the merged PR number from `$ARGUMENTS` if provided, otherwise from the trigger context, consider the example below for the Jira plugin:
+This automation runs across many plugin repositories, so resolve the repository from the checkout rather than assuming one. Determine the merged PR number from `$ARGUMENTS` if provided, otherwise from the trigger context:
 
 ```bash
-gh pr view <PR> --repo mattermost/mattermost-plugin-jira --json number,title,author,body,baseRefName,headRefName,mergeCommit,mergedAt,state
+REPO_NAME="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
+gh pr view <PR> --repo "$REPO_NAME" --json number,title,author,body,baseRefName,headRefName,mergeCommit,mergedAt,state
 ```
 
+Never hard-code a plugin repository here — every downstream step must operate on the repository that triggered this run.
+
 - Require `status == "MERGED"` and `mergeCommit.oid` present; otherwise exit with no action.
-- If `baseRefName != "master"` or `baseRefName != "main"`, EXIT WITH NO ACTION (only PRs merged into master/main are cherry-picked; skip merges to any other branch).
-- Save: `<REPO_NAME>` (the `owner/repo` of the repository this automation is running in, e.g. `mattermost/mattermost-plugin-jira`), `<PR_NUMBER>`, `<PR_TITLE>`, `<PR_AUTHOR>` (`author.login`), `<COMMIT_SHA>` (`mergeCommit.oid`), `<ORIGINAL_BRANCH>` (the `headRefName` field from the merged PR — this is the source branch of the PR being cherry-picked, **not** the current Cursor branch or any locally active branch), and the PR body.
+- If `baseRefName` is neither `"master"` nor `"main"`, EXIT WITH NO ACTION (only PRs merged into master/main are cherry-picked; skip merges to any other branch). A PR merged into either of those two branches proceeds.
+- Save: `<REPO_NAME>` (the `owner/repo` resolved above, e.g. `mattermost/mattermost-plugin-jira`), `<PR_NUMBER>`, `<PR_TITLE>`, `<PR_AUTHOR>` (`author.login`), `<COMMIT_SHA>` (`mergeCommit.oid`), `<ORIGINAL_BRANCH>` (the `headRefName` field from the merged PR — this is the source branch of the PR being cherry-picked, **not** the current Cursor branch or any locally active branch), and the PR body. `<COMMIT_SHA>` and `<ORIGINAL_BRANCH>` must both come from the `gh pr view` output above.
 - Run `git fetch origin` so the commit is available locally.
 
 ## STEP 1: Find the Jira ticket and gate on `security`
@@ -83,7 +86,7 @@ For each `release-X.Y` in turn:
    - `release-X.Y`: this iteration's target release branch
    - `<REVIEWERS>`: [`<PR_AUTHOR>`]
 
-   The skill determines the correct cherry-pick form from the commit's parent count, branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, runs PR preflight checks, and opens the cherry-pick PR via `create_pr_tool`.
+   The skill branches off the release tip, runs the cherry-pick (handling empty picks and resolving conflicts correctly), lints in a separate commit, pushes, runs PR preflight checks, and opens the cherry-pick PR via `create_pr_tool`.
 2. Record this branch's outcome (PR URL, or "skipped: `<reason>`", or "needs-input: `<reason>`") before moving on.
 3. Leave a clean slate for the next branch: confirm no cherry-pick is still in progress (`git cherry-pick --abort` if one is) and that the working tree has no uncommitted changes. Never carry state from one target branch into the next.
 4. If a branch fails, is skipped, or needs human input, record it and CONTINUE to the next branch — one bad branch never stops the rest.

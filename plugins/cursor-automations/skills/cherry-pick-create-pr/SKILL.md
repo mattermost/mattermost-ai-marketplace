@@ -32,7 +32,7 @@ line as another trailer.
 
 You receive:
 
-- `<REPO_NAME>`: the `owner/repo` to cherry-pick in and open the PR against. Optional — if missing, use `mattermost/mattermost`. Also selects which lint suite runs in step 4.
+- `<REPO_NAME>`: the `owner/repo` to cherry-pick in and open the PR against. Optional — if missing, use `mattermost/mattermost`. Also selects which lint suite runs in step 3.
 - `<PR_NUMBER>`: the original merged PR number.
 - `<PR_AUTHOR>`: the original PR author's `login`.
 - `<COMMIT_SHA>`: the merge/commit SHA to cherry-pick.
@@ -49,29 +49,34 @@ automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 
 **Important:** `<ORIGINAL_BRANCH>` must always be the `headRefName` from the merged PR — never the name of the active Cursor branch or any other locally derived name.
 
-## 1. Determine the cherry-pick form
+## 0. Resolve the target repository
 
-Repositories differ in how they merge: a squash merge produces a single-parent commit, a standard merge produces a two-parent commit. Decide the command once, from the commit's parents:
+Settle on the repository once, before running anything. `<REPO_NAME>` is a single `owner/repo` value — if the caller did not pass it, use `mattermost/mattermost`. That one value is used for `create_pr_tool` and every `gh --repo` call; never treat it as a list or carry two candidate repositories forward.
+
+Confirm `origin` points at that same repository, otherwise you would push the branch to one repository and open the PR against another:
 
 ```bash
-git cat-file -p <COMMIT_SHA> | head -20
+git remote get-url origin
 ```
 
-- one parent  -> `CMD = git cherry-pick <COMMIT_SHA>`
-- two parents -> `CMD = git cherry-pick -m 1 <COMMIT_SHA>`
+If `origin` resolves anywhere other than `<REPO_NAME>`, stop and return `needs-input: origin does not match <REPO_NAME>`.
 
-Never assume the form. Cherry-picking a two-parent commit without `-m 1` fails outright.
-
-## 2. Fetch and branch off the release tip
+## 1. Fetch and branch off the release tip
 
 ```bash
 git fetch origin release-X.Y
 git checkout -B automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y origin/release-X.Y
 ```
 
-## 3. Cherry-pick and resolve conflicts correctly (a single, properly-resolved cherry-pick commit)
+## 2. Cherry-pick and resolve conflicts correctly (a single, properly-resolved cherry-pick commit)
 
-Run `CMD` (determined in step 1).
+Mattermost repositories merge pull requests by squash or rebase, so `<COMMIT_SHA>` is a single-parent commit:
+
+```bash
+git cherry-pick <COMMIT_SHA>
+```
+
+If git instead reports that the commit is a merge with more than one parent, that repository permits merge commits: rerun as `git cherry-pick -m 1 <COMMIT_SHA>`.
 
 **Empty cherry-pick (change already on branch):** The target branch may already contain the incoming change, producing an empty cherry-pick. Detect this when any of the following is true:
 - Git reports that the cherry-pick is empty (e.g. "The previous cherry-pick is now empty").
@@ -105,7 +110,7 @@ Skip this branch and report `skipped: change already on release-X.Y`. Do not pus
 
 **Escalate instead of guessing:** Do NOT auto-resolve conflicts in config files, DB migrations, or anything marked "DO NOT AUTO-MERGE". If a conflict is in one of these, or you cannot confidently determine the correct integration, run `git cherry-pick --abort`, skip this branch, and report it for human review.
 
-## 4. Lint before opening the PR
+## 3. Lint before opening the PR
 
 Which checks to run depends on `<REPO_NAME>`.
 
@@ -130,7 +135,7 @@ git commit -am "$(printf 'Apply lint fixes\n\nCo-authored-by: mattermost-code <m
 
 Repeat the lint/fix/commit cycle until all checks pass cleanly.
 
-## 5. Push
+## 4. Push
 
 If you created any follow-up commits (e.g. lint/type fixes), verify each one you authored carries the required attribution trailer before pushing. The cherry-pick commit itself is exempt and keeps the original message.
 
@@ -145,11 +150,11 @@ Then push:
 git push -u origin automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 ```
 
-## 6. Open the cherry-pick PR
+## 5. Open the cherry-pick PR
 
-### 6.1. Preflight — never open a PR that cannot be valid
+### 5.1. Preflight — never open a PR that cannot be valid
 
-Run these checks first. If any fails, do NOT open a PR; return `needs-input: <reason>` and stop.
+Run these checks first and read each command's OUTPUT — do not treat a zero exit status as a pass, since `git diff` and `gh pr list` both succeed while reporting nothing. Call `create_pr_tool` only after all four checks pass.
 
 1. The head branch exists on origin (it must already be pushed):
 
@@ -157,11 +162,15 @@ Run these checks first. If any fails, do NOT open a PR; return `needs-input: <re
    git ls-remote --heads origin automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
    ```
 
+   Empty output means the branch was never pushed. Stop and return `needs-input: head branch not pushed`.
+
 2. The head branch actually carries the change — never open an empty PR:
 
    ```bash
-   git diff origin/release-X.Y...automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
+   git diff --stat origin/release-X.Y...automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
    ```
+
+   Empty output means there is nothing to propose. Stop and return `needs-input: empty diff against release-X.Y`.
 
 3. The base branch exists on origin:
 
@@ -169,18 +178,20 @@ Run these checks first. If any fails, do NOT open a PR; return `needs-input: <re
    git ls-remote --heads origin release-X.Y
    ```
 
-4. No open PR already targets this head — never open a duplicate:
+   Empty output means the base is missing. Stop and return `needs-input: base branch release-X.Y not found`.
+
+4. No open PR already targets this head — never open a duplicate. This makes the skill safe to re-run: a merge trigger that fires twice, or a manual re-invocation for the same branch, would otherwise open a second identical PR. It only detects PRs from this same generated head branch, so a hand-made cherry-pick on a differently named branch is out of scope.
 
    ```bash
-   gh pr list --repo <REPO_NAME> --head automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y --state open --json url
+   gh pr list --repo <REPO_NAME> --head automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y --state open --json url --jq '.[].url'
    ```
 
-   If one already exists, return that existing URL as the outcome and do NOT create a second PR.
+   If this prints a URL, that PR already exists: return that captured URL verbatim as this run's outcome and do NOT call `create_pr_tool`. Only continue when the output is empty.
 
-### 6.2. Assemble the PR fields and open it
+### 5.2. Assemble the PR fields and open it
 
 Use the `create_pr_tool` from the configured custom MCP (do NOT use `gh pr create` or the Cursor OpenGitPr tool). Pass the following parameters:
-- `repo`: [`<REPO_NAME>`, mattermost/mattermost] (`<REPO_NAME>` is an optional value, if it's missing use mattermost/mattermost )
+- `repo`: `<REPO_NAME>` — the single `owner/repo` value resolved in step 0 (`mattermost/mattermost` if the caller passed none), never a list and never two candidate values
 - `base`: release-X.Y
 - `head`: automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
 - `title`: Automated cherry pick of #`<PR_NUMBER>`
@@ -210,8 +221,8 @@ or `needs-input: <reason>` for a branch that needs human review.
 ## Constraints
 
 - Never force-push; never amend any commit; never `git cherry-pick --skip`.
-- Always determine the cherry-pick form from the commit's parent count. Never assume a squash merge — use `-m 1` for a two-parent commit.
-- Never open a PR for an empty diff, for a branch that is not pushed, or for a head that already has an open PR.
+- Never open a PR for an empty diff, for a branch that is not pushed, or for a head that already has an open PR. Judge each preflight check by its output, not by its exit status.
+- Resolve `<REPO_NAME>` to a single `owner/repo` value once, and use that same value for `create_pr_tool`, every `gh --repo` call, and the `origin` remote.
 - Every follow-up commit you author (e.g. lint/type fixes) MUST end with the trailer `Co-authored-by: mattermost-code <matty-code@mattermost.com>` on its own line, separated from the rest of the message by a blank line. This does NOT apply to the cherry-pick commit, which keeps the original author's message and is never amended. Do not omit it, reword it, change the email, or place it on the same line as another trailer.
 - On an empty cherry-pick (change already on the release branch), run `git cherry-pick --abort` and skip the branch — never use `--skip` or `--continue` for empty picks.
 - Resolve conflicts inside the cherry-pick itself (via `git cherry-pick --continue`) by correctly integrating the incoming change. Never resolve a conflict by blindly accepting one side (`git checkout --theirs` / `--ours` or equivalent), as this can lose data present on the release branch. Lint and type fixes go in a separate follow-up commit.
