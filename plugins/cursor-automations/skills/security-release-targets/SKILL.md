@@ -32,8 +32,24 @@ resolve branches. Ticket handling and gating live in the caller.
 - Critical / High / Medium  ->  `ACTIVE ∪ ESR`
 - Low                       ->  `{UPCOMING} ∪ ESR`
 
-## Step 3: Map to branches and filter to what exists
+## Step 3: Determine target release branches
 
+- Fetch the page source of: https://docs.mattermost.com/product-overview/release-policy.html
+- Locate the `<pre class="mermaid"> ... gantt ...` block in the "Releases" section.
+- Parse each release row `vX.Y[ & ...] :<status>, <start>, <end>`:
+  - For each Mermaid release row, locate the status marker `:(crit|active|done),`.
+  - Treat everything before that marker as the row label.
+  - Extract the Mattermost server release version only from the start of the row label using `^\s*(v\d+\.\d+)\b`. Ignore additional label text such as `& Desktop App v6.2 Extended Support`; do not extract Desktop App versions as server release targets.
+  - rows tagged `:crit` are ESR (Extended Support) versions Rows even when their label contains extra descriptive text. There should always be at least one ESR row.
+  - rows tagged `:active` are active versions.
+  - rows tagged `:done` are end-of-life; ignore them.
+- When parsing release rows, do not assume the row label is only `vX.Y`.
+- First unescape HTML entities such as `&amp;`.
+- Let `ESR` = all `:crit` versions; `ACTIVE` = all `:active` versions; `UPCOMING` = the highest-numbered ACTIVE version (the next release).
+
+- Build the candidate version set by Priority:
+  - Critical / High / Medium  ->  `ACTIVE ∪ ESR`
+  - Low                       ->  `{UPCOMING} ∪ ESR`
 - Map each candidate version `vX.Y` to the branch `release-X.Y` (drop the leading `v`, keep major.minor only, e.g. `v11.7 -> release-11.7`).
 - Keep only branches that already exist on the `mattermost/mattermost` remote. Always use the explicit URL — never bare `origin`, which may point to a different repository when this skill is invoked from a plugin checkout:
 
