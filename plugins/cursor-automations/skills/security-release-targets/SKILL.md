@@ -30,7 +30,7 @@ Fetch and parse the policy once here; later steps consume the sets produced belo
   - Rows tagged `:crit` are ESR (Extended Support) versions, even when their label contains extra descriptive text. There should always be at least one ESR row.
   - Rows tagged `:active` are active versions.
   - Rows tagged `:done` are end-of-life; ignore them.
-- Let `ESR` = all `:crit` versions; `ACTIVE` = all `:active` versions; `UPCOMING` = the highest-numbered ACTIVE version (the next release).
+- Let `ESR` = all `:crit` versions; `ACTIVE` = all `:active` versions; `UPCOMING` = the highest ACTIVE version (the next release). Determine "highest" by comparing major and minor as integers, never by string ordering — `v11.11` outranks `v11.9`, and a lexical sort would get that backwards.
 
 ## Step 2: Map priority to candidate versions
 
