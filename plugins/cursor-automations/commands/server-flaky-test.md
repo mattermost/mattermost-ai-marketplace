@@ -37,7 +37,10 @@ flaky test in the table, work through the workflow below.
    `**/testutils/**`, `**/mocks/**` (only if regenerated via existing
    `go generate`), `MainTest`/`TestMain` setup files, and CI/test config such as
    `.github/workflows/*` only when strictly necessary. If the only honest fix
-   requires a production change, **stop and switch to the Jira branch** below.
+   requires a production change, **stop and switch to the Jira branch** below —
+   §8b when the production change is a test seam, §8 otherwise. Never
+   substitute a lock or a sleep for a production change you are not allowed
+   to make (see rule 5).
 2. **Preserve test semantics — do not change what is being tested.** The
    fixed test must exercise the same code paths and assert the same behavior /
    contract as the original. You are removing flakiness in *how* the test
@@ -81,14 +84,31 @@ flaky test in the table, work through the workflow below.
    acceptable fix under any circumstances — not even with a written
    justification. If a test appears to be unsafe to run in parallel,
    that is a real concurrency bug; either fix the underlying race in
-   tests-only territory (synchronization, isolated fixtures, scoped
-   IDs, etc.) or escalate via the §8 Jira fallback. Adding new
+   tests-only territory (isolated fixtures, scoped IDs, per-test
+   instances — synchronization only under rule 5) or escalate via the
+   §8 Jira fallback. Adding new
    `t.Parallel()` calls is also out of scope for this prompt.
-5. **Run from `server/`** for all `go test` / `make` commands. Use
+5. **Synchronization, sleeps, and serialization are last-resort fixes.**
+   A diff whose core mechanism is a mutex / `sync.Once` / channel
+   handshake, a `time.Sleep`, a retry loop, a raised timeout, or anything
+   that makes tests run one-at-a-time is **presumed wrong** and requires
+   all of:
+   - A captured `WARNING: DATA RACE` report naming the two conflicting
+     accesses (file:line for both), pasted verbatim in the PR body. No
+     race report = no lock. A failing assertion is not evidence of a
+     race.
+   - Proof the concurrency is real and intentional (see §4a).
+   - An "Alternatives considered" list showing why each higher-tier fix
+     in the §6 hierarchy does not apply.
+
+   Serializing tests that are already serial is a no-op that hides the
+   real defect. If you find yourself reaching for a lock, that is the
+   signal to re-derive the root cause, not to write the lock.
+6. **Run from `server/`** for all `go test` / `make` commands. Use
    `make modules-tidy` (never `go mod tidy`) if module changes appear.
-6. **Don't push to `master`.** Always work on a feature branch started fresh from master and open a PR.
-7. **Ask before force-pushing or rewriting history.**
-8. **GitHub commit attribution — ABSOLUTE REQUIREMENT.** Every commit
+7. **Don't push to `master`.** Always work on a feature branch started fresh from master and open a PR.
+8. **Ask before force-pushing or rewriting history.**
+9. **GitHub commit attribution — ABSOLUTE REQUIREMENT.** Every commit
    created by this agent (PR commits, follow-up fix-up commits, anything)
    **must** end with the following trailer on its own line, separated from
    the rest of the message by a blank line:
@@ -103,19 +123,19 @@ flaky test in the table, work through the workflow below.
    the commit and add the trailer before pushing. Do not omit it, do not
    reword it, do not change the email, and do not put it on the same line
    as another trailer. If you have to amend a commit you already pushed,
-   ask the user before force-pushing per rule 7.
-9. **Always open PRs with `gh pr create` — never the Mattermost MCP.**
-   Every PR this prompt opens (fix PRs in §7, skip PRs in §9) **must**
-   be created with the `gh pr create` command exactly as shown below.
-   **Do NOT use the `create_pr_tool` from the Mattermost MCP** (or any
-   other MCP PR-creation tool) to open these PRs. The `gh pr create`
-   flow is what produces the correct branch/base wiring, PR template
-   body, and downstream label/reviewer follow-ups this prompt depends
-   on. The Mattermost MCP tools are only used here for the specific
-   follow-up actions they are named for (`add_labels_to_PRs`,
-   `request_reviewer`, `request_group_reviewer`, `add_pr_comment`,
-   `post_to_mattermost_flaky_result`) — never for creating the PR
-   itself.
+   ask the user before force-pushing per rule 8.
+10. **Always open PRs with `gh pr create` — never the Mattermost MCP.**
+    Every PR this prompt opens (fix PRs in §7, skip PRs in §9) **must**
+    be created with the `gh pr create` command exactly as shown below.
+    **Do NOT use the `create_pr_tool` from the Mattermost MCP** (or any
+    other MCP PR-creation tool) to open these PRs. The `gh pr create`
+    flow is what produces the correct branch/base wiring, PR template
+    body, and downstream label/reviewer follow-ups this prompt depends
+    on. The Mattermost MCP tools are only used here for the specific
+    follow-up actions they are named for (`add_labels_to_PRs`,
+    `request_reviewer`, `request_group_reviewer`, `add_pr_comment`,
+    `post_to_mattermost_flaky_result`) — never for creating the PR
+    itself.
 
 ## Workflow
 
@@ -407,6 +427,12 @@ the flake) below using the same `<TEST_NAME>` and `<PACKAGE_PATH>`.
 
 ### 4. Reproduce the flake
 
+First read the **actual CI failure** from `<FLAKE_REPORT_URL>` (the failed
+job's log for this test). The observed failure mode — the exact assertion,
+the expected-vs-actual values, or the race report — is the ground truth your
+hypothesis has to explain, and it is what your local repro must match. Do not
+start theorizing from the test source alone.
+
 Always run from `server/`. Try these in order, escalating until you see a
 failure or are confident it's stable. Do **not** stop after a single green run
 — a flaky test that fails 1/200 times is still flaky.
@@ -431,14 +457,42 @@ go test -run '^<TEST_NAME>$' -shuffle=on -count=20 -timeout=10m ./<package>/...
 GOMAXPROCS=2 go test -run '^<TEST_NAME>$' -race -count=50 ./<package>/...
 ```
 
-Capture full output to a file (`tee /tmp/flake.log`) so you can grep across
-runs. If reproduction needs Docker (Postgres/MySQL/Redis/Elasticsearch),
-`make start-docker` from `server/` first; many tests in `channels/store`,
-`platform`, and `channels/app` need it.
+Pipe every run through `tee` (e.g. `2>&1 | tee /tmp/before.log`) — these logs
+are the evidence you must quote later, not a convenience for grepping. A
+reproduction you cannot paste did not happen. If reproduction needs Docker
+(Postgres/MySQL/Redis/Elasticsearch), `make start-docker` from `server/`
+first; many tests in `channels/store`, `platform`, and `channels/app` need it.
 
 If you cannot reproduce after the full ladder above (≈100+ runs across modes),
 say so explicitly. Do **not** invent a fix for a flake you never observed —
 prefer the Jira branch.
+
+### 4a. Prove the tests actually run concurrently
+
+Before any diagnosis involving "races", "concurrent tests", or "shared state
+mutation", establish that two goroutines really can touch the state at the
+same time. Go facts that are routinely gotten wrong:
+
+- Tests in one package run **sequentially** unless they call `t.Parallel()`.
+  `-parallel=N` only bounds tests that opted in.
+- `t.Setenv` **forbids** `t.Parallel` — a test calling it can never run
+  concurrently with a sibling.
+- Mattermost CI `fullyparallel` (#35816) shards **packages** across runners.
+  Tests inside one package share one process and one sequential runner.
+- Subtests do not run concurrently with their parent's other subtests unless
+  they each call `t.Parallel()`.
+
+Record the evidence explicitly:
+
+```bash
+grep -n 't.Parallel()' <package>/*_test.go   # who actually opts in
+grep -n 't.Setenv\|os.Setenv' <test_file>    # parallel-incompatible
+```
+
+If no test on the mutation path calls `t.Parallel()`, **there is no
+intra-package race** and any concurrency-based hypothesis is dead. Go back to
+§5 and look for ordering dependence, leaked goroutines from the production
+code under test, or leftover state from a prior sequential test instead.
 
 ### 5. Diagnose
 
@@ -452,8 +506,11 @@ While reproducing, collect evidence:
 - Whether failures correlate with running the package's other tests vs. just
   this one.
 
-Then map the symptom to one of these **common Mattermost Go flake patterns** (in
-rough order of frequency in this codebase):
+The list below is a set of **hypotheses to test against that evidence**, not a
+menu to pattern-match against. Each one is confirmed only by the evidence
+signature named in it; if you cannot produce that signature, the hypothesis is
+not your root cause no matter how plausible it reads. Roughly ordered by
+frequency in this codebase:
 
 1. **`assert.Eventually` / `require.Eventually` timeout too short.** Tests poll
    for an async result with a 100–500 ms window. CI under load misses it. Fix:
@@ -502,13 +559,42 @@ rough order of frequency in this codebase):
 13. **External services.** Elasticsearch / Redis / LDAP not ready when the
     test runs. Fix: add a readiness wait at the start of the test (or in
     `TestMain`).
+14. **Shared mutable package-level state.** Tests save, overwrite, and
+    `defer`-restore a package-level `var` (keys, config, registries, clocks,
+    singletons) because production code reads it directly with no injection
+    seam. Symptom: failures depend on which other tests ran, and the value
+    observed belongs to a different test. This is a **design defect, not a
+    concurrency defect** — verify §4a before calling it a race, and fix it by
+    removing the shared state (§6 tier 1) or introducing a seam (tier 2 /
+    §8b). Never fix it by locking the global.
 
 ### 6. Decide: fix or escalate
 
+**First, derive the fix from the cause — do not reach for a mechanism.**
+List at least two candidate root causes with the evidence for and against
+each, then pick the highest-tier fix that actually applies: 
+
+- **Tier 1 — Eliminate the shared state.** Can each test own its own
+  instance/fixture instead of mutating a package global?
+- **Tier 2 — Introduce isolation at the seam.** Can the value be injected
+  (constructor arg, struct field, interface) so tests never reach into
+  process-global state? This may need a small production change — that is
+  the **§8b test-seam path**, and it is preferred over a lock.
+- **Tier 3 — Scope the test's own data:** random IDs, its own team/channel,
+  `:0` ports, delta counts instead of global counts.
+- **Tier 4 — Make the assertion deterministic:** sort before compare,
+  `ElementsMatch`, `Eventually` around genuinely async work.
+- **Tier 5 — Synchronize.** Only with a race report, per Hard Rule 5.
+
+State the tier in the PR body. If your answer is tier 5, re-read your tier 1
+and tier 2 analysis — "a test can only do X by mutating a global" is a design
+defect in the production code, not a reason to lock the global.
+
 You are allowed to open a PR **only if all** of these are true:
 
-- You reproduced the failure locally (or have a clear race-detector / log
-  fingerprint of the same root cause).
+- You reproduced the failure locally, and the failure you reproduced matches
+  the CI failure in `<FLAKE_REPORT_URL>` (same assertion and values, or the
+  same race report). A different failure is a different bug.
 - The test is not directly related to the changes in the PR reported.
 - The fix is in test code only (see Hard Rule 1).
 - **The fix preserves the original test's semantics** (see Hard Rule 2). Do
@@ -523,13 +609,28 @@ You are allowed to open a PR **only if all** of these are true:
 - You can articulate the root cause in one or two sentences and explain why the
   fix removes it (not just "added a sleep / longer timeout that papers over
   it").
-- **Bug-still-caught check (mandatory):** revert your fix, re-run
-  `-count=50` (or higher) on the test, and confirm the original flake / bug
-  still surfaces at least once. If reverting your fix makes the test pass
-  reliably, your change silenced the test rather than de-flaking it — discard
-  it and start over.
+- **Bug-still-caught check (mandatory).** Every verification claim must be
+  backed by captured output — quote the real lines, never summarize from
+  memory:
 
-If any of those are false → go to **§8 Jira fallback**.
+  ```bash
+  cd server
+  go test -run '^<TEST>$' -race -count=100 ./<pkg>/... 2>&1 | tee /tmp/after.log
+  git stash
+  go test -run '^<TEST>$' -race -count=100 ./<pkg>/... 2>&1 | tee /tmp/before.log
+  git stash pop
+  ```
+
+  `/tmp/before.log` **must** contain a real failure matching the CI failure in
+  `<FLAKE_REPORT_URL>`. If `before.log` is 100/100 green, you did not
+  reproduce the flake and you have not proven your fix does anything — go to
+  §8. Never write "reverted the fix and reproduced the original flake" unless
+  you can paste the failing lines from `before.log` into the PR body. If
+  reverting your fix makes the test pass reliably, your change silenced the
+  test rather than de-flaking it — discard it and start over.
+
+If any of those are false → go to **§8 Jira fallback** (or **§8b** when the
+honest fix is a production test seam).
 
 ### 7. Open the PR
 
@@ -557,7 +658,7 @@ EOF
 )"
 
 # Required attribution check — the commit MUST contain the mattermost-code
-# co-author trailer (see Hard Rule 8). Push only if this prints a match.
+# co-author trailer (see Hard Rule 9). Push only if this prints a match.
 git log -1 --format=%B | grep -F 'Co-authored-by: mattermost-code <matty-code@mattermost.com>' \
   || { echo "FATAL: missing required Co-authored-by trailer; amend before pushing"; exit 1; }
 
@@ -697,7 +798,7 @@ a label was renamed, transient GitHub API failure, descriptor
 mismatch), post a short comment on the PR asking a maintainer to
 apply the missing labels, and continue.
 
-Create the PR with `gh pr create` (see Hard Rule 9). **Do NOT use the
+Create the PR with `gh pr create` (see Hard Rule 10). **Do NOT use the
 `create_pr_tool` from the Mattermost MCP** — or any other MCP
 PR-creation tool — to open this PR; use `gh pr create` exactly as
 shown below.
@@ -732,7 +833,11 @@ Cite the test files touched.>
 
 **Verification:**
 - `go test -run '^<TEST_NAME>$' -race -count=100 -timeout=20m ./<package>/...` — 100/100 green locally.
-- Reverted the fix and re-ran the same loop; reproduced the original flake in N/100 runs, confirming the test still guards the original behavior.
+- Reverted the fix and re-ran the same loop; reproduced the original flake in N/100 runs, confirming the test still guards the original behavior. Failure output from that run:
+
+  ```
+  <paste the actual failing lines from /tmp/before.log — 5–20 lines>
+  ```
 
 **Originally introduced in:** <short-sha> by <github-login> (<commit subject>).  
 
@@ -814,6 +919,11 @@ Notes:
 Create a Jira **Task** in the `MM` project on `mattermost.atlassian.net` and
 assign it to the engineer most likely responsible (same lookup as §7). Use the
 Atlassian MCP tools available in this environment.
+
+If the root cause is specifically a **missing test seam** in production code
+(§5 pattern 14 / §6 tier 2), use the **§8b** description variant instead of
+the default template — same ticket + skip-PR flow, but the ticket carries the
+proposed production change.
 
 Steps:
 
@@ -942,11 +1052,95 @@ Use the same `createJiraIssue` fields as the default path (`Task` in
 `MM`, same labels/priority/assignee lookup). After creation, still call
 `addCommentToJiraIssue` to `@`-mention Maria Nunez as in step 3 above.
 
+### 8b. Test-seam variant (when the honest fix is a production change)
+
+Use this variant when the root cause is that production code exposes no
+injection seam — the test can only exercise the path by mutating a
+package-level global (§5 pattern 14, §6 tier 2). Do **not** lock the
+global, and do **not** silently fall back to the generic "couldn't
+reproduce" ticket: the root cause here is known, it is just out of the
+tests-only scope.
+
+The flow is the **same as §8 + §9** — Jira ticket, then skip PR — with
+one difference: the ticket carries the concrete proposed production
+change so the assignee starts from a design, not from scratch. This
+automation never opens a production-code PR and never waits for human
+approval before opening the skip PR.
+
+Use the §8 `createJiraIssue` fields (`Task` in `MM`, same
+labels/priority/assignee lookup, same follow-up `addCommentToJiraIssue`
+`@`-mention of Maria Nunez), with `summary`
+`Flaky test: <TEST_NAME> in <package basename> (needs test seam)` and
+this description:
+
+     ```
+     ## Flaky test
+     - Test: `<TEST_NAME>`
+     - Package: `<PACKAGE_PATH>`
+     - File: `<path/to/file_test.go>`
+
+     ## Root cause
+     `<production symbol>` reads package-level `<var(s)>` directly, so a
+     test can only exercise `<scenario>` by overwriting process-global
+     state and restoring it with `defer`. That shared mutable state is
+     the flake — <one or two sentences tying it to the observed failure,
+     citing file:line>.
+
+     ## Reproduction
+     <exact commands and failure rate, e.g. "3/100 with `-race -count=100`
+     on master @ <sha>">, plus the failing output.
+
+     ## Symptoms
+     <stack trace excerpt, race report, or assertion diff — 10–30 lines.>
+
+     ## Proposed fix (test seam)
+     <Concrete design, not a vague suggestion:>
+     - Move `<var(s)>` onto `<type>` as fields.
+     - Add `New<Type>()` seeded from the current package-level values;
+       call it from `init()` and `<existing reset helper>`.
+     - Update the <N> existing call sites: <list them>.
+     - Tests then construct an isolated instance and never touch globals —
+       include a 5–15 line Go sketch of the resulting test setup, fenced as
+       a `go` code block in the ticket description.
+     - Blast radius: <files touched, whether behavior changes (it should
+       not), and anything signature/API-visible>.
+     - Prototype status: <"prototyped locally: builds, gofmt-clean, passes
+       50x under -race -parallel=32" — only if you actually ran it;
+       otherwise "not prototyped">.
+
+     ## Alternatives rejected
+     - <Higher/lower tier options and why. Explicitly state that locking
+       the global was rejected: it serializes access without removing the
+       shared state, and §4a showed <no concurrent access | the race is
+       incidental>.>
+
+     ## Why no PR
+     The fix requires a production change (`<production file>`), which is
+     outside this automation's tests-only contract. A skip PR is opened to
+     unblock CI; this ticket tracks the seam work.
+
+     ## Last meaningful author
+     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
+
+     ## Environment
+     - Branch: master @ <sha>
+     - Go: <go version>
+     - OS: <uname -a one-liner>
+
+     ---
+     cc @marianunez (requester of the automated investigation)
+     ```
+
+Then open the skip PR per §9, using the **test-seam** "Why skip" variant
+in the PR body and the **test-seam** Mattermost body variant. All §9
+follow-ups apply unchanged (labels, reviewer, Jira back-link,
+announcement).
+
 ### 9. Open a skip PR linked to the Jira ticket
 
-After the Jira ticket from §8 is filed, open a follow-up PR that **skips
-the flaky test** so it stops blocking CI while the underlying issue is
-investigated. This is the **only** place in this prompt where `t.Skip`
+After the Jira ticket from §8 or §8b is filed, open a follow-up PR that
+**skips the flaky test** so it stops blocking CI while the underlying
+issue is investigated. This is the **only** place in this prompt where `t.Skip`
 is allowed — and it is allowed only because the skip is tied 1:1 to a
 tracked Jira issue.
 
@@ -992,14 +1186,14 @@ Co-authored-by: mattermost-code <matty-code@mattermost.com>
 EOF
 )"
 
-# Required attribution check (see Hard Rule 8).
+# Required attribution check (see Hard Rule 9).
 git log -1 --format=%B | grep -F 'Co-authored-by: mattermost-code <matty-code@mattermost.com>' \
   || { echo "FATAL: missing required Co-authored-by trailer; amend before pushing"; exit 1; }
 
 git push -u origin HEAD
 ```
 
-As in §7, open the skip PR with `gh pr create` (see Hard Rule 9).
+As in §7, open the skip PR with `gh pr create` (see Hard Rule 10).
 **Do NOT use the `create_pr_tool` from the Mattermost MCP** — or any
 other MCP PR-creation tool — to open this PR; use `gh pr create`
 exactly as shown below. Also **do not pass `--reviewer` or `--label`
@@ -1044,6 +1238,15 @@ prior automated fix PR (<EXISTING_PR_URL>) was merged into this branch
 but the flake persists. Rather than attempting a second automated
 tests-only fix, skipping unblocks CI while a Jira ticket tracks a
 holistic human review of the root cause.
+
+**Why skip (test-seam variant — §8b only):** The root cause is known:
+`<production symbol>` reads package-level `<var(s)>` with no injection
+seam, so tests can only exercise this path by mutating process-global
+state. Fixing that properly requires a production change, which is
+outside this automation's tests-only contract — and a mutex around the
+global would serialize access without removing the shared state. The
+Jira ticket carries a concrete proposed seam; skipping unblocks CI in
+the meantime.
 
 **Originally introduced in:** <short-sha> by <github-login>
 (<commit subject>).
@@ -1120,6 +1323,27 @@ After the PR is open:
    - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
    ```
 
+   **Test-seam variant (§8b only)** — replace the opening paragraph
+   with:
+
+   ```
+   #### :warning: Flaky-test skip PR + Jira opened (needs test seam)
+
+   The root cause is known but sits in production code: `<production
+   symbol>` reads package-level state with no injection seam, so tests
+   can only exercise this path by mutating globals. A skip PR unblocks
+   CI and the Jira ticket carries a concrete proposed seam for a human
+   to land:
+
+   <markdown table: header + the single row from `flaky_summary` for this test>
+
+   - Triggering PR: <TRIGGERING_PR_URL>
+   - Skip PR: <NEW_PR_URL>
+   - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
+   - Proposed fix: <one-line summary of the seam from the ticket>
+   - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
+   ```
+
    Use the `@<introducing-login>` half of the bullet only when the
    `public_members` probe returned 204; otherwise use the
    `mattermost/core-reviewers` half. Do not include both.
@@ -1187,8 +1411,12 @@ Pick exactly one of the following per flaky test in `flaky_summary`:
   ready for review (not draft), only `*_test.go` (or other allowed
   test files) are touched, **the fixed test exercises the same code
   paths and assertions as the original** (no weakening, no skipping,
-  no scope changes), the fixed test survived `-race -count=100`,
-  reverting the fix still reproduces the original flake, the PR body
+  no scope changes), the fix is the highest applicable tier in the §6
+  hierarchy and the PR body states that tier plus the alternatives
+  rejected (with a verbatim race report if the mechanism is a lock —
+  Hard Rule 5), the fixed test survived `-race -count=100`, reverting
+  the fix reproduced the original flake **with the failing output
+  pasted into the PR body**, the PR body
   follows `.github/PULL_REQUEST_TEMPLATE.md` (`#### Summary`,
   `#### Ticket Link`, `#### Screenshots`, ` ```release-note ` block)
   with root cause + verification under Summary and the
@@ -1210,8 +1438,22 @@ Pick exactly one of the following per flaky test in `flaky_summary`:
   username `Flaky Test Agent` and with no `cc @marianunez` in the
   body.
 
+- **Test-seam path (§8b + §9):** The root cause is known and is a
+  missing injection seam in production code — the test can only
+  exercise the path by mutating package-level state. A Jira **Task** is
+  created in `MM` using the §8b description, including the concrete
+  proposed seam (fields, constructor, call sites, resulting test
+  sketch, blast radius) and an explicit note that locking the global
+  was rejected. A skip PR is opened per §9 using the test-seam "Why
+  skip" and Mattermost body variants, with all §9 follow-ups (labels,
+  reviewer, Jira back-link, announcement). **No production-code PR is
+  opened and no human approval is awaited** — the ticket carries the
+  design, the skip PR unblocks CI. Both the Jira issue key/URL and the
+  skip PR URL are returned to the user.
+
 - **Jira + skip-PR path (§8 + §9):** Could not repro after the full
-  ladder, OR root cause is in production code, OR a prior merged
+  ladder, OR root cause is in production code and is not a test seam
+  (that is §8b), OR a prior merged
   **Fix flaky** automation PR (`<EXISTING_PR_KIND>` = `fix`) is present
   in the branch but the flake persists (§2 prior-fix-insufficient
   escalation). Both of the following must hold:
