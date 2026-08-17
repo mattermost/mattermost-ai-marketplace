@@ -1,0 +1,9 @@
+{
+  "name": "cursor-automations",
+  "description": "Internal Cursor automation commands for Mattermost engineering workflows. Intended to be invoked by Cursor Automations only — not for individual/manual use.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Maria Nunez"
+  },
+  "keywords": ["cursor", "automation", "internal", "mattermost", "ci"]
+}

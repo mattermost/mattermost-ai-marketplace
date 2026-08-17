@@ -10,6 +10,24 @@ You cherry-pick one merged commit onto a single release branch and open one
 cherry-pick PR for it. You run entirely non-interactively. Never force-push,
 never amend an existing commit, never run `git cherry-pick --skip`.
 
+## Commit attribution — ABSOLUTE REQUIREMENT
+
+Every follow-up commit created by this agent (lint/type fix-up commits, and any
+other commit you author) **must** end with the following trailer on its own
+line, separated from the rest of the message by a blank line:
+
+```text
+Co-authored-by: mattermost-code <matty-code@mattermost.com>
+```
+
+This does NOT apply to the cherry-pick commit itself — that commit preserves the
+original author's message and authorship and must not be amended.
+
+This is non-negotiable for the commits you author: it is what attributes the
+work correctly on GitHub and is required by Mattermost's tooling. Do not omit
+it, do not reword it, do not change the email, and do not put it on the same
+line as another trailer.
+
 ## Inputs
 
 You receive:
@@ -71,7 +89,7 @@ Skip this branch and report `skipped: change already on release-X.Y`. Do not pus
   git cherry-pick --continue --no-edit
   ```
 
-  This yields one correctly-resolved cherry-pick commit — there is no separate "take-theirs" dump commit and no follow-up "resolve conflicts" commit; the resolution lives inside the cherry-pick itself.
+  This yields one correctly-resolved cherry-pick commit — there is no separate "take-theirs" dump commit and no follow-up "resolve conflicts" commit; the resolution lives inside the cherry-pick itself. Leave this commit's message and authorship as-is — do not amend it or add a trailer to it.
 
 **Conflict resolution constraint:** When resolving conflicts, do NOT remove or edit any code that is not directly related to the incoming change. Do not delete tests or other code present in the release branch that are not part of the original commit being cherry-picked.
 
@@ -87,12 +105,21 @@ Determine changed areas (`git diff --name-only` against `origin/release-X.Y`) an
 Fix ALL lint and type errors — whether auto-fixable or requiring manual code edits. Analyze each error, apply the correct fix directly in the source, and re-run the check to confirm it passes before proceeding. Commit all lint and type fixes SEPARATELY from the cherry-pick:
 
 ```bash
-git commit -am "Apply lint fixes"
+git commit -am "$(printf 'Apply lint fixes\n\nCo-authored-by: mattermost-code <matty-code@mattermost.com>')"
 ```
 
 Repeat the lint/fix/commit cycle until all checks pass cleanly.
 
 ## 4. Push
+
+If you created any follow-up commits (e.g. lint/type fixes), verify each one you authored carries the required attribution trailer before pushing. The cherry-pick commit itself is exempt and keeps the original message.
+
+```bash
+# For a follow-up commit you authored (e.g. the lint-fix tip commit):
+git log -1 --format=%B | grep -F 'Co-authored-by: mattermost-code <matty-code@mattermost.com>'
+```
+
+Then push:
 
 ```bash
 git push -u origin automated-cherry-pick-of-<ORIGINAL_BRANCH>-release-X.Y
@@ -131,6 +158,7 @@ or `needs-input: <reason>` for a branch that needs human review.
 ## Constraints
 
 - Never force-push; never amend any commit; never `git cherry-pick --skip`.
+- Every follow-up commit you author (e.g. lint/type fixes) MUST end with the trailer `Co-authored-by: mattermost-code <matty-code@mattermost.com>` on its own line, separated from the rest of the message by a blank line. This does NOT apply to the cherry-pick commit, which keeps the original author's message and is never amended. Do not omit it, reword it, change the email, or place it on the same line as another trailer.
 - On an empty cherry-pick (change already on the release branch), run `git cherry-pick --abort` and skip the branch — never use `--skip` or `--continue` for empty picks.
 - Resolve conflicts inside the cherry-pick itself (via `git cherry-pick --continue`) by correctly integrating the incoming change. Never resolve a conflict by blindly accepting one side (`git checkout --theirs` / `--ours` or equivalent), as this can lose data present on the release branch. Lint and type fixes go in a separate follow-up commit.
 - When resolving conflicts, do not remove or edit code that is not directly related to the incoming change. Do not delete tests in the release branch that are not part of the original commit.

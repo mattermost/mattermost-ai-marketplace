@@ -22,8 +22,11 @@ gh pr view <PR> --repo mattermost/mattermost --json number,title,author,body,bas
 
 ## STEP 1: Find the Jira ticket and gate on `security`
 
-- Scan the PR body for a Jira ticket key. Match a `mattermost.atlassian.net/browse/<KEY>` link or a bare key of the form `MM-<digits>` (e.g. from a "Fixes:" / "Ticket Link" line).
-- If no Jira key is found, EXIT WITH NO ACTION (do not comment, branch, or open any PR).
+- Extract the Jira ticket key ONLY from a dedicated ticket declaration, never from prose. A valid match is either:
+  - A `Ticket Link` field/heading whose value is a `mattermost.atlassian.net/browse/<KEY>` link or a bare `MM-<digits>` key, or
+  - A line that explicitly reads `Fixes: <KEY>` (or `Fixes: <mattermost.atlassian.net/browse/<KEY>>`).
+- Do NOT pick up ticket keys mentioned inline in the summary/description text, keys that appear in narrative sentences, or keys that reference other/related tickets. Only the `Ticket Link` value or an explicit `Fixes:` declaration counts.
+- If no Jira key is found via those two sources, EXIT WITH NO ACTION (do not comment, branch, or open any PR).
 - Using the connected Atlassian (Jira) integration, fetch that issue and read its Labels.
 - If the issue does NOT carry the `security` label, EXIT WITH NO ACTION.
 
@@ -52,7 +55,7 @@ Before launching any subagents, send the following start message in two places s
 
 **B) Post to the Mattermost channel** using the `post_to_mattermost_cherry_pick` tool with `username: Cherry-pick Agent`, sending the identical message as above, with the triggering PR reference appended:
 
-> 🤖 Automation starting cherry-pick for `<PR_LINK>` for the following target branches:
+> 🤖 Automation starting cherry-pick for <PR_LINK> for the following target branches:
 > - release-X.Y
 > - release-X.Z
 > - ...
@@ -75,13 +78,13 @@ After all subagents complete, post the final results in two places simultaneousl
 
 **B) Post to the Mattermost channel** using the `post_to_mattermost_cherry_pick` tool with `username: Cherry-pick Agent`, sending the identical results summary as above, with the triggering PR reference included:
 
-> 🤖 Cherry-pick automation complete for #`<PR_NUMBER>`.
+> 🤖 Cherry-pick automation complete for #<PR_NUMBER>.
 >
-> - release-X.Y: `<cherry-pick PR URL>`
-> - release-X.Z: `<cherry-pick PR URL or "skipped: <reason>">`
+> - release-X.Y: <cherry-pick PR URL>
+> - release-X.Z: <cherry-pick PR URL or "skipped: <reason>">
 > - ...
 >
-> `<If any branch needs human input, call it out prominently here.>`
+> <If any branch needs human input, call it out prominently here.>
 
 - Add a check mark emoji for the ones that were opened and an X emoji for the ones that were skipped for some reason at the beginning of the bullet point.
 - Do NOT use the words security, vulnerability, CVE, exploit, or any related terms in either message.

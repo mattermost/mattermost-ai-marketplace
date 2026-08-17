@@ -19,7 +19,7 @@ resolve branches. Ticket handling and gating live in the caller.
 
 ## Step 1: Parse the release policy
 
-- Fetch the page source of: https://docs.mattermost.com/about/release-policy.html
+- Fetch the page source of: https://docs.mattermost.com/product-overview/release-policy.html
 - Locate the `<pre class="mermaid"> ... gantt ...` block in the "Releases" section.
 - Parse each release row `vX.Y[ & ...] :<status>, <start>, <end>`:
   - rows tagged `:crit` are ESR (Extended Support) versions.
