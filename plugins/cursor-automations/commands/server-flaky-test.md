@@ -90,14 +90,17 @@ flaky test in the table, work through the workflow below.
    justification. If a test appears to be unsafe to run in parallel,
    that is a real concurrency bug; either fix the underlying race in
    tests-only territory (isolated fixtures, scoped IDs, per-test
-   instances — synchronization only under rule 5) or escalate via the
+   instances — synchronization only under rule 5a) or escalate via the
    §8 Jira fallback. Adding new
    `t.Parallel()` calls is also out of scope for this prompt.
 5. **Synchronization, sleeps, and serialization are last-resort fixes.**
-   A diff whose core mechanism is a mutex / `sync.Once` / channel
-   handshake, a `time.Sleep`, a retry loop, a raised timeout, or anything
-   that makes tests run one-at-a-time is **presumed wrong** and requires
-   all of:
+   Both groups below are **presumed wrong**; they differ in what
+   evidence clears them, because a race report proves a race and says
+   nothing about a timing budget.
+
+   **5a. Synchronization and serialization** — a diff whose core
+   mechanism is a mutex / `sync.Once` / channel handshake, or anything
+   that makes tests run one-at-a-time. Requires all of:
    - A captured `WARNING: DATA RACE` report naming the two conflicting
      accesses (file:line for both), pasted verbatim in the PR body. No
      race report = no lock. A failing assertion is not evidence of a
@@ -105,6 +108,21 @@ flaky test in the table, work through the workflow below.
    - Proof the concurrency is real and intentional (see §4a).
    - An "Alternatives considered" list showing why each higher-tier fix
      in the §6 hierarchy does not apply.
+
+   **5b. Timing changes** — `time.Sleep`, a retry loop, or a raised
+   timeout. A race report is **not** required and usually will not
+   exist; the failure is a deadline missed under load, not concurrent
+   access. Requires all of:
+   - The CI failure in `<FLAKE_REPORT_URL>` is a timeout / deadline
+     miss (an `Eventually` that expired, a context deadline, a poll that
+     ran out) and your local repro shows the *same* failure — not a
+     different assertion.
+   - The captured before/after logs from §6's bug-still-caught check,
+     showing the flake reproducing without the change and gone with it.
+   - An "Alternatives considered" list, same as 5a.
+   - `time.Sleep` specifically stays last-resort even here: prefer
+     `Eventually` (§6 tier 4) around the async work, and never pass a
+     `tick` ≥ `waitFor`.
 
    Serializing tests that are already serial is a no-op that hides the
    real defect. If you find yourself reaching for a lock, that is the
@@ -494,10 +512,27 @@ grep -n 't.Parallel()' <package>/*_test.go   # who actually opts in
 grep -n 't.Setenv\|os.Setenv' <test_file>    # parallel-incompatible
 ```
 
-If no test on the mutation path calls `t.Parallel()`, **there is no
-intra-package race** and any concurrency-based hypothesis is dead. Go back to
-§5 and look for ordering dependence, leaked goroutines from the production
-code under test, or leftover state from a prior sequential test instead.
+If no test on the mutation path calls `t.Parallel()`, **sibling tests in the
+package cannot race each other** — that one hypothesis is dead. It does **not**
+mean the test is race-free. Still live, and still worth investigating:
+
+- Goroutines the test itself starts, which run concurrently with the test body
+  and with each other.
+- Production background work the test triggers — `app.Srv().Go(...)`,
+  websocket hub fan-out, job workers, plugin activation, cluster gossip — which
+  keeps running while the test reads the state it touches.
+- Goroutines leaked by an *earlier* test that are still running during this one
+  (see §5 pattern 6).
+
+So keep examining goroutine creation and shared-state access: find every writer
+of the suspect state and ask whether any of them runs outside the test's own
+goroutine. And trust the detector over this reasoning — a captured
+`WARNING: DATA RACE` is evidence of a real race no matter what the
+`t.Parallel()` grep showed.
+
+Go back to §5 and weigh ordering dependence, leaked goroutines from the
+production code under test, and leftover state from a prior sequential test
+alongside the intra-test concurrency above.
 
 ### 5. Diagnose
 
@@ -517,10 +552,12 @@ signature named in it; if you cannot produce that signature, the hypothesis is
 not your root cause no matter how plausible it reads. Roughly ordered by
 frequency in this codebase:
 
-1. **`assert.Eventually` / `require.Eventually` timeout too short.** Tests poll
-   for an async result with a 100–500 ms window. CI under load misses it. Fix:
-   raise the timeout (e.g. to 5–10 s) and tighten the tick. Never pass a `tick`
-   ≥ `waitFor`.
+1. **`assert.Eventually` / `require.Eventually` timeout too short.** Evidence
+   signature: the CI failure is the `Eventually` itself expiring, not a value
+   mismatch. Tests poll for an async result with a 100–500 ms window; CI under
+   load misses it. Fix: raise the timeout (e.g. to 5–10 s) and tighten the
+   tick. Never pass a `tick` ≥ `waitFor`. This is a timing change — clear it
+   with the Hard Rule 5b evidence, not a race report.
 2. **Missing `Eventually` around inherently async behavior.** Code uses
    goroutines, websocket fan-out, plugin hooks, the job server, the metrics
    pipeline, or `app.Srv().Go(...)` and the test reads state immediately. Fix:
@@ -588,8 +625,11 @@ each, then pick the highest-tier fix that actually applies:
 - **Tier 3 — Scope the test's own data:** random IDs, its own team/channel,
   `:0` ports, delta counts instead of global counts.
 - **Tier 4 — Make the assertion deterministic:** sort before compare,
-  `ElementsMatch`, `Eventually` around genuinely async work.
-- **Tier 5 — Synchronize.** Only with a race report, per Hard Rule 5.
+  `ElementsMatch`, `Eventually` around genuinely async work. Raising an
+  existing `Eventually`/poll timeout also lands here — it needs the
+  Hard Rule 5b evidence (matching timeout failure in CI plus the
+  before/after logs), not a race report.
+- **Tier 5 — Synchronize.** Only with a race report, per Hard Rule 5a.
 
 State the tier in the PR body. If your answer is tier 5, re-read your tier 1
 and tier 2 analysis — "a test can only do X by mutating a global" is a design
@@ -612,14 +652,18 @@ You are allowed to open a PR **only if all** of these are true:
   If any answer is "no", your fix changed *what* is being tested. Revert and
   reconsider.
 - You can articulate the root cause in one or two sentences and explain why the
-  fix removes it (not just "added a sleep / longer timeout that papers over
-  it").
+  fix removes it. "Added a sleep / longer timeout" is not an explanation on its
+  own — but it is a legitimate fix when the root cause genuinely *is* a
+  too-tight deadline and you can show it under Hard Rule 5b. State which.
 - **Bug-still-caught check (mandatory).** Every verification claim must be
   backed by captured output — quote the real lines, never summarize from
   memory:
 
   ```bash
   cd server
+  # Without pipefail the pipeline reports tee's exit status, so a failing
+  # `go test` still looks like success. Set it before both runs.
+  set -o pipefail
   go test -run '^<TEST_NAME>$' -race -count=100 ./<package>/... 2>&1 | tee /tmp/after.log
   git stash
   go test -run '^<TEST_NAME>$' -race -count=100 ./<package>/... 2>&1 | tee /tmp/before.log
@@ -840,8 +884,14 @@ Cite the test files touched.>
 - `go test -run '^<TEST_NAME>$' -race -count=100 -timeout=20m ./<package>/...` — 100/100 green locally.
 - Reverted the fix and re-ran the same loop; reproduced the original flake in N/100 runs, confirming the test still guards the original behavior. Failure output from that run:
 
-  ```
+  ```text
   <paste the actual failing lines from /tmp/before.log — 5–20 lines>
+  ```
+
+- If the fix is a synchronization change (Hard Rule 5a), also paste the race report verbatim:
+
+  ```text
+  <paste the WARNING: DATA RACE report from the run — both conflicting accesses with file:line>
   ```
 
 **Originally introduced in:** <short-sha> by <github-login> (<commit subject>).  
