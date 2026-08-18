@@ -26,7 +26,7 @@ plugins/<name>/                    # One directory per plugin
 templates/                         # Starter templates for new plugins/skills
 ```
 
-**marketplace.json** has `"pluginRoot": "./plugins"`, so each plugin's `"source"` field is just its directory name (e.g., `"source": "code-simplifier"` resolves to `./plugins/code-simplifier`).
+**marketplace.json** does not set `pluginRoot`, so each plugin's `"source"` field is a path relative to the repo root — `"source": "./plugins/code-simplifier"`.
 
 ## Adding a New Plugin
 

@@ -26,6 +26,13 @@ Webhook payload fields:
 Treat the PR URL `https://github.com/<repo>/pull/<pr_number>` as the
 canonical `<FLAKE_REPORT_URL>` for this run. It MUST be linked from any
 PR comment, fix PR, skip PR, or Jira ticket you open.
+`<TRIGGERING_PR_URL>` is used interchangeably with `<FLAKE_REPORT_URL>`
+below — both mean this same URL.
+
+`<MM_CHECKOUT>` is the local clone of `<repo>` this run works in.
+Resolve it once at the start (`git -C . rev-parse --show-toplevel` from
+anywhere inside the clone) and use it for every `cd` in §7 and §9 —
+never hard-code a machine-specific path.
 
 Parse `flaky_summary` to extract the list of flaky test names. For each
 flaky test in the table, work through the workflow below.
@@ -75,11 +82,9 @@ flaky test in the table, work through the workflow below.
    test pass deterministically, you changed what's being tested — not how
    it runs. Discard that fix.
 
-3. **Do not weaken or skip the test.** Specifically: no `t.Skip` (except
-   in the §9 skip-PR path, which is gated on a tracked Jira issue), no
-   shrinking `assert.Eventually` to be trivially true, no replacing strict
-   assertions with weaker ones. (This is a corollary of rule 2 — kept here
-   for emphasis because it's the most common failure mode.)
+3. **Do not weaken or skip the test.** The most common failure mode, and
+   already covered by rule 2 — re-read its forbidden list before writing
+   any diff.
 4. **Never remove `t.Parallel()`.** Removing parallelism is not an
    acceptable fix under any circumstances — not even with a written
    justification. If a test appears to be unsafe to run in parallel,
@@ -615,9 +620,9 @@ You are allowed to open a PR **only if all** of these are true:
 
   ```bash
   cd server
-  go test -run '^<TEST>$' -race -count=100 ./<pkg>/... 2>&1 | tee /tmp/after.log
+  go test -run '^<TEST_NAME>$' -race -count=100 ./<package>/... 2>&1 | tee /tmp/after.log
   git stash
-  go test -run '^<TEST>$' -race -count=100 ./<pkg>/... 2>&1 | tee /tmp/before.log
+  go test -run '^<TEST_NAME>$' -race -count=100 ./<package>/... 2>&1 | tee /tmp/before.log
   git stash pop
   ```
 
@@ -637,7 +642,7 @@ honest fix is a production test seam).
 Branch and commit:
 
 ```bash
-cd /Users/marianunez/git/mattermost
+cd <MM_CHECKOUT>
 git fetch origin master
 git checkout -b fix/flaky-<short-test-name> origin/master
 # ...edit only test files...
@@ -803,7 +808,7 @@ Create the PR with `gh pr create` (see Hard Rule 10). **Do NOT use the
 PR-creation tool — to open this PR; use `gh pr create` exactly as
 shown below.
 
-```bash
+````bash
 # Open the PR with the gh CLI — NOT the Mattermost MCP `create_pr_tool`.
 # Open ready-for-review — DO NOT pass --draft.
 # If the bot account creates drafts by default, follow up with
@@ -816,7 +821,7 @@ shown below.
 # the gh CLI. Use the `add_labels_to_PRs` MCP tool as a follow-up
 # step (see the labels section above).
 gh pr create \
-  --repo mattermost/mattermost \
+  --repo <repo> \
   --base master \
   --head <your-fork-or-branch> \
   --title "Fix flaky <TEST_NAME>" \
@@ -856,7 +861,7 @@ NONE
 ```
 EOF
 )"
-```
+````
 
 **After the PR is open, apply the three required labels via the
 `add_labels_to_PRs` MCP tool** — `AI/babysit`, `AutoMerge`,
@@ -938,41 +943,8 @@ Steps:
    - `summary`: `Flaky test: <TEST_NAME> in <package basename>`
    - `description` (markdown, set `contentFormat: "markdown"`):
 
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
-
-     ## Reproduction
-     <exact commands you used and how often it failed, e.g. "5/100 with
-     `-race -count=100` on master @ <sha>">
-
-     ## Symptoms
-     <stack trace excerpt, race report, or assertion diff. Include 10–30 lines
-     max; link to a gist if longer.>
-
-     ## Hypotheses considered
-     <bullet list of root causes you ruled in/out and why. Cite file:line.>
-
-     ## Why no PR
-     <e.g. "Root cause appears to be in production code (Hub.Broadcast races
-     with Hub.Unregister); a tests-only fix would mask it.">
-
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
-     <!-- Plain text, no @-mention. GitHub handles in Jira would not trigger
-          a GitHub notification anyway, but kept consistent with the PR
-          rule: never @-mention an unverified-org-member original author. -->
-
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
-
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
+     Template 1 ("Default") in
+     `${CLAUDE_PLUGIN_ROOT}/references/jira-templates.md` — read it now.
    - `additional_fields`: `{"labels": ["flaky-test", "go-unit"], "priority": {"name": "Medium"}}`
    - `assignee_account_id`: the resolved account ID, or omit if unresolved.
    - After the issue is created, also call `addCommentToJiraIssue` to post a
@@ -989,68 +961,12 @@ Steps:
 merged Fix flaky PR with `<EXISTING_PR_KIND>` = `fix`).**
 When you arrived here because a prior merged **Fix flaky** automation
 fix PR is present in the branch but the flake still reproduces, use
-this description shape instead of the default template above. Do **not**
-use this variant for a merged Skip flaky PR — those stay on the
-already-addressed path. The goal is to request a **holistic human
-review**, not another incremental tests-only patch:
-
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
-
-     ## Prior automated fix (insufficient)
-     - Previous fix PR: <EXISTING_PR_URL> (merged)
-     - Merge commit: `<MERGE_SHA>`
-     - Outcome: flake still reported after the fix landed in the branch
-       under test (`git merge-base --is-ancestor` confirmed present).
-
-     ## Why human review
-     Automated remediation already attempted a tests-only fix for this
-     exact test and it did not resolve the flakiness. A second automated
-     fix attempt is likely to stack band-aids rather than address the
-     root cause. This ticket requests a **holistic review** — the
-     assignee should investigate whether the issue requires production
-     code changes, test architecture changes, or a different testing
-     strategy altogether.
-
-     ## Reproduction
-     <If you ran any repro before escalating, include commands and
-     failure rate. Otherwise note "Escalated from §2 without a fresh
-     repro ladder — prior merged fix already establishes the flake is
-     active on this branch.">
-
-     ## Symptoms
-     <Stack trace / race report from the triggering CI run or prior
-     investigation, if available.>
-
-     ## Hypotheses considered
-     - Prior tests-only fix (<EXISTING_PR_URL>) was merged but did not
-       resolve the flake — root cause may be deeper than what a
-       targeted test patch can address.
-     <Add any additional hypotheses from reading the test and the prior
-     fix diff.>
-
-     ## Why no PR
-     Prior automation fix was insufficient; escalating for human review
-     rather than attempting a second automated fix.
-
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
-
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
-
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
-
-Use the same `createJiraIssue` fields as the default path (`Task` in
-`MM`, same labels/priority/assignee lookup). After creation, still call
-`addCommentToJiraIssue` to `@`-mention Maria Nunez as in step 3 above.
+template 2 ("Prior fix insufficient") in
+`${CLAUDE_PLUGIN_ROOT}/references/jira-templates.md` instead of the
+default description. Do **not** use it for a merged Skip flaky PR —
+those stay on the already-addressed path. Same `createJiraIssue`
+fields and same follow-up `addCommentToJiraIssue` @-mention as the
+default path.
 
 ### 8b. Test-seam variant (when the honest fix is a production change)
 
@@ -1073,63 +989,8 @@ labels/priority/assignee lookup, same follow-up `addCommentToJiraIssue`
 `Flaky test: <TEST_NAME> in <package basename> (needs test seam)` and
 this description:
 
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
-
-     ## Root cause
-     `<production symbol>` reads package-level `<var(s)>` directly, so a
-     test can only exercise `<scenario>` by overwriting process-global
-     state and restoring it with `defer`. That shared mutable state is
-     the flake — <one or two sentences tying it to the observed failure,
-     citing file:line>.
-
-     ## Reproduction
-     <exact commands and failure rate, e.g. "3/100 with `-race -count=100`
-     on master @ <sha>">, plus the failing output.
-
-     ## Symptoms
-     <stack trace excerpt, race report, or assertion diff — 10–30 lines.>
-
-     ## Proposed fix (test seam)
-     <Concrete design, not a vague suggestion:>
-     - Move `<var(s)>` onto `<type>` as fields.
-     - Add `New<Type>()` seeded from the current package-level values;
-       call it from `init()` and `<existing reset helper>`.
-     - Update the <N> existing call sites: <list them>.
-     - Tests then construct an isolated instance and never touch globals —
-       include a 5–15 line Go sketch of the resulting test setup, fenced as
-       a `go` code block in the ticket description.
-     - Blast radius: <files touched, whether behavior changes (it should
-       not), and anything signature/API-visible>.
-     - Prototype status: <"prototyped locally: builds, gofmt-clean, passes
-       50x under -race -parallel=32" — only if you actually ran it;
-       otherwise "not prototyped">.
-
-     ## Alternatives rejected
-     - <Higher/lower tier options and why. Explicitly state that locking
-       the global was rejected: it serializes access without removing the
-       shared state, and §4a showed <no concurrent access | the race is
-       incidental>.>
-
-     ## Why no PR
-     The fix requires a production change (`<production file>`), which is
-     outside this automation's tests-only contract. A skip PR is opened to
-     unblock CI; this ticket tracks the seam work.
-
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
-
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
-
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
+     Template 3 ("Test seam") in
+     `${CLAUDE_PLUGIN_ROOT}/references/jira-templates.md` — read it now.
 
 Then open the skip PR per §9, using the **test-seam** "Why skip" variant
 in the PR body and the **test-seam** Mattermost body variant. All §9
@@ -1147,7 +1008,7 @@ tracked Jira issue.
 Branch and edit:
 
 ```bash
-cd /Users/marianunez/git/mattermost
+cd <MM_CHECKOUT>
 git fetch origin master
 git checkout -b skip/flaky-<short-test-name>-MM-XXXX origin/master
 # ...add t.Skip at the top of the test body, referencing MM-XXXX...
@@ -1193,20 +1054,13 @@ git log -1 --format=%B | grep -F 'Co-authored-by: mattermost-code <matty-code@ma
 git push -u origin HEAD
 ```
 
-As in §7, open the skip PR with `gh pr create` (see Hard Rule 10).
-**Do NOT use the `create_pr_tool` from the Mattermost MCP** — or any
-other MCP PR-creation tool — to open this PR; use `gh pr create`
-exactly as shown below. Also **do not pass `--reviewer` or `--label`
-to `gh pr create`** — the bot lacks permission for both via the gh
-CLI. Request the reviewer as a follow-up step using the same decision
-rule as §7: call `request_reviewer` with the introducing engineer's
-login if `public_members` returned 204, otherwise call
-`request_group_reviewer` with the team slug `core-reviewers`. Apply
-the same three-label set (`AI/babysit`, `AutoMerge`, `2: Dev Review`)
-via the `add_labels_to_PRs` MCP tool as another follow-up step, per
-the §7 labels section.
+Open the skip PR exactly as §7 opens the fix PR — same `gh pr create`
+requirement (Hard Rule 10), same prohibitions on `--draft`,
+`--reviewer`, `--label`, and `create_pr_tool`, and the same
+labels-and-reviewer follow-ups. See §7 for the rationale; only the
+title and body differ.
 
-```bash
+````bash
 # Open the PR with the gh CLI — NOT the Mattermost MCP `create_pr_tool`.
 # Open ready-for-review — DO NOT pass --draft.
 # If the bot account creates drafts by default, follow up with
@@ -1219,7 +1073,7 @@ the §7 labels section.
 # the gh CLI. Use the `add_labels_to_PRs` MCP tool after the PR is
 # open (see §7 for the label list).
 gh pr create \
-  --repo mattermost/mattermost \
+  --repo <repo> \
   --base master \
   --head <your-branch> \
   --title "Skip flaky <TEST_NAME> (MM-XXXX)" \
@@ -1265,7 +1119,7 @@ NONE
 ```
 EOF
 )"
-```
+````
 
 After the PR is open:
 
@@ -1302,57 +1156,47 @@ After the PR is open:
    - Skip PR: <NEW_PR_URL>
    - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
    - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
+   ```
 
-   **Prior-fix-insufficient variant (§2 escalation only)** — replace
-   the opening paragraph above with:
+   Use the `@<introducing-login>` half of the last bullet only when the
+   `public_members` probe returned 204; otherwise use the
+   `mattermost/core-reviewers` half. Do not include both.
+
+   Two variants replace **only** the heading and the opening paragraph
+   above — the table and the bullet list stay exactly as written, with
+   the one extra bullet noted per variant.
+
+   **Prior-fix-insufficient variant (§2 escalation only)** — heading
+   `#### :warning: Flaky-test skip PR + Jira opened (prior fix insufficient)`,
+   opening paragraph:
 
    ```
-   #### :warning: Flaky-test skip PR + Jira opened (prior fix insufficient)
-
    A prior automated fix PR was merged for this test but the flake
    persists. Rather than attempting a second automated fix, a skip PR
    has been opened to unblock CI and a Jira ticket requests holistic
    human review:
-
-   <markdown table: header + the single row from `flaky_summary` for this test>
-
-   - Triggering PR: <TRIGGERING_PR_URL>
-   - Prior fix PR: <EXISTING_PR_URL> (merged — insufficient)
-   - Skip PR: <NEW_PR_URL>
-   - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
-   - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
    ```
 
-   **Test-seam variant (§8b only)** — replace the opening paragraph
-   with:
+   Add one bullet above `Skip PR`:
+   `- Prior fix PR: <EXISTING_PR_URL> (merged — insufficient)`
+
+   **Test-seam variant (§8b only)** — heading
+   `#### :warning: Flaky-test skip PR + Jira opened (needs test seam)`,
+   opening paragraph:
 
    ```
-   #### :warning: Flaky-test skip PR + Jira opened (needs test seam)
-
    The root cause is known but sits in production code: `<production
    symbol>` reads package-level state with no injection seam, so tests
    can only exercise this path by mutating globals. A skip PR unblocks
    CI and the Jira ticket carries a concrete proposed seam for a human
    to land:
-
-   <markdown table: header + the single row from `flaky_summary` for this test>
-
-   - Triggering PR: <TRIGGERING_PR_URL>
-   - Skip PR: <NEW_PR_URL>
-   - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
-   - Proposed fix: <one-line summary of the seam from the ticket>
-   - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
    ```
 
-   Use the `@<introducing-login>` half of the bullet only when the
-   `public_members` probe returned 204; otherwise use the
-   `mattermost/core-reviewers` half. Do not include both.
+   Add one bullet above `Reviewer requested`:
+   `- Proposed fix: <one-line summary of the seam from the ticket>`
 
 Apply the same author-mention rule as §7: the introducing author is
-written as plain text (no `@`) in the PR body. The `request_reviewer`
-call itself is what notifies them, and only happens when membership
-was confirmed (the 404 branch uses `request_group_reviewer` against
-the team instead).
+written as plain text (no `@`) in the PR body.
 
 ## Style and ergonomics
 
@@ -1366,118 +1210,33 @@ the team instead).
 
 ## Definition of done
 
-Pick exactly one of the following per flaky test in `flaky_summary`:
+Pick exactly **one** outcome per flaky test in `flaky_summary`. Each row
+is satisfied only when every requirement in the linked section is met —
+those sections are authoritative, this table is the index.
 
-- **Already-addressed path (§2):** A prior Cursor fix/skip PR exists for
-  this exact test and any of the following is true: (a) its state is
-  **OPEN** (automation still in flight), (b) its state is **MERGED**,
-  `<EXISTING_PR_KIND>` is **`skip`**, or (c) its state is **MERGED**,
-  `<EXISTING_PR_KIND>` is **`fix`**, but the merge commit is **not** an
-  ancestor of the branch under test (the branch hasn't picked up the fix
-  yet). A single Mattermost post is sent via
-  `post_to_mattermost_flaky_result` (username `Flaky Test Agent`, no
-  `cc @marianunez`) pointing readers at that existing PR (URL, kind,
-  and state). **No comment is posted on the triggering PR**, and no fix
-  PR, skip PR, or Jira ticket is opened for this test.
+| Outcome | Trigger | Artifacts |
+|---|---|---|
+| **Already addressed** (§2) | A prior Cursor PR for this exact test is OPEN, or MERGED with `<EXISTING_PR_KIND>` = `skip`, or MERGED with `<EXISTING_PR_KIND>` = `fix` but **not** an ancestor of the branch under test | Mattermost post only (outcome `skipped`). No PR comment, no fix PR, no skip PR, no Jira. |
+| **Prior fix insufficient** (§2 → §8 + §9) | Merged **Fix flaky** PR (`<EXISTING_PR_KIND>` = `fix`) **is** an ancestor of the branch, flake persists, and §3 passed | Jira Task (§8 prior-fix-insufficient variant) + skip PR (§9, same variant) + all §9 follow-ups. §4–§7 skipped entirely; no second automated fix. |
+| **PR-author-owned** (§3) | The test or its production sibling is in the triggering PR's diff, or the test directly exercises a changed symbol | Comment on the triggering PR via `add_pr_comment` (**with** `cc @marianunez`) **and** a Mattermost post (**without** it). No fix PR, skip PR, or Jira. |
+| **Fix PR** (§7) | Every gate in §6 passed — repro matches `<FLAKE_REPORT_URL>`, tests-only, semantics preserved, `/tmp/before.log` holds a real failure | Fix PR + §7 follow-ups + Mattermost post (outcome `pr_created`). |
+| **Test seam** (§8b + §9) | Root cause is a missing injection seam in production code (§5 pattern 14 / §6 tier 2) | Jira Task (§8b description, carrying the concrete proposed seam and the explicit rejection of locking the global) + skip PR (§9 test-seam variants) + all §9 follow-ups. No production-code PR, no waiting for human approval. |
+| **Jira + skip PR** (§8 + §9) | Could not repro after the full §4 ladder, or the root cause is in production code and is **not** a test seam | Jira Task (§8 default description) + skip PR (§9 default variants) + all §9 follow-ups, linked bidirectionally. |
 
-- **Prior-fix-insufficient path (§2 → §8 + §9):** A prior merged
-  **Fix flaky** automation PR exists (`<EXISTING_PR_KIND>` is **`fix`** —
-  not a merged Skip flaky PR), the fix **is** present in the branch under
-  test (`git merge-base --is-ancestor` passes), but the flake still
-  reproduces. The test is **not** related to the triggering PR (§3
-  check passed). **No second automated fix is attempted.** Instead:
-  1. A Jira **Task** is filed in `MM` using the §8
-     prior-fix-insufficient description variant, requesting holistic
-     human review and referencing the prior merged fix PR.
-  2. A skip PR is opened per §9 (prior-fix-insufficient variants for
-     PR body and Mattermost post).
-  3. All §9 follow-ups apply (labels, reviewer, Jira back-link,
-     Mattermost announcement). §4–§7 are skipped entirely.
+**§9 follow-ups**, referenced by four rows above and specified in §7/§9:
+all three labels (`AI/babysit`, `AutoMerge`, `2: Dev Review`) applied via
+`add_labels_to_PRs`; a reviewer requested via `request_reviewer` (204) or
+`request_group_reviewer` with `core-reviewers` (anything else), never
+mixed; a comment on the Jira issue carrying the skip PR URL; and a
+Mattermost post via `post_to_mattermost_flaky_result`.
 
-- **PR-author-owned path (§3):** The flaky test is related to the PR
-  (test or its production source is in the diff, or the test directly
-  exercises a changed symbol). **Both** a comment on the triggering
-  PR (via `add_pr_comment`) **and** a Mattermost post (via
-  `post_to_mattermost_flaky_result`, username `Flaky Test Agent`) are
-  sent. The bodies are otherwise identical — original `flaky_summary`
-  table verbatim and a one-line justification per test — but only the
-  PR comment includes `cc @marianunez`; the Mattermost post omits it
-  per the §2 global convention. The PR comment ensures the author
-  sees it in their review workflow; the Mattermost post ensures
-  team-wide outcome visibility. No fix PR, skip PR, or Jira ticket is
-  opened for this test.
+**Every PR** this prompt opens is ready for review (never `--draft`),
+follows `.github/PULL_REQUEST_TEMPLATE.md`, links `<FLAKE_REPORT_URL>`
+under `#### Ticket Link`, cc's `@marianunez` in the body, records the
+introducing author as plain text, and carries the Hard Rule 9
+`Co-authored-by` trailer. **Every Mattermost post** uses username
+`Flaky Test Agent`, omits `cc @marianunez`, and converts the
+`flaky_summary` HTML table to Markdown (§2 global conventions).
 
-- **PR path (§7):** PR is open against `mattermost/mattermost:master`
-  ready for review (not draft), only `*_test.go` (or other allowed
-  test files) are touched, **the fixed test exercises the same code
-  paths and assertions as the original** (no weakening, no skipping,
-  no scope changes), the fix is the highest applicable tier in the §6
-  hierarchy and the PR body states that tier plus the alternatives
-  rejected (with a verbatim race report if the mechanism is a lock —
-  Hard Rule 5), the fixed test survived `-race -count=100`, reverting
-  the fix reproduced the original flake **with the failing output
-  pasted into the PR body**, the PR body
-  follows `.github/PULL_REQUEST_TEMPLATE.md` (`#### Summary`,
-  `#### Ticket Link`, `#### Screenshots`, ` ```release-note ` block)
-  with root cause + verification under Summary and the
-  `<FLAKE_REPORT_URL>` linked under Ticket Link, the body cc's
-  `@marianunez`, the introducing author is recorded under
-  "Originally introduced in" as plain text, all three labels
-  (`AI/babysit`, `AutoMerge`, `2: Dev Review`) are applied via the
-  `add_labels_to_PRs` MCP tool (**not** `gh pr create --label` /
-  `gh pr edit --add-label` — the bot lacks gh-CLI permission), and a
-  reviewer was requested via the appropriate MCP tool — the
-  introducing engineer via `request_reviewer` when
-  `gh api orgs/mattermost/public_members/<login>` returned 204,
-  otherwise the team slug `core-reviewers` via
-  `request_group_reviewer`. The two tools are mutually exclusive and
-  must not be mixed. `--reviewer` is **not** passed to `gh pr create`;
-  the gh CLI does not have the needed permissions on this repo for
-  the bot. A Mattermost announcement with the fix-PR
-  URL has been posted via `post_to_mattermost_flaky_result` using
-  username `Flaky Test Agent` and with no `cc @marianunez` in the
-  body.
-
-- **Test-seam path (§8b + §9):** The root cause is known and is a
-  missing injection seam in production code — the test can only
-  exercise the path by mutating package-level state. A Jira **Task** is
-  created in `MM` using the §8b description, including the concrete
-  proposed seam (fields, constructor, call sites, resulting test
-  sketch, blast radius) and an explicit note that locking the global
-  was rejected. A skip PR is opened per §9 using the test-seam "Why
-  skip" and Mattermost body variants, with all §9 follow-ups (labels,
-  reviewer, Jira back-link, announcement). **No production-code PR is
-  opened and no human approval is awaited** — the ticket carries the
-  design, the skip PR unblocks CI. Both the Jira issue key/URL and the
-  skip PR URL are returned to the user.
-
-- **Jira + skip-PR path (§8 + §9):** Could not repro after the full
-  ladder, OR root cause is in production code and is not a test seam
-  (that is §8b), OR a prior merged
-  **Fix flaky** automation PR (`<EXISTING_PR_KIND>` = `fix`) is present
-  in the branch but the flake persists (§2 prior-fix-insufficient
-  escalation). Both of the following must hold:
-  1. A Jira **Task** is created in `MM` with reproduction, hypotheses,
-     evidence, and (if resolvable) the original author as assignee; the
-     description cc's `@maria.nunez` and a follow-up comment
-     `@`-mentions her account.
-  2. A skip PR is open against `mattermost/mattermost:master` ready for
-     review (not draft) that adds a `t.Skip(...)` referencing the Jira
-     URL, follows the PR template, links the Jira ticket under
-     `#### Ticket Link`, also links `<FLAKE_REPORT_URL>`, cc's
-     `@marianunez`, has all three labels (`AI/babysit`, `AutoMerge`,
-     `2: Dev Review`) applied via the `add_labels_to_PRs` MCP tool
-     (**not** the gh CLI), and has a reviewer requested via the
-     appropriate MCP tool using the §7 decision rule — the
-     introducing engineer via `request_reviewer` if
-     `public_members` = 204, else the team slug `core-reviewers` via
-     `request_group_reviewer`. `--reviewer` is **not** passed to
-     `gh pr create`. The Jira ticket has a follow-up comment
-     containing the skip PR URL so the two are linked bidirectionally,
-     and a Mattermost announcement with the skip-PR URL + Jira link
-     has been posted via `post_to_mattermost_flaky_result` using
-     username `Flaky Test Agent` and with no `cc @marianunez` in the
-     body.
-
-  Both the Jira issue key/URL and the skip PR URL are returned to the
-  user.
+For the §8/§8b and §8+§9 rows, return both the Jira issue key/URL and
+the skip PR URL to the user.
