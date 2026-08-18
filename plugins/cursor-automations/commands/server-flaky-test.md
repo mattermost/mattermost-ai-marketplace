@@ -26,8 +26,6 @@ Webhook payload fields:
 Treat the PR URL `https://github.com/<repo>/pull/<pr_number>` as the
 canonical `<FLAKE_REPORT_URL>` for this run. It MUST be linked from any
 PR comment, fix PR, skip PR, or Jira ticket you open.
-`<TRIGGERING_PR_URL>` is used interchangeably with `<FLAKE_REPORT_URL>`
-below — both mean this same URL.
 
 `<MM_CHECKOUT>` is the local clone of `<repo>` this run works in.
 Resolve it once at the start (`git -C . rev-parse --show-toplevel` from
@@ -336,7 +334,7 @@ a prior PR is already addressing it:
 
 <markdown table: header + the single row from `flaky_summary` for this test>
 
-- Triggering PR: <TRIGGERING_PR_URL>
+- Triggering PR: <FLAKE_REPORT_URL>
 - Tracking: <EXISTING_PR_URL> (kind: <fix|skip>, state: <OPEN|MERGED>, author: <login>)
 
 If that PR is stuck or the flake is still surfacing on master, please
@@ -409,7 +407,7 @@ Body for the **triggering PR comment** (`add_pr_comment`):
 #### ⚠️ Flaky test likely introduced by the triggering PR
 
 The following flaky test(s) appear to have been introduced or directly
-affected by the changes in <TRIGGERING_PR_URL> (author: <login>).
+affected by the changes in <FLAKE_REPORT_URL> (author: <login>).
 Automated flake remediation is intentionally skipped when the flake is
 co-located with the change — the PR author should address it before
 merging:
@@ -433,7 +431,7 @@ Markdown table here (HTML tables do not render in Mattermost):
 #### ⚠️ Flaky test likely introduced by the triggering PR
 
 The following flaky test(s) appear to have been introduced or directly
-affected by the changes in <TRIGGERING_PR_URL> (author: <login>).
+affected by the changes in <FLAKE_REPORT_URL> (author: <login>).
 Automated flake remediation is intentionally skipped when the flake is
 co-located with the change — the PR author should address it before
 merging:
@@ -948,7 +946,7 @@ A tests-only fix for the following flaky test has been opened:
 
 <markdown table: header + the single row from `flaky_summary` for this test>
 
-- Triggering PR: <TRIGGERING_PR_URL>
+- Triggering PR: <FLAKE_REPORT_URL>
 - Fix PR: <NEW_PR_URL>
 - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
 - Root cause (one line): <root-cause summary from the PR body>
@@ -975,12 +973,17 @@ Create a Jira **Task** in the `MM` project on `mattermost.atlassian.net` and
 assign it to the engineer most likely responsible (same lookup as §7). Use the
 Atlassian MCP tools available in this environment.
 
-If the root cause is specifically a **missing test seam** in production code
-(§5 pattern 14 / §6 tier 2), use the **§8b** description variant instead of
-the default template — same ticket + skip-PR flow, but the ticket carries the
-proposed production change.
+Choose **one** description variant, then run the shared create steps
+once. After the ticket exists, continue to §9.
 
-Steps:
+- **Default** — could not fix with high confidence, and neither special
+  variant applies.
+- **Prior-fix-insufficient** — §2 escalation only (merged **Fix flaky**
+  PR, `<EXISTING_PR_KIND>` = `fix`).
+- **§8b test-seam** — honest fix is a missing production injection seam
+  (§5 pattern 14 / §6 tier 2).
+
+#### Shared create steps
 
 1. Get the `cloudId` for `mattermost.atlassian.net` via
    `getAccessibleAtlassianResources`.
@@ -991,205 +994,172 @@ Steps:
    - `projectKey`: `MM`
    - `issueTypeName`: `Task`
    - `summary`: `Flaky test: <TEST_NAME> in <package basename>`
-   - `description` (markdown, set `contentFormat: "markdown"`):
-
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
-
-     ## Reproduction
-     <exact commands you used and how often it failed, e.g. "5/100 with
-     `-race -count=100` on master @ <sha>">
-
-     ## Symptoms
-     <stack trace excerpt, race report, or assertion diff. Include 10–30 lines
-     max; link to a gist if longer.>
-
-     ## Hypotheses considered
-     <bullet list of root causes you ruled in/out and why. Cite file:line.>
-
-     ## Why no PR
-     <e.g. "Root cause appears to be in production code (Hub.Broadcast races
-     with Hub.Unregister); a tests-only fix would mask it.">
-
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
-     <!-- Plain text, no @-mention. GitHub handles in Jira would not trigger
-          a GitHub notification anyway, but kept consistent with the PR
-          rule: never @-mention an unverified-org-member original author. -->
-
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
-
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
+     (§8b appends ` (needs test seam)`)
+   - `description`: markdown (`contentFormat: "markdown"`), assembled
+     from the shared shell + the chosen variant
    - `additional_fields`: `{"labels": ["flaky-test", "go-unit"], "priority": {"name": "Medium"}}`
    - `assignee_account_id`: the resolved account ID, or omit if unresolved.
-   - After the issue is created, also call `addCommentToJiraIssue` to post a
-     short comment that `@`-mentions `Maria Nunez` so she gets a Jira
-     notification (mentions inside the initial description body do not always
-     trigger notifications). Resolve her account ID via
-     `lookupJiraAccountId` (try `maria.nunez@mattermost.com` first, then
-     `Maria Nunez`); if it cannot be resolved, fall back to a plain-text
-     `cc @maria.nunez` line.
-4. Capture the resulting Jira issue key (`MM-XXXX`) and URL — you need
-   them to file the skip PR in §9 and to link the PR back to the ticket.
+4. After creation, call `addCommentToJiraIssue` to `@`-mention
+   `Maria Nunez` (mentions in the initial description do not always
+   notify). Resolve her account ID via `lookupJiraAccountId` (try
+   `maria.nunez@mattermost.com` first, then `Maria Nunez`); if
+   unresolved, fall back to a plain-text `cc @maria.nunez` line.
+5. Capture the issue key (`MM-XXXX`) and URL — needed for the §9 skip
+   PR and the PR → ticket back-link.
 
-**§8 description variant — prior fix insufficient (§2 escalation only;
-merged Fix flaky PR with `<EXISTING_PR_KIND>` = `fix`).**
-When you arrived here because a prior merged **Fix flaky** automation
-fix PR is present in the branch but the flake still reproduces, use
-this description shape instead of the default template above. Do **not**
-use this variant for a merged Skip flaky PR — those stay on the
-already-addressed path. The goal is to request a **holistic human
-review**, not another incremental tests-only patch:
+#### Shared description shell
 
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
+Every variant uses this wrapper. Fill every section; do not omit the
+footer. GitHub handles in Jira do not notify — keep the original author
+as plain text (never `@`-mention an unverified-org-member).
 
-     ## Prior automated fix (insufficient)
-     - Previous fix PR: <EXISTING_PR_URL> (merged)
-     - Merge commit: `<MERGE_SHA>`
-     - Outcome: flake still reported after the fix landed in the branch
-       under test (`git merge-base --is-ancestor` confirmed present).
+```
+## Flaky test
+- Test: `<TEST_NAME>`
+- Package: `<PACKAGE_PATH>`
+- File: `<path/to/file_test.go>`
 
-     ## Why human review
-     Automated remediation already attempted a tests-only fix for this
-     exact test and it did not resolve the flakiness. A second automated
-     fix attempt is likely to stack band-aids rather than address the
-     root cause. This ticket requests a **holistic review** — the
-     assignee should investigate whether the issue requires production
-     code changes, test architecture changes, or a different testing
-     strategy altogether.
+<variant-specific sections>
 
-     ## Reproduction
-     <If you ran any repro before escalating, include commands and
-     failure rate. Otherwise note "Escalated from §2 without a fresh
-     repro ladder — prior merged fix already establishes the flake is
-     active on this branch.">
+## Last meaningful author
+<short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
 
-     ## Symptoms
-     <Stack trace / race report from the triggering CI run or prior
-     investigation, if available.>
+## Environment
+- Branch: master @ <sha>
+- Go: <go version>
+- OS: <uname -a one-liner>
 
-     ## Hypotheses considered
-     - Prior tests-only fix (<EXISTING_PR_URL>) was merged but did not
-       resolve the flake — root cause may be deeper than what a
-       targeted test patch can address.
-     <Add any additional hypotheses from reading the test and the prior
-     fix diff.>
+---
+cc @marianunez (requester of the automated investigation)
+```
 
-     ## Why no PR
-     Prior automation fix was insufficient; escalating for human review
-     rather than attempting a second automated fix.
+Default fill-in for `## Reproduction` and `## Symptoms` (unless a
+variant overrides):
 
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
+- Reproduction: exact commands and failure rate, e.g. "5/100 with
+  `-race -count=100` on master @ <sha>".
+- Symptoms: stack trace excerpt, race report, or assertion diff;
+  10–30 lines max; gist if longer.
 
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
+#### Default description
 
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
+```
+## Reproduction
+<default fill-in>
 
-Use the same `createJiraIssue` fields as the default path (`Task` in
-`MM`, same labels/priority/assignee lookup). After creation, still call
-`addCommentToJiraIssue` to `@`-mention Maria Nunez as in step 3 above.
+## Symptoms
+<default fill-in>
+
+## Hypotheses considered
+<bullet list of root causes you ruled in/out and why. Cite file:line.>
+
+## Why no PR
+<e.g. "Root cause appears to be in production code (Hub.Broadcast races
+with Hub.Unregister); a tests-only fix would mask it.">
+```
+
+#### Prior-fix-insufficient variant
+
+§2 escalation only — a prior merged **Fix flaky** automation PR
+(`<EXISTING_PR_KIND>` = `fix`) is an ancestor of the branch but the
+flake still reproduces. Do **not** use this for a merged Skip flaky PR
+(those stay on the already-addressed path). Request a **holistic human
+review**, not another incremental tests-only patch.
+
+```
+## Prior automated fix (insufficient)
+- Previous fix PR: <EXISTING_PR_URL> (merged)
+- Merge commit: `<MERGE_SHA>`
+- Outcome: flake still reported after the fix landed in the branch
+  under test (`git merge-base --is-ancestor` confirmed present).
+
+## Why human review
+Automated remediation already attempted a tests-only fix for this
+exact test and it did not resolve the flakiness. A second automated
+fix attempt is likely to stack band-aids rather than address the
+root cause. This ticket requests a **holistic review** — the
+assignee should investigate whether the issue requires production
+code changes, test architecture changes, or a different testing
+strategy altogether.
+
+## Reproduction
+<If you ran any repro before escalating, include commands and
+failure rate. Otherwise note "Escalated from §2 without a fresh
+repro ladder — prior merged fix already establishes the flake is
+active on this branch.">
+
+## Symptoms
+<Stack trace / race report from the triggering CI run or prior
+investigation, if available.>
+
+## Hypotheses considered
+- Prior tests-only fix (<EXISTING_PR_URL>) was merged but did not
+  resolve the flake — root cause may be deeper than what a
+  targeted test patch can address.
+<Add any additional hypotheses from reading the test and the prior
+fix diff.>
+
+## Why no PR
+Prior automation fix was insufficient; escalating for human review
+rather than attempting a second automated fix.
+```
 
 ### 8b. Test-seam variant (when the honest fix is a production change)
 
-Use this variant when the root cause is that production code exposes no
-injection seam — the test can only exercise the path by mutating a
-package-level global (§5 pattern 14, §6 tier 2). Do **not** lock the
-global, and do **not** silently fall back to the generic "couldn't
-reproduce" ticket: the root cause here is known, it is just out of the
-tests-only scope.
+Use when production code exposes no injection seam — the test can only
+exercise the path by mutating a package-level global (§5 pattern 14,
+§6 tier 2). Do **not** lock the global, and do **not** silently fall
+back to the generic "couldn't reproduce" ticket: the root cause is
+known, it is just out of the tests-only scope.
 
-The flow is the **same as §8 + §9** — Jira ticket, then skip PR — with
-one difference: the ticket carries the concrete proposed production
-change so the assignee starts from a design, not from scratch. This
-automation never opens a production-code PR and never waits for human
-approval before opening the skip PR.
+Follow §8's shared create steps. The ticket carries the concrete
+proposed production change so the assignee starts from a design, not
+from scratch. This automation never opens a production-code PR and
+never waits for human approval before opening the skip PR.
 
-Use the §8 `createJiraIssue` fields (`Task` in `MM`, same
-labels/priority/assignee lookup, same follow-up `addCommentToJiraIssue`
-`@`-mention of Maria Nunez), with `summary`
-`Flaky test: <TEST_NAME> in <package basename> (needs test seam)` and
-this description:
+```
+## Root cause
+`<production symbol>` reads package-level `<var(s)>` directly, so a
+test can only exercise `<scenario>` by overwriting process-global
+state and restoring it with `defer`. That shared mutable state is
+the flake — <one or two sentences tying it to the observed failure,
+citing file:line>.
 
-     Template 3 ("Test seam") in
-     ```
-     ## Flaky test
-     - Test: `<TEST_NAME>`
-     - Package: `<PACKAGE_PATH>`
-     - File: `<path/to/file_test.go>`
+## Reproduction
+<default fill-in>, plus the failing output.
 
-     ## Root cause
-     `<production symbol>` reads package-level `<var(s)>` directly, so a
-     test can only exercise `<scenario>` by overwriting process-global
-     state and restoring it with `defer`. That shared mutable state is
-     the flake — <one or two sentences tying it to the observed failure,
-     citing file:line>.
+## Symptoms
+<default fill-in>
 
-     ## Reproduction
-     <exact commands and failure rate, e.g. "3/100 with `-race -count=100`
-     on master @ <sha>">, plus the failing output.
+## Proposed fix (test seam)
+<Concrete design, not a vague suggestion:>
+- Move `<var(s)>` onto `<type>` as fields.
+- Add `New<Type>()` seeded from the current package-level values;
+  call it from `init()` and `<existing reset helper>`.
+- Update the <N> existing call sites: <list them>.
+- Tests then construct an isolated instance and never touch globals —
+  include a 5–15 line Go sketch of the resulting test setup, fenced as
+  a `go` code block in the ticket description.
+- Blast radius: <files touched, whether behavior changes (it should
+  not), and anything signature/API-visible>.
+- Prototype status: <"prototyped locally: builds, gofmt-clean, passes
+  50x under -race -parallel=32" — only if you actually ran it;
+  otherwise "not prototyped">.
 
-     ## Symptoms
-     <stack trace excerpt, race report, or assertion diff — 10–30 lines.>
+## Alternatives rejected
+- <Higher/lower tier options and why. Explicitly state that locking
+  the global was rejected: it serializes access without removing the
+  shared state, and §4a showed <no concurrent access | the race is
+  incidental>.>
 
-     ## Proposed fix (test seam)
-     <Concrete design, not a vague suggestion:>
-     - Move `<var(s)>` onto `<type>` as fields.
-     - Add `New<Type>()` seeded from the current package-level values;
-       call it from `init()` and `<existing reset helper>`.
-     - Update the <N> existing call sites: <list them>.
-     - Tests then construct an isolated instance and never touch globals —
-       include a 5–15 line Go sketch of the resulting test setup, fenced as
-       a `go` code block in the ticket description.
-     - Blast radius: <files touched, whether behavior changes (it should
-       not), and anything signature/API-visible>.
-     - Prototype status: <"prototyped locally: builds, gofmt-clean, passes
-       50x under -race -parallel=32" — only if you actually ran it;
-       otherwise "not prototyped">.
+## Why no PR
+The fix requires a production change (`<production file>`), which is
+outside this automation's tests-only contract. A skip PR is opened to
+unblock CI; this ticket tracks the seam work.
+```
 
-     ## Alternatives rejected
-     - <Higher/lower tier options and why. Explicitly state that locking
-       the global was rejected: it serializes access without removing the
-       shared state, and §4a showed <no concurrent access | the race is
-       incidental>.>
-
-     ## Why no PR
-     The fix requires a production change (`<production file>`), which is
-     outside this automation's tests-only contract. A skip PR is opened to
-     unblock CI; this ticket tracks the seam work.
-
-     ## Last meaningful author
-     <short-sha> by <name> <email> (GitHub: <login>) — <commit subject>
-
-     ## Environment
-     - Branch: master @ <sha>
-     - Go: <go version>
-     - OS: <uname -a one-liner>
-
-     ---
-     cc @marianunez (requester of the automated investigation)
-     ```
-Then open the skip PR per §9, using the **test-seam** "Why skip" variant
-in the PR body and the **test-seam** Mattermost body variant. All §9
-follow-ups apply unchanged (labels, reviewer, Jira back-link,
-announcement).
+Then open the skip PR per §9, using the **test-seam** "Why skip" and
+Mattermost body variants. All §9 follow-ups apply unchanged.
 
 ### 9. Open a skip PR linked to the Jira ticket
 
@@ -1346,7 +1316,7 @@ After the PR is open:
 
    <markdown table: header + the single row from `flaky_summary` for this test>
 
-   - Triggering PR: <TRIGGERING_PR_URL>
+   - Triggering PR: <FLAKE_REPORT_URL>
    - Skip PR: <NEW_PR_URL>
    - Jira: https://mattermost.atlassian.net/browse/MM-XXXX (assignee: <name | unassigned>)
    - Reviewer requested: @<introducing-login> (confirmed org member) | mattermost/core-reviewers (team review fallback)
