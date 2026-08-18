@@ -999,12 +999,7 @@ once. After the ticket exists, continue to §9.
      from the shared shell + the chosen variant
    - `additional_fields`: `{"labels": ["flaky-test", "go-unit"], "priority": {"name": "Medium"}}`
    - `assignee_account_id`: the resolved account ID, or omit if unresolved.
-4. After creation, call `addCommentToJiraIssue` to `@`-mention
-   `Maria Nunez` (mentions in the initial description do not always
-   notify). Resolve her account ID via `lookupJiraAccountId` (try
-   `maria.nunez@mattermost.com` first, then `Maria Nunez`); if
-   unresolved, fall back to a plain-text `cc @maria.nunez` line.
-5. Capture the issue key (`MM-XXXX`) and URL — needed for the §9 skip
+4. Capture the issue key (`MM-XXXX`) and URL — needed for the §9 skip
    PR and the PR → ticket back-link.
 
 #### Shared description shell
