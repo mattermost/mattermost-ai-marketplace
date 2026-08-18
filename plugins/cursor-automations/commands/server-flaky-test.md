@@ -1396,6 +1396,3 @@ introducing author as plain text, and carries the Hard Rule 9
 `Co-authored-by` trailer. **Every Mattermost post** uses username
 `Flaky Test Agent`, omits `cc @marianunez`, and converts the
 `flaky_summary` HTML table to Markdown (§2 global conventions).
-
-For the §8/§8b and §8+§9 rows, return both the Jira issue key/URL and
-the skip PR URL to the user.
