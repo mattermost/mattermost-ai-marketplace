@@ -60,8 +60,9 @@ gate); `schema_version: "legacy"` files are read-only. The CLI itself stamps the
 cannot be hand-set through a delta, so omit them — the CLI-stamped audit `timestamp` is the authoritative
 time of record.
 
-Bootstrapping a brand-new spec is the ONE file-creation step: copy `${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` to
-`specs/<spec-id>/spec-state.json` (via Bash `cp`), then make every subsequent change through the CLI.
+Bootstrapping a brand-new spec is the ONE file-creation step: `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <spec-id>`
+(never a raw Bash `cp` — the PreToolUse guard hook denies any Bash command that references
+`specs/*/spec-state.json`, with no exceptions), then make every subsequent change through the CLI.
 
 ## STATE OBJECT IS NON-OPTIONAL (no state → no work)
 
@@ -72,8 +73,9 @@ machine). Therefore **every entry path must have a `spec-state.json` before any 
 - **Before delegating to any agent, confirm `specs/<spec-id>/spec-state.json` exists and parses.** If it
   does not exist:
   - When you can infer the spec-id and a brain dump exists (e.g., invoked via `/discover` or `/spec-run`),
-    **auto-bootstrap** it: `cp ${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json specs/<spec-id>/spec-state.json` (the one
-    sanctioned file-creation step), then `apply-delta` to populate `meta.*` (feature_name, author/email —
+    **auto-bootstrap** it: `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <spec-id>` (the one
+    sanctioned file-creation step — never a raw Bash `cp`, which the PreToolUse guard hook denies
+    unconditionally), then `apply-delta` to populate `meta.*` (feature_name, author/email —
     NOT any timestamp; the CLI stamps `meta.last_updated`), set `phase.current = 0`,
     `phase.status = "initialized"`, `phase.run_status = "active"`, and `log-event --event spec_created`.
     Then surface a **clear one-line notice**: *"No state object found — bootstrapped a fresh
@@ -424,8 +426,8 @@ When `phase.current == 6`:
 
 ## COMMANDS YOU SUPPORT
 
-- `spec new [problem_brief]` — initialize a new spec: bootstrap `spec-state.json` by copying
-  `${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` (Bash `cp`), then via the CLI `apply-delta` set `phase.current = 0`,
+- `spec new [problem_brief]` — initialize a new spec: bootstrap `spec-state.json` via
+  `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <slug>` (never Bash `cp`), then via the CLI `apply-delta` set `phase.current = 0`,
   `phase.status = "initialized"`, `phase.run_status = "active"`, store the brief in `artifacts.brain_dump_raw`, and `log-event --event spec_created`
   (the CLI stamps the timestamp). **Set `meta.complexity_tier`** (via `apply-delta`) per the parent
   `defense-ux-context` tier definitions (default Tier 2 if unstated; confirm with the user) and `log-event --event tier_set`.

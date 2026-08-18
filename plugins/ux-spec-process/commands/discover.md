@@ -13,7 +13,7 @@ Resolve `$ARGUMENTS` to a project slug under `specs/`:
 
 - `specs/<slug>/00-brain-dump.md` exists and is non-empty.
 - `specs/<slug>/spec-state.json` exists, **or** the slug resolves to a real folder with a non-empty brain dump so it can be bootstrapped. **The state object is non-optional** (it is the run's memory + audit trail; running without one is the failure mode that left only 3/22 past specs tracked) — but it need not pre-exist, since a missing one is auto-bootstrapped below. If it is missing:
-  - When the slug resolves to a real folder with a non-empty brain dump, **auto-bootstrap** the state object (`cp ${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` into place, then via the `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state` CLI `apply-delta` `meta.*` / `phase.current=0` / `phase.run_status="active"` — no timestamps, the CLI stamps them — and `log-event --event spec_created`) and surface a clear one-line notice: *"No state object found — bootstrapped a fresh `spec-state.json` so this run is tracked."* Then continue. Never proceed silently.
+  - When the slug resolves to a real folder with a non-empty brain dump, **auto-bootstrap** the state object (`${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <slug>` — never a raw Bash `cp`, which the PreToolUse guard hook denies — then via the same CLI `apply-delta` `meta.*` / `phase.current=0` / `phase.run_status="active"` — no timestamps, the CLI stamps them — and `log-event --event spec_created`) and surface a clear one-line notice: *"No state object found — bootstrapped a fresh `spec-state.json` so this run is tracked."* Then continue. Never proceed silently.
   - When the slug can't be resolved, **REFUSE** and tell the user to run `/spec-init <name>` first.
 
 ## Invoke

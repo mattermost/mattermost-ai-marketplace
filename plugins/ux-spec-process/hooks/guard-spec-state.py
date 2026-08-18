@@ -2,31 +2,40 @@
 """PreToolUse guard for specs/*/spec-state.json.
 
 Blocks any tool call that would write to a spec-state.json file directly,
-regardless of which tool is used (Edit, Write, or Bash). There are exactly
-two sanctioned writers:
-  1. The bundled spec-state CLI (${CLAUDE_PLUGIN_ROOT}/scripts/spec-state),
-     which never takes a raw spec-state.json path as an argument.
-  2. The one-time bootstrap `cp` of the template into a fresh spec folder
-     (documented in spec-orchestrator.md / spec-init.md / spec-clean.md as
-     "the one sanctioned file-creation step").
+regardless of which tool is used (Edit, Write, or Bash). There is exactly
+one sanctioned writer: the bundled spec-state CLI
+(${CLAUDE_PLUGIN_ROOT}/scripts/spec-state), including its `bootstrap`
+subcommand for first-time file creation. The CLI takes only a validated
+kebab-case slug — it never accepts a raw spec-state.json path as an
+argument — so a legitimate Bash invocation of it never needs to mention
+the literal path at all.
+
+Two things a naive version of this guard gets wrong (fixed here):
+  1. Edit/Write: matching the raw `file_path` string against a pattern is
+     defeated by a non-canonical path that still resolves to the protected
+     file (e.g. `specs/demo/../demo/spec-state.json`). We resolve the path
+     against the tool call's `cwd` and normalize it before matching.
+  2. Bash: a regex over raw shell text cannot safely allowlist "this cp
+     command is the sanctioned bootstrap" — command substitution
+     (`$(...)`), backticks, and chaining can smuggle an arbitrary write
+     past any such pattern. There is no safe allowlist for this, so Bash
+     is denied unconditionally whenever the command references the
+     protected path pattern anywhere in its text. The bootstrap CLI
+     subcommand above is the only sanctioned creation path precisely
+     because it removes the need for Bash to ever reference the raw path.
 
 Reads the PreToolUse JSON payload from stdin and decides allow/deny in code,
 rather than relying on the hook `if` filter (only honoured in Claude Code
 v2.1.85+) or a tool-specific matcher (which would miss Bash entirely).
-
-Bash commands are split on shell chaining metacharacters (&&, ||, ;, |,
-newline) before matching, so a legitimate-looking prefix can't smuggle a
-chained write past the guard.
 """
 import json
+import os
 import re
 import sys
 
+# Matches the protected path once it has been normalized (Edit/Write) or
+# anywhere in raw command text (Bash, where normalization isn't meaningful).
 STATE_FILE_RE = re.compile(r"specs/[^/\s]+/spec-state\.json")
-CHAIN_SPLIT_RE = re.compile(r"&&|\|\||[;|\n]")
-BOOTSTRAP_CP_RE = re.compile(
-    r"^\s*cp\s+.*templates/spec-state-object\.json\s+.*specs/[^/\s]+/spec-state\.json\s*$"
-)
 
 
 def deny(reason):
@@ -48,10 +57,16 @@ def main():
 
     tool_name = payload.get("tool_name", "")
     tool_input = payload.get("tool_input", {}) or {}
+    cwd = payload.get("cwd") or os.getcwd()
 
     if tool_name in ("Edit", "Write"):
         file_path = tool_input.get("file_path", "") or ""
-        if STATE_FILE_RE.search(file_path):
+        # Resolve against cwd and collapse '..'/'.' before matching, so a
+        # non-canonical path can't dodge the pattern while still resolving
+        # to the protected file on disk.
+        absolute = file_path if os.path.isabs(file_path) else os.path.join(cwd, file_path)
+        canonical = os.path.normpath(absolute).replace(os.sep, "/")
+        if STATE_FILE_RE.search(canonical):
             verb = "edits" if tool_name == "Edit" else "writes"
             deny(
                 "spec-state.json is orchestrator-managed; direct %s are blocked. "
@@ -61,16 +76,14 @@ def main():
 
     elif tool_name == "Bash":
         command = tool_input.get("command", "") or ""
-        for sub_command in CHAIN_SPLIT_RE.split(command):
-            if not STATE_FILE_RE.search(sub_command):
-                continue
-            if BOOTSTRAP_CP_RE.match(sub_command):
-                continue
+        if STATE_FILE_RE.search(command):
             deny(
                 "spec-state.json is orchestrator-managed; direct shell writes are "
-                "blocked. Use the bundled spec-state CLI "
-                "(${CLAUDE_PLUGIN_ROOT}/scripts/spec-state), or the documented "
-                "template `cp` for first-time bootstrap only."
+                "blocked, with no exceptions from this guard (a regex over shell "
+                "text cannot safely allowlist a specific command). Use the bundled "
+                "spec-state CLI (${CLAUDE_PLUGIN_ROOT}/scripts/spec-state) — "
+                "`bootstrap <slug>` for first-time creation, everything else via "
+                "apply-delta/log-event/set-gate. Neither takes a raw file path."
             )
 
     sys.exit(0)

@@ -25,6 +25,8 @@ import argparse
 import datetime
 import json
 import os
+import re
+import shutil
 import sys
 import tempfile
 
@@ -40,7 +42,13 @@ import tempfile
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PLUGIN_ROOT = os.path.dirname(SCRIPT_DIR)
 SCHEMA_PATH = os.path.join(PLUGIN_ROOT, "schemas", "spec-state.schema.json")
+TEMPLATE_PATH = os.path.join(PLUGIN_ROOT, "templates", "spec-state-object.json")
 SPECS_DIR = os.path.join(os.environ.get("SPEC_WORKSPACE", os.getcwd()), "specs")
+
+# Kebab-case only — no '/', '..', or other path-traversal-capable characters.
+# Every command resolves its target file via state_path(), so validating the
+# slug here closes path traversal for the whole CLI, not just one command.
+SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 
 def die(msg, code=1):
@@ -57,7 +65,14 @@ def now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
+def validate_slug(slug):
+    if not SLUG_RE.match(slug):
+        die("slug %r is not valid kebab-case (^[a-z0-9][a-z0-9-]*$) — "
+            "rejecting to prevent path traversal" % slug)
+
+
 def state_path(slug):
+    validate_slug(slug)
     return os.path.join(SPECS_DIR, slug, "spec-state.json")
 
 
@@ -263,6 +278,54 @@ def stamp_last_updated(obj):
 # ---------------------------------------------------------------------------
 # Commands.
 # ---------------------------------------------------------------------------
+def cmd_bootstrap(args):
+    """The one sanctioned file-creation step: copy the state template into
+    place for a brand-new slug. Never overwrites an existing spec-state.json.
+
+    This exists so the PreToolUse guard hook can deny every OTHER Bash write
+    to specs/*/spec-state.json unconditionally, with no path-based allowlist
+    to bypass: bootstrap takes only a validated slug, never a raw file path,
+    so a legitimate invocation never needs the literal spec-state.json string
+    in its command line at all.
+    """
+    validate_slug(args.slug)
+    path = state_path(args.slug)
+    if os.path.exists(path):
+        die("spec-state.json already exists for slug %r at %s — bootstrap is "
+            "for new specs only; use apply-delta to modify it" % (args.slug, path))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    shutil.copyfile(TEMPLATE_PATH, path)
+    print("OK: bootstrapped %s from %s" % (path, TEMPLATE_PATH))
+
+
+def cmd_reset(args):
+    """Capture prior meta fields, overwrite with a fresh template copy, restore
+    those fields, and set phase.current=0 / phase.status="reset". Used by
+    /spec-clean's destructive reset flow — the sanctioned way to recreate an
+    EXISTING spec-state.json (bootstrap refuses if the file already exists;
+    this command requires it to). Bash never touches the raw path either way.
+    """
+    validate_slug(args.slug)
+    path = state_path(args.slug)
+    if not os.path.exists(path):
+        die("no spec-state.json for slug %r to reset (did you mean bootstrap?)" % args.slug)
+    with open(path) as f:
+        prior = json.load(f)
+    prior_meta = prior.get("meta") if isinstance(prior.get("meta"), dict) else {}
+    preserved = {k: prior_meta[k] for k in
+                 ("feature_name", "created_at", "author", "author_email", "complexity_tier")
+                 if k in prior_meta}
+    with open(TEMPLATE_PATH) as f:
+        fresh = json.load(f)
+    fresh.setdefault("meta", {}).update(preserved)
+    if isinstance(fresh.get("phase"), dict):
+        fresh["phase"]["current"] = 0
+        fresh["phase"]["status"] = "reset"
+    stamp_last_updated(fresh)
+    atomic_write(fresh, path)
+    print("OK: reset %s (preserved meta: %s)" % (path, sorted(preserved.keys())))
+
+
 def cmd_apply_delta(args):
     raw = sys.stdin.read() if args.delta == "-" else open(args.delta).read()
     try:
@@ -495,6 +558,14 @@ def cmd_validate(args):
 def build_parser():
     p = argparse.ArgumentParser(prog="spec-state", description=__doc__)
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    a = sub.add_parser("bootstrap", help="copy the state template into place for a new slug (the one sanctioned file-creation step)")
+    a.add_argument("slug")
+    a.set_defaults(func=cmd_bootstrap)
+
+    a = sub.add_parser("reset", help="recreate an EXISTING spec-state.json from the template, preserving meta fields (used by /spec-clean)")
+    a.add_argument("slug")
+    a.set_defaults(func=cmd_reset)
 
     a = sub.add_parser("apply-delta", help="merge + validate a delta JSON")
     a.add_argument("slug")

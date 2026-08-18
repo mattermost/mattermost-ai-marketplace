@@ -9,7 +9,7 @@ Resolve `$ARGUMENTS` to a project slug under `specs/` (exact match → fuzzy →
 
 - `specs/<slug>/` exists. If not, abort with: `Run /spec-init <name> first to bootstrap the project.`
 - `specs/<slug>/00-brain-dump.md` exists and is non-empty. If empty, abort and tell the user to populate it before running.
-- `specs/<slug>/spec-state.json` exists. **The state object is non-optional** — the pipeline does not run freeform. If it is missing but the slug + non-empty brain dump resolve, **auto-bootstrap** it (`cp ${CLAUDE_PLUGIN_ROOT}/templates/spec-state-object.json` into place, then via the `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state` CLI `apply-delta` `phase.run_status="active"` — no timestamps, the CLI stamps them — and `log-event --event spec_created`) and surface: *"No state object found — bootstrapped a fresh `spec-state.json` so this run is tracked."* If the slug can't be resolved, abort with the `/spec-init` message above.
+- `specs/<slug>/spec-state.json` exists. **The state object is non-optional** — the pipeline does not run freeform. If it is missing but the slug + non-empty brain dump resolve, **auto-bootstrap** it (`${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <slug>` — never a raw Bash `cp`, which the PreToolUse guard hook denies — then via the same CLI `apply-delta` `phase.run_status="active"` — no timestamps, the CLI stamps them — and `log-event --event spec_created`) and surface: *"No state object found — bootstrapped a fresh `spec-state.json` so this run is tracked."* If the slug can't be resolved, abort with the `/spec-init` message above.
 - If `phase.run_status` is `paused` or `abandoned`, `apply-delta` it back to `active` and `log-event --event run_resumed` before looping.
 
 ## Pre-run summary
