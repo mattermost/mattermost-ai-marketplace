@@ -994,7 +994,7 @@ once. After the ticket exists, continue to §9.
    - `projectKey`: `MM`
    - `issueTypeName`: `Task`
    - `summary`: `Flaky test: <TEST_NAME> in <package basename>`
-     (§8b appends ` (needs test seam)`)
+     (§8b appends `(needs test seam)`)
    - `description`: markdown (`contentFormat: "markdown"`), assembled
      from the shared shell + the chosen variant
    - `additional_fields`: `{"labels": ["flaky-test", "go-unit"], "priority": {"name": "Medium"}}`
@@ -1008,7 +1008,7 @@ Every variant uses this wrapper. Fill every section; do not omit the
 footer. GitHub handles in Jira do not notify — keep the original author
 as plain text (never `@`-mention an unverified-org-member).
 
-```
+```markdown
 ## Flaky test
 - Test: `<TEST_NAME>`
 - Package: `<PACKAGE_PATH>`
@@ -1038,7 +1038,7 @@ variant overrides):
 
 #### Default description
 
-```
+```markdown
 ## Reproduction
 <default fill-in>
 
@@ -1061,7 +1061,7 @@ flake still reproduces. Do **not** use this for a merged Skip flaky PR
 (those stay on the already-addressed path). Request a **holistic human
 review**, not another incremental tests-only patch.
 
-```
+```markdown
 ## Prior automated fix (insufficient)
 - Previous fix PR: <EXISTING_PR_URL> (merged)
 - Merge commit: `<MERGE_SHA>`
@@ -1112,7 +1112,7 @@ proposed production change so the assignee starts from a design, not
 from scratch. This automation never opens a production-code PR and
 never waits for human approval before opening the skip PR.
 
-```
+```markdown
 ## Root cause
 `<production symbol>` reads package-level `<var(s)>` directly, so a
 test can only exercise `<scenario>` by overwriting process-global
