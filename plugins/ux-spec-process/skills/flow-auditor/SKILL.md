@@ -101,7 +101,7 @@ Do not be polite about gaps. A missing flow here becomes a scope creep or securi
         "total_flows_reviewed": {"type": "integer"},
         "user_roles_covered": {"type": "array", "items": {"type": "string"}},
         "user_roles_missing_flows": {"type": "array", "items": {"type": "string"}},
-        "critical_findings_count": {"type": "integer"},
+        "critical_findings_count": {"type": "integer", "description": "Count of P1-severity findings only — not the total finding count."},
         "gate_recommendation": {
           "type": "string",
           "enum": ["APPROVE", "APPROVE_WITH_FINDINGS", "REJECT"],
@@ -160,7 +160,7 @@ Do not be polite about gaps. A missing flow here becomes a scope creep or securi
     "total_flows_reviewed": 1,
     "user_roles_covered": ["Team Admin"],
     "user_roles_missing_flows": ["Team User", "Team Guest", "Workspace Admin"],
-    "critical_findings_count": 5,
+    "critical_findings_count": 4,
     "gate_recommendation": "REJECT"
   },
   "findings": [
