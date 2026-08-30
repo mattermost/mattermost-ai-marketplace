@@ -45,7 +45,7 @@ Use `templates/plugin/` as a starting point. Plugin and skill names use kebab-ca
 - **SKILL.md frontmatter**: Must include `name` and `description`. Use `disable-model-invocation: true` for skills with side effects. Use `allowed-tools` to restrict tool access for read-only skills.
 - **plugin.json fields**: `name`, `description`, `version` (semver), `author.name`, `keywords` (array).
 - **marketplace.json entry fields**: `name`, `source`, `description`, `version`, `category`, `tags`, `author.name`.
-- **Categories**: `code-quality`, `conventions`, `testing`, `devops`, `git`, `docs`, `security`, `productivity`.
+- **Categories**: `code-quality`, `conventions`, `testing`, `devops`, `git`, `docs`, `security`, `productivity`, `design`.
 - **Skill invocation pattern**: `/plugin-name:skill-name` (skills are namespaced by plugin).
 - **Commands**: optional `commands/<command-name>.md` files are explicitly-invoked slash commands, namespaced `/plugin-name:command-name`. Prefer a command over a skill for side-effecting, orchestrated procedures; a command can delegate to the plugin's own skills. `plugins/cursor-automations/` ships both commands and skills.
 - **Keep SKILL.md under 500 lines** — move reference material to separate files loaded on demand.
