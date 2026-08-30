@@ -42,7 +42,7 @@ Before any Confluence write:
 
 2. **Wait for explicit affirmative.** Accept only "yes", "confirm", "go ahead", "publish draft". Do not accept "ok", "sure", or any implied consent. If the user declines, abort and report nothing was written.
 
-3. **On confirmation:** Use the Atlassian MCP `createConfluencePage` tool to create the page as a **draft** (not published). Page title must begin with `[AI DRAFT]`. Body is the markdown content of `07-spec-draft.md` converted to Confluence storage format.
+3. **On confirmation, reconcile before creating.** The page is created before its identity is persisted to `spec-state.json` (step 5) — if that later write fails and the user retries, a naive re-run would create a second `[AI DRAFT]` page. Before calling `createConfluencePage`, search the target space for an existing page titled exactly `[AI DRAFT] <feature_name> — UX Spec` (this title is the natural idempotency key; it's unique enough within one space for this purpose). If found, this is a retry after a prior run's page creation succeeded but the subsequent state-write (step 5) failed — do not create a duplicate. Reconcile: use the found page's URL and skip directly to step 5, telling the user a pre-existing draft was found and reconciled rather than duplicated. If not found, use the Atlassian MCP `createConfluencePage` tool to create the page as a **draft** (not published). Page title must begin with `[AI DRAFT]`. Body is the markdown content of `07-spec-draft.md` converted to Confluence storage format.
 
 4. **Second confirmation for publishing.** Never publish (move from draft to live) without a separate, explicit instruction from the user. This command only creates drafts.
 
