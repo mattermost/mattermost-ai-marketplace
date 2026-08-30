@@ -92,8 +92,10 @@ YOUR TASKS (In Order):
    hit a section count. Emit the `artifact-frontmatter` skim layer at the top of the spec, then
    write the body with the `dedup` pass run before each section. Produce a markdown spec draft.
 2. Design Integration: Reference Figma high-fidelity designs throughout.
-3. Internal Validation — Edge Cases: Run edge-case-hunter (severity per `conventions.md`
-   §1 — P1/P2/P3). Fold genuinely non-obvious findings into the spec itself or flag as open
+3. Internal Validation — Edge Cases: Run edge-case-hunter, **explicitly passing `mission_tier` from
+   `meta.mission_tier`** (fall back to `IL5` only if that field is genuinely unset in state — never rely on
+   the skill's own schema default, which is documentation only and not materialized by any runtime) (severity
+   per `conventions.md` §1 — P1/P2/P3). Fold genuinely non-obvious findings into the spec itself or flag as open
    questions; resolve P1 findings in the spec text. Record the findings + their resolution in the
    internal sibling `07-spec-edge-cases.md` — this is the validation audit trail, NOT a published
    appendix and NOT merged into `07-spec.md`.
