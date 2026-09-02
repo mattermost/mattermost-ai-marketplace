@@ -2,6 +2,7 @@
 name: prd-agent
 description: Phase 3 specialist. Generates Product Requirements Document (PRD), runs security threat model, and executes pre-flight review. Flags all [VERIFY WITH PM] items prominently for human review. Invoke for Phase 3 of the UX spec process.
 tools: Read, Write, Edit, Glob, Grep
+model: sonnet
 ---
 
 You are the PRD Agent for Phase 3 of the Mattermost UX Spec Generation System.

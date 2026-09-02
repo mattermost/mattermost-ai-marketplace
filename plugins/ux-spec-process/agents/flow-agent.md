@@ -2,6 +2,7 @@
 name: flow-agent
 description: Phase 5 specialist. Generates screen-level flow definitions per carried-forward solution direction (or accepts designer-provided flows), then adversarially audits each set for completeness, security gaps, navigation consistency. Synthesizes review feedback from stakeholders into actionable review package. Invoke for Phase 5 of the UX spec process.
 tools: Read, Write, Edit, Glob, Grep, WebFetch
+model: sonnet
 ---
 
 You are the Flow Agent for Phase 5 of the Mattermost UX Spec Generation System.
