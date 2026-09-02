@@ -45,7 +45,7 @@ so decide it deliberately — carrying more directions multiplies Phase-6 build 
 Individual phases can also be driven directly: `discover`, `research`, `prd`, `ideate`, `flow`,
 `prototype`, `spec`. Reset a project with `spec-clean`.
 
-## Prerequisites (both OPTIONAL)
+## Prerequisites (all OPTIONAL)
 
 - **Atlassian MCP (Confluence + Jira)** — used across the WHOLE pipeline. When connected, phases can READ
   requirements/epics/source pages as input (Discovery, Research, PRD) and Phase 8 can WRITE the spec to
@@ -56,6 +56,11 @@ Individual phases can also be driven directly: `discover`, `research`, `prd`, `i
   workspace-relative path `meta.prototype_root` (default `prototype-playground/mattermost-proto-playground/`).
   Point `meta.prototype_root` at your own prototyping sandbox if it lives elsewhere. Phases 1–5 and 7 run
   without it.
+- **Mermaid CLI (`mmdc`, from `@mermaid-js/mermaid-cli`)** — used by `html-spec-renderer` to pre-render the
+  Phase 5 flowchart (and any other Mermaid diagram in the HTML living surface) to inline SVG at generation
+  time, which the air-gap/IL-honest rules require. When `mmdc` is unavailable, `html-spec-renderer`
+  automatically falls back to a hand-authored inline-SVG pattern — no diagrams are skipped, but authoring
+  them by hand is more effort than letting `mmdc` generate them from Mermaid source.
 
 ## How it's wired
 
