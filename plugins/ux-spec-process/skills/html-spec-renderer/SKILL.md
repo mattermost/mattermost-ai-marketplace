@@ -471,8 +471,12 @@ Structure:
 
 **Persistence:**
 - Board state (tickets + pending moves + history) is **in-memory only by default** — a page refresh/reload
-  clears it. This is the safe default for SCIF / classified review (per Line 28's air-gap guarantee): nothing
-  survives in browser storage for a later user of the same profile to recover.
+  clears it, and nothing is written to persistent browser storage (`localStorage`, `sessionStorage`, IndexedDB)
+  for a later user of the same profile to recover through ordinary means. **This is not a secure-erasure or
+  air-gap guarantee** — it does not protect against memory capture, crash dumps, browser extensions with
+  page-content access, clipboard export, or session/tab restoration. Classified environments still need
+  endpoint-level controls (disk encryption, extension allowlisting, crash-reporting policy, session-restore
+  disabled) for those vectors; this default only removes the browser-storage recovery path.
 - Users must export state explicitly via **Copy as markdown** or **Copy for agent** before closing/reloading
   the page.
 - An **explicit opt-in** "Enable local persistence" toggle may store state in `localStorage` under key
@@ -672,7 +676,13 @@ When invoked with a spec folder path and target artifact type:
    }
    ```
 
-   Every value in the manifest must be traceable to a specific line in the source markdown. If a value cannot be sourced, mark it `null` and surface it as a `MANIFEST_GAP` in the audit log — do not fabricate.
+   Every value in the manifest must be traceable to a specific source: a line in the source markdown, a JSON
+   path in `spec-state.json` (e.g. `state.meta.mission_tier`, `state.phase.current`, `state.gates.phase_4.status`
+   — these are the correct citation for fields like `tier`/`il`/`current_phase` above, which have no markdown
+   line to point to), or another artifact's path. If a value cannot be sourced from any of these, mark it `null`
+   and surface it as a `MANIFEST_GAP` in the audit log — do not fabricate. Log which citation type backed each
+   value (`markdown-line` | `state-path` | `artifact-path`) so the audit trail shows real provenance, not just
+   presence.
 
 4. **Select pattern** — per the table above (Pattern Selection per Phase).
 5. **Plan modules** — based on `phase.current` and the chosen artifact type.
