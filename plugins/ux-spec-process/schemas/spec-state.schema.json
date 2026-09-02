@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mattermost-ux-spec-state.schema.json",
+  "title": "UX Spec State Object",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "2.0.0" },
+    "meta": { "type": "object" },
+    "scope_lock": { "type": "object" },
+    "phase": { "type": "object" },
+    "gates": {
+      "type": "object",
+      "patternProperties": {
+        "^phase_[1-7]$": {
+          "type": "object",
+          "required": ["status"],
+          "properties": {
+            "status": { "enum": ["pending", "in_review", "approved", "bypassed"] }
+          }
+        }
+      }
+    },
+    "artifacts": { "type": "object" },
+    "context": {
+      "type": "object",
+      "properties": {
+        "clarifications": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["chosen_via", "user_message_ref"],
+            "properties": {
+              "chosen_via": { "enum": ["user_response", "accept_recommendations_bulk"] },
+              "user_message_ref": { "type": "string", "minLength": 1 },
+              "recommended_option": { "type": "string" },
+              "chosen_option": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "audit_log": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timestamp", "event", "phase", "actor"],
+        "properties": {
+          "timestamp": { "type": "string" },
+          "event": {
+            "enum": [
+              "spec_created",
+              "tier_set",
+              "scope_locked",
+              "scope_change",
+              "phase_started",
+              "phase_completed",
+              "phase_skipped",
+              "phase_rerun",
+              "phase_blocked",
+              "phase_jump",
+              "intake_round",
+              "clarification_resolved",
+              "bulk_accept_recommended",
+              "clarification_gate_violation",
+              "clarification_escalation",
+              "gate_approved",
+              "gate_bypassed",
+              "gate_withheld",
+              "verify_item_raised",
+              "verify_item_moved",
+              "verify_item_resolved",
+              "verify_decision_checkpoint",
+              "confluence_draft_created",
+              "confluence_published",
+              "run_abandoned",
+              "run_resumed",
+              "injection_incident"
+            ]
+          },
+          "phase": { "type": ["integer", "null"] },
+          "actor": { "type": "string" }
+        }
+      }
+    }
+  }
+}

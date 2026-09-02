@@ -1,0 +1,642 @@
+#!/usr/bin/env python3
+"""spec-state — mediated write path for spec-state.json files.
+
+The ONLY sanctioned way to mutate specs/<slug>/spec-state.json. Direct
+Edit/Write on those files is blocked by a PreToolUse hook; all writes go
+through this CLI so schema + protocol rules are enforced in code, not by the
+caller's discipline.
+
+Rules enforced here (not by the caller):
+  - audit_log event ∈ closed vocabulary (read live from the schema enum)
+  - gate status ∈ pending|in_review|approved|bypassed (read from schema)
+  - clarifications require chosen_via ∈ {user_response,
+    accept_recommendations_bulk} AND non-empty user_message_ref
+  - the CLI stamps ALL timestamps from the system clock (UTC ISO-8601);
+    any timestamp field in caller-supplied JSON is REJECTED, never overwritten
+  - set-gate phase 4 -> approved requires gates.phase_4.carried_forward[]
+    non-empty (gate item 4.11)
+  - schema_version "legacy" files are read-only (enforce-forward only)
+
+Every mutation is atomic: write temp -> validate ENTIRE resulting file
+against the schema -> os.replace. On any rejection the target is untouched.
+"""
+
+import argparse
+import datetime
+import json
+import os
+import re
+import shutil
+import sys
+import tempfile
+
+# ---------------------------------------------------------------------------
+# Path resolution.
+#   - SCHEMA_PATH is script-relative: the schema ships alongside this CLI inside
+#     the plugin (read-only cache), so it is always found next to the script.
+#   - SPECS_DIR is resolved from the INVOCATION cwd (the user's project), NOT the
+#     script location. When installed as a plugin the CLI lives in a read-only
+#     cache; the user's spec projects live under ./specs in whatever repo they
+#     run from. Override with SPEC_WORKSPACE if specs live elsewhere.
+# ---------------------------------------------------------------------------
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PLUGIN_ROOT = os.path.dirname(SCRIPT_DIR)
+SCHEMA_PATH = os.path.join(PLUGIN_ROOT, "schemas", "spec-state.schema.json")
+TEMPLATE_PATH = os.path.join(PLUGIN_ROOT, "templates", "spec-state-object.json")
+SPECS_DIR = os.path.join(os.environ.get("SPEC_WORKSPACE", os.getcwd()), "specs")
+
+# Kebab-case only — no '/', '..', or other path-traversal-capable characters.
+# Every command resolves its target file via state_path(), so validating the
+# slug here closes path traversal for the whole CLI, not just one command.
+SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+def die(msg, code=1):
+    sys.stderr.write("REJECT: " + msg + "\n")
+    sys.exit(code)
+
+
+def notice(msg):
+    sys.stderr.write("NOTICE: " + msg + "\n")
+
+
+def now_iso():
+    # UTC, second precision, trailing Z — the format the $conventions block wants.
+    return datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def validate_slug(slug):
+    if not SLUG_RE.match(slug):
+        die("slug %r is not valid kebab-case (^[a-z0-9][a-z0-9-]*$) — "
+            "rejecting to prevent path traversal" % slug)
+
+
+def state_path(slug):
+    validate_slug(slug)
+    return os.path.join(SPECS_DIR, slug, "spec-state.json")
+
+
+# ---------------------------------------------------------------------------
+# Schema — loaded once; enums derived from it so this file has ONE source of
+# truth (the schema), never a hand-copied list that can drift.
+# ---------------------------------------------------------------------------
+def load_schema():
+    try:
+        with open(SCHEMA_PATH) as f:
+            return json.load(f)
+    except Exception as e:  # noqa: BLE001
+        die("cannot read schema at %s: %s" % (SCHEMA_PATH, e), 2)
+
+
+SCHEMA = load_schema()
+
+
+def _event_enum():
+    return set(
+        SCHEMA["properties"]["audit_log"]["items"]["properties"]["event"]["enum"]
+    )
+
+
+def _gate_status_enum():
+    return set(
+        SCHEMA["properties"]["gates"]["patternProperties"]["^phase_[1-7]$"][
+            "properties"
+        ]["status"]["enum"]
+    )
+
+
+def _chosen_via_enum():
+    return set(
+        SCHEMA["properties"]["context"]["properties"]["clarifications"]["items"][
+            "properties"
+        ]["chosen_via"]["enum"]
+    )
+
+
+EVENT_ENUM = _event_enum()
+GATE_STATUS_ENUM = _gate_status_enum()
+CHOSEN_VIA_ENUM = _chosen_via_enum()
+
+
+# ---------------------------------------------------------------------------
+# Full-file schema validation. Prefer jsonschema; fall back to a bundled
+# validator that enforces exactly the constraints THIS schema declares, so the
+# CLI works on a stdlib-only box too.
+# ---------------------------------------------------------------------------
+def validate_obj(obj):
+    """Return list of error strings ([] == valid)."""
+    try:
+        import jsonschema  # noqa: PLC0415
+
+        v = jsonschema.Draft202012Validator(SCHEMA)
+        return [
+            "%s: %s" % ("/".join(str(p) for p in e.path) or "<root>", e.message)
+            for e in sorted(v.iter_errors(obj), key=lambda e: list(e.path))
+        ]
+    except ImportError:
+        return _fallback_validate(obj)
+
+
+def _fallback_validate(obj):
+    errs = []
+    if not isinstance(obj, dict):
+        return ["<root>: not an object"]
+    # required: schema_version const 2.0.0
+    if obj.get("schema_version") != "2.0.0":
+        errs.append("schema_version: must be the string \"2.0.0\"")
+    # gates.phase_N.status enum
+    gates = obj.get("gates")
+    if isinstance(gates, dict):
+        for k, g in gates.items():
+            if not (isinstance(k, str) and k.startswith("phase_")):
+                continue
+            if not isinstance(g, dict):
+                errs.append("gates/%s: not an object" % k)
+                continue
+            if "status" not in g:
+                errs.append("gates/%s: missing required 'status'" % k)
+            elif g["status"] not in GATE_STATUS_ENUM:
+                errs.append("gates/%s/status: %r not in %s" % (k, g["status"], sorted(GATE_STATUS_ENUM)))
+    # context.clarifications items
+    ctx = obj.get("context")
+    if isinstance(ctx, dict):
+        cl = ctx.get("clarifications")
+        if cl is not None:
+            if not isinstance(cl, list):
+                errs.append("context/clarifications: not an array")
+            else:
+                for i, c in enumerate(cl):
+                    p = "context/clarifications/%d" % i
+                    if not isinstance(c, dict):
+                        errs.append("%s: not an object" % p)
+                        continue
+                    if c.get("chosen_via") not in CHOSEN_VIA_ENUM:
+                        errs.append("%s/chosen_via: %r not in %s" % (p, c.get("chosen_via"), sorted(CHOSEN_VIA_ENUM)))
+                    umr = c.get("user_message_ref")
+                    if not isinstance(umr, str) or len(umr) < 1:
+                        errs.append("%s/user_message_ref: required, non-empty string" % p)
+    # audit_log items
+    al = obj.get("audit_log")
+    if al is not None:
+        if not isinstance(al, list):
+            errs.append("audit_log: not an array")
+        else:
+            for i, e in enumerate(al):
+                p = "audit_log/%d" % i
+                if not isinstance(e, dict):
+                    errs.append("%s: not an object" % p)
+                    continue
+                for req in ("timestamp", "event", "phase", "actor"):
+                    if req not in e:
+                        errs.append("%s: missing required '%s'" % (p, req))
+                if "event" in e and e["event"] not in EVENT_ENUM:
+                    errs.append("%s/event: %r not in closed vocabulary" % (p, e["event"]))
+                if "phase" in e and not (e["phase"] is None or isinstance(e["phase"], int)):
+                    errs.append("%s/phase: must be integer or null" % p)
+    return errs
+
+
+# ---------------------------------------------------------------------------
+# Timestamp guard — the caller must never supply timestamps; the CLI owns them.
+# A timestamp field is: key == 'timestamp', key == 'last_updated', or key
+# ending in '_at'. Scans caller JSON recursively.
+# ---------------------------------------------------------------------------
+def _is_ts_key(k):
+    return k == "timestamp" or k == "last_updated" or k.endswith("_at")
+
+
+def reject_timestamps(node, path="<delta>"):
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if _is_ts_key(k):
+                die("caller-supplied timestamp field %s/%s is not allowed; "
+                    "the CLI stamps all timestamps" % (path, k))
+            reject_timestamps(v, path + "/" + k)
+    elif isinstance(node, list):
+        for i, v in enumerate(node):
+            reject_timestamps(v, "%s/%d" % (path, i))
+
+
+# ---------------------------------------------------------------------------
+# Load / atomic write.
+# ---------------------------------------------------------------------------
+def load_state(slug, for_write):
+    path = state_path(slug)
+    if not os.path.exists(path):
+        die("no spec-state.json for slug %r (looked at %s)" % (slug, path))
+    try:
+        with open(path) as f:
+            obj = json.load(f)
+    except Exception as e:  # noqa: BLE001
+        die("cannot parse %s: %s" % (path, e))
+    if for_write and obj.get("schema_version") == "legacy":
+        die("legacy spec — enforce-forward only")
+    return obj, path
+
+
+def atomic_write(obj, path):
+    """write temp -> validate ENTIRE resulting file -> rename. Target untouched on failure."""
+    d = os.path.dirname(path)
+    fd, tmp = tempfile.mkstemp(prefix=".spec-state.", suffix=".tmp", dir=d)
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(obj, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        # validate the ENTIRE resulting file (re-read from disk, not the in-mem obj)
+        with open(tmp) as f:
+            written = json.load(f)
+        errs = validate_obj(written)
+        if errs:
+            os.unlink(tmp)
+            die("resulting file fails schema:\n  - " + "\n  - ".join(errs))
+        os.replace(tmp, path)
+    except SystemExit:
+        raise
+    except Exception as e:  # noqa: BLE001
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        die("write failed: %s" % e)
+
+
+def deep_merge(target, delta):
+    """dict+dict -> recursive merge; list+list -> append (delta appended)."""
+    for k, v in delta.items():
+        if k in target and isinstance(target[k], dict) and isinstance(v, dict):
+            deep_merge(target[k], v)
+        elif k in target and isinstance(target[k], list) and isinstance(v, list):
+            target[k].extend(v)
+        else:
+            target[k] = v
+    return target
+
+
+def stamp_last_updated(obj):
+    if isinstance(obj.get("meta"), dict):
+        obj["meta"]["last_updated"] = now_iso()
+
+
+# ---------------------------------------------------------------------------
+# Commands.
+# ---------------------------------------------------------------------------
+def cmd_bootstrap(args):
+    """The one sanctioned file-creation step: copy the state template into
+    place for a brand-new slug. Never overwrites an existing spec-state.json.
+
+    This exists so the PreToolUse guard hook can deny every OTHER Bash write
+    to specs/*/spec-state.json unconditionally, with no path-based allowlist
+    to bypass: bootstrap takes only a validated slug, never a raw file path,
+    so a legitimate invocation never needs the literal spec-state.json string
+    in its command line at all.
+    """
+    validate_slug(args.slug)
+    path = state_path(args.slug)
+    if os.path.exists(path):
+        die("spec-state.json already exists for slug %r at %s — bootstrap is "
+            "for new specs only; use apply-delta to modify it" % (args.slug, path))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    shutil.copyfile(TEMPLATE_PATH, path)
+    print("OK: bootstrapped %s from %s" % (path, TEMPLATE_PATH))
+
+
+def cmd_reset(args):
+    """Capture prior meta fields, overwrite with a fresh template copy, restore
+    those fields, and set phase.current=0 / phase.status="reset". Used by
+    /spec-clean's destructive reset flow — the sanctioned way to recreate an
+    EXISTING spec-state.json (bootstrap refuses if the file already exists;
+    this command requires it to). Bash never touches the raw path either way.
+    """
+    validate_slug(args.slug)
+    path = state_path(args.slug)
+    if not os.path.exists(path):
+        die("no spec-state.json for slug %r to reset (did you mean bootstrap?)" % args.slug)
+    with open(path) as f:
+        prior = json.load(f)
+    prior_meta = prior.get("meta") if isinstance(prior.get("meta"), dict) else {}
+    preserved = {k: prior_meta[k] for k in
+                 ("feature_name", "created_at", "author", "author_email", "complexity_tier")
+                 if k in prior_meta}
+    with open(TEMPLATE_PATH) as f:
+        fresh = json.load(f)
+    fresh.setdefault("meta", {}).update(preserved)
+    if isinstance(fresh.get("phase"), dict):
+        fresh["phase"]["current"] = 0
+        fresh["phase"]["status"] = "reset"
+    stamp_last_updated(fresh)
+    atomic_write(fresh, path)
+    print("OK: reset %s (preserved meta: %s)" % (path, sorted(preserved.keys())))
+
+
+def cmd_apply_delta(args):
+    raw = sys.stdin.read() if args.delta == "-" else open(args.delta).read()
+    try:
+        delta = json.loads(raw)
+    except Exception as e:  # noqa: BLE001
+        die("delta is not valid JSON: %s" % e)
+    if not isinstance(delta, dict):
+        die("delta must be a JSON object")
+    reject_timestamps(delta)
+    obj, path = load_state(args.slug, for_write=True)
+    deep_merge(obj, delta)
+    # CLI owns timestamps: stamp meta.last_updated and any freshly-added
+    # audit_log entries that arrived without one.
+    stamp_last_updated(obj)
+    for e in obj.get("audit_log", []) or []:
+        if isinstance(e, dict) and "timestamp" not in e:
+            e["timestamp"] = now_iso()
+    atomic_write(obj, path)
+    print("OK: applied delta to %s" % path)
+
+
+def cmd_log_event(args):
+    if args.event not in EVENT_ENUM:
+        die("event %r not in closed vocabulary %s" % (args.event, sorted(EVENT_ENUM)))
+    details = None
+    if args.details:
+        try:
+            details = json.loads(args.details)
+        except Exception as e:  # noqa: BLE001
+            die("--details is not valid JSON: %s" % e)
+        reject_timestamps(details, "<details>")
+    obj, path = load_state(args.slug, for_write=True)
+    entry = {
+        "timestamp": now_iso(),
+        "event": args.event,
+        "phase": args.phase,
+        "actor": args.actor,
+    }
+    if details is not None:
+        entry["details"] = details
+    obj.setdefault("audit_log", []).append(entry)
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: logged %s (phase %s) to %s" % (args.event, args.phase, path))
+
+
+def cmd_add_clarification(args):
+    try:
+        c = json.loads(args.json)
+    except Exception as e:  # noqa: BLE001
+        die("--json is not valid JSON: %s" % e)
+    if not isinstance(c, dict):
+        die("clarification must be a JSON object")
+    reject_timestamps(c, "<clarification>")
+    if c.get("chosen_via") not in CHOSEN_VIA_ENUM:
+        die("chosen_via must be one of %s" % sorted(CHOSEN_VIA_ENUM))
+    umr = c.get("user_message_ref")
+    if not isinstance(umr, str) or len(umr) < 1:
+        die("user_message_ref is required and must be a non-empty string")
+    obj, path = load_state(args.slug, for_write=True)
+    obj.setdefault("context", {}).setdefault("clarifications", []).append(c)
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: added clarification to %s" % path)
+
+
+# ---------------------------------------------------------------------------
+# open_questions[] — the typed [VERIFY WITH PM] tracker. Two operations the
+# generic apply-delta cannot do: (1) create a new entry (raised_at is a *_at
+# field, which a delta cannot carry — the CLI self-stamps it here); (2) update
+# an existing entry IN PLACE (apply-delta only appends to arrays). These
+# commands are the only sanctioned path to flip a blocker to
+# resolved/branched/deferred, which is what lets the decide-or-fork checkpoint
+# clear before Phase 5/6.
+# ---------------------------------------------------------------------------
+OQ_STATUS_ENUM = ("open", "resolved", "deferred", "branched")
+
+
+def _find_question(obj, qid):
+    oq = obj.get("context", {}).get("open_questions", [])
+    for e in oq:
+        if isinstance(e, dict) and e.get("id") == qid:
+            return e
+    return None
+
+
+def _is_blocker(entry):
+    # blocker is a bool per the schema, but tolerate the string "true".
+    return entry.get("blocker") is True or entry.get("blocker") == "true"
+
+
+def cmd_add_question(args):
+    obj, path = load_state(args.slug, for_write=True)
+    if _find_question(obj, args.id) is not None:
+        die("open_questions[] already has an entry with id %r" % args.id)
+    entry = {
+        "id": args.id,
+        "text": args.text,
+        "owner": args.owner,
+        "status": "open",
+        "blocker": args.blocker,
+        "raised_at": now_iso(),  # CLI self-stamps; callers never supply a *_at
+        "phase_ref": args.phase_ref,
+        "resolved_at": None,
+        "resolution": None,
+    }
+    obj.setdefault("context", {}).setdefault("open_questions", []).append(entry)
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: added open_question %s (status=open) to %s" % (args.id, path))
+
+
+def cmd_update_question(args):
+    obj, path = load_state(args.slug, for_write=True)
+    target = _find_question(obj, args.id)
+    if target is None:
+        die("no open_questions[] entry with id %r" % args.id)
+    if args.status is not None:
+        if args.status not in OQ_STATUS_ENUM:
+            die("status %r not in %s" % (args.status, list(OQ_STATUS_ENUM)))
+        if args.status == "resolved":
+            if not args.resolution:
+                die("status=resolved requires --resolution")
+        elif args.status == "branched":
+            if not args.resolution:
+                die("status=branched requires --resolution")
+            if not args.branch_spec_ref:
+                die("status=branched requires --branch-spec-ref")
+        elif args.status == "deferred":
+            if not args.resolution:
+                die("status=deferred requires --resolution")
+            if _is_blocker(target):
+                die("cannot defer a blocker=true item (decide-or-fork rule, "
+                    "gate 5.0a/6.0a) — decide it or branch it into a named sibling spec")
+        target["status"] = args.status
+        # CLI self-stamps resolved_at when the item leaves the open state by decision.
+        if args.status in ("resolved", "branched"):
+            target["resolved_at"] = now_iso()
+    if args.branch_spec_ref is not None:
+        target["branch_spec_ref"] = args.branch_spec_ref
+    if args.resolution is not None:
+        target["resolution"] = args.resolution
+    if args.owner is not None:
+        target["owner"] = args.owner
+    if args.blocker is not None:
+        target["blocker"] = args.blocker
+    if args.text is not None:
+        target["text"] = args.text
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: updated open_question %s in %s" % (args.id, path))
+
+
+def cmd_set_gate(args):
+    if args.status not in GATE_STATUS_ENUM:
+        die("status %r not in %s" % (args.status, sorted(GATE_STATUS_ENUM)))
+    if not (1 <= args.phase <= 7):
+        die("gate phase must be 1..7")
+    obj, path = load_state(args.slug, for_write=True)
+    key = "phase_%d" % args.phase
+    gate = obj.setdefault("gates", {}).setdefault(key, {})
+    # Gate item 4.11: Phase 4 cannot be approved with an empty carried_forward[].
+    if args.phase == 4 and args.status == "approved":
+        cf = gate.get("carried_forward")
+        if not (isinstance(cf, list) and len(cf) > 0):
+            die("gate item 4.11 — cannot approve Phase 4 with empty "
+                "gates.phase_4.carried_forward[]")
+    gate["status"] = args.status
+    if args.status == "approved":
+        gate["approved_at"] = now_iso()
+        if args.approver:
+            gate.setdefault("approved_by", [])
+            if args.approver not in gate["approved_by"]:
+                gate["approved_by"].append(args.approver)
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: set %s status=%s in %s" % (key, args.status, path))
+
+
+def cmd_record_cost(args):
+    obj, path = load_state(args.slug, for_write=True)
+    log = obj.get("audit_log") or []
+    target = None
+    for e in reversed(log):
+        if isinstance(e, dict) and e.get("event") in ("phase_started", "phase_completed"):
+            target = e
+            break
+    if target is None:
+        notice("no phase_started/phase_completed audit entry present — record-cost is a no-op")
+        sys.exit(0)
+    details = target.setdefault("details", {})
+    if not isinstance(details, dict):
+        die("target audit entry 'details' is not an object; cannot attach run_cost")
+    run_cost = {
+        "input_tokens": args.input_tokens,
+        "output_tokens": args.output_tokens,
+        "total_tokens": args.input_tokens + args.output_tokens,
+    }
+    details["run_cost"] = run_cost
+    if args.model:
+        details["model"] = args.model
+    stamp_last_updated(obj)
+    atomic_write(obj, path)
+    print("OK: recorded run_cost on latest %s event in %s" % (target.get("event"), path))
+
+
+def cmd_validate(args):
+    path = state_path(args.slug)
+    if not os.path.exists(path):
+        die("no spec-state.json for slug %r (looked at %s)" % (args.slug, path))
+    try:
+        with open(path) as f:
+            obj = json.load(f)
+    except Exception as e:  # noqa: BLE001
+        print("INVALID: cannot parse JSON: %s" % e)
+        sys.exit(1)
+    errs = validate_obj(obj)
+    if errs:
+        print("INVALID (%d error(s)):" % len(errs))
+        for e in errs:
+            print("  - " + e)
+        sys.exit(1)
+    print("VALID: %s conforms to schema %s" % (path, SCHEMA_PATH))
+    sys.exit(0)
+
+
+# ---------------------------------------------------------------------------
+# Arg parsing.
+# ---------------------------------------------------------------------------
+def build_parser():
+    p = argparse.ArgumentParser(prog="spec-state", description=__doc__)
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    a = sub.add_parser("bootstrap", help="copy the state template into place for a new slug (the one sanctioned file-creation step)")
+    a.add_argument("slug")
+    a.set_defaults(func=cmd_bootstrap)
+
+    a = sub.add_parser("reset", help="recreate an EXISTING spec-state.json from the template, preserving meta fields (used by /spec-clean)")
+    a.add_argument("slug")
+    a.set_defaults(func=cmd_reset)
+
+    a = sub.add_parser("apply-delta", help="merge + validate a delta JSON")
+    a.add_argument("slug")
+    a.add_argument("delta", help="path to delta.json, or - for stdin")
+    a.set_defaults(func=cmd_apply_delta)
+
+    a = sub.add_parser("log-event", help="append an audit_log entry")
+    a.add_argument("slug")
+    a.add_argument("--event", required=True)
+    a.add_argument("--phase", required=True, type=lambda v: None if v == "null" else int(v))
+    a.add_argument("--actor", required=True)
+    a.add_argument("--details", help="event-specific payload as JSON")
+    a.set_defaults(func=cmd_log_event)
+
+    a = sub.add_parser("add-clarification", help="append a context.clarifications entry")
+    a.add_argument("slug")
+    a.add_argument("--json", required=True, help="clarification object as JSON")
+    a.set_defaults(func=cmd_add_clarification)
+
+    def _boolish(v):
+        if v == "true":
+            return True
+        if v == "false":
+            return False
+        raise argparse.ArgumentTypeError("expected true|false, got %r" % v)
+
+    a = sub.add_parser("add-question", help="create a typed context.open_questions[] entry (CLI self-stamps raised_at)")
+    a.add_argument("slug")
+    a.add_argument("--id", required=True)
+    a.add_argument("--text", required=True)
+    a.add_argument("--owner", required=True)
+    a.add_argument("--blocker", required=True, type=_boolish)
+    a.add_argument("--phase-ref", required=True, dest="phase_ref")
+    a.set_defaults(func=cmd_add_question)
+
+    a = sub.add_parser("update-question", help="update an existing open_questions[] entry in place")
+    a.add_argument("slug")
+    a.add_argument("--id", required=True)
+    a.add_argument("--status", choices=list(OQ_STATUS_ENUM))
+    a.add_argument("--resolution")
+    a.add_argument("--branch-spec-ref", dest="branch_spec_ref")
+    a.add_argument("--owner")
+    a.add_argument("--blocker", type=_boolish)
+    a.add_argument("--text")
+    a.set_defaults(func=cmd_update_question)
+
+    a = sub.add_parser("set-gate", help="set a gate status")
+    a.add_argument("slug")
+    a.add_argument("--phase", required=True, type=int)
+    a.add_argument("--status", required=True)
+    a.add_argument("--approver")
+    a.set_defaults(func=cmd_set_gate)
+
+    a = sub.add_parser("record-cost", help="attach run_cost to the latest phase event")
+    a.add_argument("slug")
+    a.add_argument("--input-tokens", required=True, type=int)
+    a.add_argument("--output-tokens", required=True, type=int)
+    a.add_argument("--model")
+    a.set_defaults(func=cmd_record_cost)
+
+    a = sub.add_parser("validate", help="full-file schema check (exit 0/1)")
+    a.add_argument("slug")
+    a.set_defaults(func=cmd_validate)
+
+    return p
+
+
+def main():
+    args = build_parser().parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

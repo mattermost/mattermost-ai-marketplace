@@ -93,6 +93,7 @@ Use one of these categories (or propose a new one in your PR):
 | `docs` | Documentation generation and maintenance |
 | `security` | Security scanning and review |
 | `productivity` | General developer productivity |
+| `design` | UX/UI design, design systems, Figma workflows |
 
 ## Testing Your Plugin
 
