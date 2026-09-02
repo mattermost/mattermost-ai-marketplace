@@ -14,7 +14,7 @@ The Option Builder translates Phase 4 solution direction approaches into concret
 
 This skill is the entry point for Phase 6. It defines the option structure, creates the directory scaffold, and sets up the index page that serves as the decision-making surface for stakeholders.
 
-**Build one option per carried-forward direction** (count = `gates.phase_4.carried_forward[]` length; `approaches` array). The `recommended` flag and any scoring shown on the index page must match the canonical Phase 6 evaluation produced by `option-presenter` — both use the single rubric in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../templates/conventions.md)** (7 weighted criteria, 1–5 scores, normalized `X.XX / 5.00`). Option Builder scaffolds the pages; `option-presenter` scores them — don't invent a competing criteria set on the index.
+**Build one option per carried-forward direction** (count = `gates.phase_4.carried_forward[]` length; `approaches` array). **Option Builder never renders a recommendation badge or any score on the index page** — it runs before `option-presenter` scores anything, so it has no canonical evaluation to render yet; a badge shown at this stage would be a stale or arbitrary guess. The index card grid shows only title, philosophy, and states count. `option-presenter` is the sole source of the recommendation and score, applied to the index (or a comparison view) only after Phase 6 scoring completes, using the single rubric in **[`${CLAUDE_PLUGIN_ROOT}/templates/conventions.md` §3](../../templates/conventions.md)** (7 weighted criteria, 1–5 scores, normalized `X.XX / 5.00`). Don't invent a competing criteria set on the index.
 
 ## When to Use
 
@@ -52,8 +52,7 @@ This skill is the entry point for Phase 6. It defines the option structure, crea
           "id": { "type": "string", "example": "option-a" },
           "name": { "type": "string", "example": "Option A" },
           "title": { "type": "string", "example": "Progressive Reveal" },
-          "philosophy": { "type": "string", "example": "Layered complexity — default view is simple; details revealed on demand" },
-          "recommended": { "type": "boolean", "default": false }
+          "philosophy": { "type": "string", "example": "Layered complexity — default view is simple; details revealed on demand" }
         },
         "required": ["id", "name", "title", "philosophy"]
       },
@@ -85,7 +84,8 @@ The typical shape (names vary by feature):
 
 ```
 src/pages/{FeatureSlugOrName}/
-  {Index}.tsx               — Overview page with card grid (title, philosophy, recommended badge, states count)
+  {Index}.tsx               — Overview page with card grid (title, philosophy, states count — no recommendation
+                              badge or score; option-presenter adds those after Phase 6 scoring)
   {Index}.module.scss       — Grid layout styles
   shared/                   — Shared across all approaches
     fixtures.ts             — Demo data shared by all options
@@ -122,7 +122,7 @@ src/pages/{FeatureName}Options/
 **Step 2: Generate index page**
 Mirror a current option-index page in the repo (read it first):
 - Import `Link` from `react-router-dom`
-- Define `approaches` array with: `path`, `name`, `title`, `philosophy`, `recommended`, `states`
+- Define `approaches` array with: `path`, `name`, `title`, `philosophy`, `states` (no `recommended` field — see Purpose above)
 - Render: page title → subtitle → card grid (back navigation is owned by the app shell — there is no `BackButton` primitive)
 - Cards link to per-option routes
 
@@ -174,7 +174,6 @@ Each option's `philosophy` should clearly articulate WHY this approach might be 
       "name": "Option A",
       "title": "Progressive Reveal",
       "philosophy": "...",
-      "recommended": false,
       "route": "/prototypes/channel-categories/option-a",
       "file_path": "src/pages/ChannelCategoriesOptions/OptionA.tsx",
       "states": 6
