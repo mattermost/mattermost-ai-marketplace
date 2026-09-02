@@ -16,7 +16,7 @@ The HTML living surface is the **primary, shareable, presentation-grade delivera
 - **Confluence is reserved for end-state specs and final proposals (Phase 7/8) only.** Pre-spec artifacts never go to Confluence. The HTML living surface fills that gap for Phases 1–6.
 - **It must be IL-honest.** This surface is shown to a defense audience. It works air-gapped (no CDN, no fetch), passes WCAG 2.1 AA, and stays usable with JavaScript disabled. These are hard requirements, not nice-to-haves — see **IL-Honest Hard Requirements** below. A surface that fails any of them is disqualified for this audience and must not be presented.
 
-Patterns are adapted from the [html-effectiveness gallery](../../html-effectiveness-main/) (Anthropic's "unreasonable effectiveness of HTML" examples) with consistent design tokens.
+Patterns are adapted from the html-effectiveness gallery (Anthropic's "unreasonable effectiveness of HTML" examples) with consistent design tokens. **Neither that gallery nor the `process-improvements-pilot/` examples referenced throughout this file ship with this plugin** — they are optional, local-workspace references from the original author's environment. If they aren't present in yours, the inline module descriptions and code patterns throughout this file are the actual specification and are sufficient on their own; treat every `process-improvements-pilot/...` or `html-effectiveness-main/...` path below as "consult if available," never a hard dependency.
 
 ## When to Use
 
@@ -30,7 +30,7 @@ Patterns are adapted from the [html-effectiveness gallery](../../html-effectiven
 ## When NOT to Use
 
 - For markdown editing — markdown remains canonical; edit there, then regenerate the HTML
-- For Phase 7/8 publication — **end-state specs and final proposals go to Confluence** (per the Output Rules in CLAUDE.md), not the HTML living surface. The HTML is the pre-spec (Phases 1–6) surface; Confluence is the post-spec (Phase 7/8) surface.
+- For Phase 7/8 publication — **end-state specs and final proposals go to Confluence** (per the Output Rules in the `defense-ux-context` skill), not the HTML living surface. The HTML is the pre-spec (Phases 1–6) surface; Confluence is the post-spec (Phase 7/8) surface.
 - For dynamic/server-side rendering — HTML is intentionally static, single file
 - For interactive prototypes — those live in proto-playground, not the spec surface
 - For data the agent does not own — never hallucinate FRs, threat counts, or coverage status
@@ -745,7 +745,11 @@ Naming rules: lowercase kebab-case `{feature-id}` matching `spec-state.json::met
 
 ## Reference Implementations
 
-The canonical examples ship at `process-improvements-pilot/`:
+**Neither of the two directories below ships with this plugin** — they're optional, local-workspace
+examples. If absent, use the module descriptions elsewhere in this file, which are the actual
+specification.
+
+The examples, when present locally, live at `process-improvements-pilot/`:
 - `spec-html/hierarchical-attributes.spec.html` — the master spec.html
 - `traceability-sample/heatmap.html` — interactive heatmap with side panel
 - `phase-4-ideation/options.html` — option comparison (Phase 4)
