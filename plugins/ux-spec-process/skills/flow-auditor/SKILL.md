@@ -116,7 +116,7 @@ Do not be polite about gaps. A missing flow here becomes a scope creep or securi
         "properties": {
           "finding_type": {
             "type": "string",
-            "enum": ["MISSING_TASK_FLOW", "MISSING_ERROR_PATH", "SECURITY_VULNERABILITY", "NAVIGATION_DEVIATION", "MOBILE_GAP"]
+            "enum": ["MISSING_TASK_FLOW", "MISSING_ERROR_PATH", "MISSING_COMPLIANCE_FLOW", "SECURITY_VULNERABILITY", "NAVIGATION_DEVIATION", "MOBILE_GAP"]
           },
           "affected_flows": {"type": "array", "items": {"type": "string"}},
           "description": {"type": "string"},
