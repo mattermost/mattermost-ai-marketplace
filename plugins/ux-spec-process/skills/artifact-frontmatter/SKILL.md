@@ -46,7 +46,7 @@ generated: <ISO 8601 timestamp>
 > **[AI DRAFT]** — Auto-generated skim layer. <one clause on body provenance, e.g. "Body is the human-curated artifact." or "All N [VERIFY] items from vN-1 resolved.">
 ```
 
-The `[AI DRAFT]` label is **mandatory** on every block (CLAUDE.md output rule — label all AI-generated content until human-reviewed).
+The `[AI DRAFT]` label is **mandatory** on every block (per the `defense-ux-context` skill's Output Rules — label all AI-generated content until human-reviewed).
 
 ### 2. TL;DR (60-second scan)
 
@@ -70,7 +70,7 @@ If the full decision set is long, show the flipped/expansion rows here and point
 
 ### 5. Open `[VERIFY WITH PM]` items — pinned, never buried
 
-`## Open going into Phase <N+1>` (or `## [VERIFY WITH PM] — pinned, do not bury` when there are several). Scan the body for every `[VERIFY WITH PM]` / `[VERIFY WITH ENG LEAD]` flag and list each as one line: the question + who must decide + what it blocks. If none: `None blocking.` plus any P2 polish item. **Never** let a `[VERIFY]` flag live only in the body — it must surface here (CLAUDE.md: flag `[VERIFY WITH PM]` items at the top, not buried).
+`## Open going into Phase <N+1>` (or `## [VERIFY WITH PM] — pinned, do not bury` when there are several). Scan the body for every `[VERIFY WITH PM]` / `[VERIFY WITH ENG LEAD]` flag and list each as one line: the question + who must decide + what it blocks. If none: `None blocking.` plus any P2 polish item. **Never** let a `[VERIFY]` flag live only in the body — it must surface here (per `defense-ux-context`: flag `[VERIFY WITH PM]` items at the top, not buried).
 
 ### 6. Reading guide (one line, or a small time-budget table)
 

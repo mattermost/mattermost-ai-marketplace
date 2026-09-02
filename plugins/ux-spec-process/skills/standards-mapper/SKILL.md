@@ -59,7 +59,7 @@ This skill is essential for DoD/defense platforms where compliance is not option
   "frameworks": {
     "type": "array",
     "items": {"type": "string"},
-    "description": "Applicable compliance frameworks (defense scope per parent CLAUDE.md)",
+    "description": "Applicable compliance frameworks (defense scope per the defense-ux-context skill)",
     "default": ["NIST SP 800-53", "NIST SP 800-207", "NIST SP 800-162", "DoD ZT RA", "DoDM 5200.01", "Section 508", "WCAG 2.1 AA"],
     "examples": ["NIST SP 800-53", "NIST SP 800-207", "NIST SP 800-162", "DoD ZT RA", "DoDM 5200.01", "DoD RMF", "Section 508", "WCAG 2.1 AA"]
   },

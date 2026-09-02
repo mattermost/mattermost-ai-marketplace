@@ -52,7 +52,7 @@ Full JSON schemas for `prd-generator`. `mission_tier` uses the classification en
       "type": "string",
       "enum": ["NIST_800-53", "NIST_800-207", "NIST_800-162", "DoD_ZT_RA", "DoDM_5200.01", "DISA_STIGs", "Section_508", "WCAG_2.1_AA", "Custom"]
     },
-    "description": "Which compliance frameworks must this feature satisfy (defense scope per parent CLAUDE.md). If Custom, include in research_brief.",
+    "description": "Which compliance frameworks must this feature satisfy (defense scope per the defense-ux-context skill). If Custom, include in research_brief.",
     "minItems": 1
   },
   "timeline": {

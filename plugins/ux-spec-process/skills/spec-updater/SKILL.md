@@ -19,7 +19,7 @@ This skill writes to Confluence via `updateConfluencePage`. Confluence writes ar
 4. **Label AI content.** All AI-generated or AI-modified content is labeled **`[AI DRAFT]`** until a human has reviewed it. Carry the label through the draft; it is removed only on human sign-off.
 5. **Never auto-write.** No code path may call `updateConfluencePage` (or any Confluence write) without steps 1–3 satisfied. If in doubt, stop and ask.
 
-> This mirrors the CLAUDE.md "Output Rules" (Confluence) verbatim in intent: confirm → draft → second confirm to publish → `[AI DRAFT]`. If this skill's behavior ever diverges from CLAUDE.md, CLAUDE.md wins.
+> This mirrors the `defense-ux-context` skill's Output Rules (Confluence) verbatim in intent: confirm → draft → second confirm to publish → `[AI DRAFT]`. If this skill's behavior ever diverges from `defense-ux-context`, `defense-ux-context` wins.
 
 ## Claude Code model (Phase 8)
 
@@ -259,7 +259,7 @@ Step 6: Resolve inline comments (if feedback came from comments)
 
 ## Markdown → Confluence Export (Phase 7/8 end-state specs & final proposals ONLY)
 
-This is the conversion contract for getting a finished spec out of markdown and into Confluence. It applies to **END-STATE artifacts only** — the canonical Phase-7 spec (`07-spec.md`) and final proposals. **Pre-spec artifacts (Phases 1–6) never go to Confluence** — their shareable surface is the `html-spec-renderer` living surface (per CLAUDE.md Output Rules). The internal validation siblings (`07-spec-edge-cases.md`, `07-spec-traceability.md`) and generated HTML views (`spec.html`, `traceability-heatmap.html`) are **not** published — only `07-spec.md` publishes.
+This is the conversion contract for getting a finished spec out of markdown and into Confluence. It applies to **END-STATE artifacts only** — the canonical Phase-7 spec (`07-spec.md`) and final proposals. **Pre-spec artifacts (Phases 1–6) never go to Confluence** — their shareable surface is the `html-spec-renderer` living surface (per the `defense-ux-context` skill's Output Rules). The internal validation siblings (`07-spec-edge-cases.md`, `07-spec-traceability.md`) and generated HTML views (`spec.html`, `traceability-heatmap.html`) are **not** published — only `07-spec.md` publishes.
 
 ### Conversion approach: markdown → Confluence storage format
 
