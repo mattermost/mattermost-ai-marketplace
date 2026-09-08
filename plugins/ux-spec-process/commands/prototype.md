@@ -9,32 +9,39 @@ Resolve `$ARGUMENTS` to a project slug under `specs/` (exact match → fuzzy →
 
 - `specs/<slug>/03-prd.md` exists
 - `specs/<slug>/04-solution-directions.md` exists
+- `specs/<slug>/05-flow-audit.md` exists
 - `specs/<slug>/spec-state.json` exists
-- **At least one of the four prototype targets** exists at the workspace root:
-  - `prototype-playground/mattermost-proto-playground/`
-  - build target: read `meta.prototype_root` from spec-state (currently `prototype-playground/mattermost-proto-playground/`)
-  - `mattermost-blocks-prototype/`
-  - `mattermost/`
 
-If preconditions fail, abort and tell the user which prior phase to run, or which prototype target is missing.
+**Resolve the prototype sandbox (`meta.prototype_root`) before invoking the agent.** The only legal
+build target is a clone of https://github.com/mattermost/mattermost-proto-playground. Never write
+into `mattermost/`, `mattermost-blocks-prototype/`, or any other product repo.
+
+1. If `meta.prototype_root` is already set and that directory exists, use it.
+2. Else look for an existing clone at `prototype-playground/mattermost-proto-playground/` or
+   `mattermost-proto-playground/`. If found, confirm the path with the user (or accept it) and
+   persist it to `meta.prototype_root` via `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta`.
+3. Else ask the user for the path to their clone. If they don't have one, pause and tell them to
+   set it up from that repo:
+   ```
+   git clone https://github.com/mattermost/mattermost-proto-playground.git prototype-playground/mattermost-proto-playground
+   ```
+   Then ask for the path, persist it to `meta.prototype_root`, and only then continue.
+4. Abort if the resolved directory is missing `package.json` or `src/`.
+
+If the artifact preconditions fail, abort and tell the user which prior phase to run.
 
 ## Invoke
 
 Invoke the `spec-orchestrator` agent to execute Phase 6 (Prototype). Pass it:
 - The slug
-- Paths to the PRD, Solution Directions, and Flow Audit (if it exists)
+- Paths to the PRD, Solution Directions, and Flow Audit (`05-flow-audit.md`)
 - Path to the state object
-- **Build target: determined by Phase 6 intake clarification.** The prototype-agent's Step 0 intake round will present four options:
-  - `prototype-playground/mattermost-proto-playground` — sandboxed proto-playground copy
-  - canonical sandbox = `meta.prototype_root` (`prototype-playground/mattermost-proto-playground/`)
-  - `mattermost-blocks-prototype` — legacy blocks prototype
-  - `mattermost` — production product repo (strict scoping: isolated branch, `[AI DRAFT — PROTOTYPE]` labels)
-
-  The user's answer is recorded in `context.clarifications[]` and `artifacts.prototype.prototype_base_url`. The agent does not scaffold anything until this choice is made.
-- Route convention: prototype must be accessible at `/prototypes/<slug>` per the chosen target's routing (for `mattermost`, follow the product's existing routing conventions instead)
+- **Build target: `meta.prototype_root` only** (resolved above). Pass that path through to the
+  agent and every Phase 6 skill. Do not offer a playground-choice intake.
+- Route convention: prototype must be accessible at `/prototypes/<slug>` per the sandbox routing.
 
 The orchestrator will:
-- **Verify the Phase 6 intake clarification round** runs first (per the `clarification-protocol` skill). Covers number of options, page pattern, theme coverage, state coverage, demo data approach, recommendation in index, target playground.
+- **Verify the Phase 6 intake clarification round** runs first (per the `clarification-protocol` skill). Covers page pattern, theme coverage, state coverage, demo data approach, recommendation in index. Does **not** cover which playground to use.
 - Commit intake answers via the `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state` CLI (`add-clarification` per answer into `context.clarifications[]` + `apply-delta` `gates.phase_6.intake_clarifications`) — the CLI is the only sanctioned writer; never edit `spec-state.json` directly.
 - Delegate to `prototype-agent`, which:
   - Generates **one design option prototype per carried-forward direction** (per phase-6 multi-option pattern; count = `gates.phase_4.carried_forward[]` length)

@@ -33,5 +33,5 @@ One flow-definition set per invocation, labeled `[AI DRAFT]`.
 - If the designer has supplied their own flow definitions for a direction, this
   skill is NOT invoked for that direction — the designer's flows are audited
   instead of a generated set.
-- Mermaid decision-tree source must be renderable to inline `<svg>` per the
-  existing air-gap rule (no runtime CDN Mermaid loader).
+- Emit the flow as Mermaid decision-tree source in a fenced ```mermaid block
+  inside the markdown flow definition (renders natively in GitHub/Confluence).

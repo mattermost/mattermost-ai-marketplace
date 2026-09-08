@@ -57,7 +57,6 @@ YOUR TASKS (In Order):
 6. Clarifying Questions: Generate 5 specific, actionable discovery questions
 7. Assumption Extraction: Surface all hidden assumptions (e.g., "we assume users have broadband")
 8. Gate Artifact Generation: Produce the Problem Statement document — emit the `artifact-frontmatter` skim layer at the top, then write the body with the `dedup` pass per section
-9. HTML Rendering: Invoke the `html-spec-renderer` skill to generate / update the master `spec.html` for this spec project. Phase 1 content renders as the first phase block in the timeline + the BLUF + affected roles cards + decisions table. Light theme default, IL5-safe, single self-contained file.
 
 SKILLS YOU INVOKE (by name, via the Skill tool):
 - `clarification-protocol`: Step 0 intake (mandatory) + any in-phase ambiguity round

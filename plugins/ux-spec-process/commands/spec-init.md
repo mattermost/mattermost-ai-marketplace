@@ -23,8 +23,10 @@ Count the words in `$ARGUMENTS`:
    `[CUSTOMER A]`). Do not proceed until confirmed. **Use only the confirmed/redacted value for every
    subsequent step** — slug derivation, `meta.feature_name`, the state delta, and the brain-dump header —
    whether the request was project-name-only or a full body paste.
-1. **Resolve slug.** Derive from the confirmed value (per "Decide what the input is" above). Confirm with
-   the user before creating any files.
+1. **Resolve slug.** Derive from the confirmed value (per "Decide what the input is" above). **Validate it
+   against `^[a-z0-9][a-z0-9-]*$` before any path use** — if it doesn't match (e.g. contains `..`, `/`,
+   uppercase, or a leading `-`), re-derive or ask the user; never run a collision check or create a folder
+   with an unvalidated slug. Confirm with the user before creating any files.
 2. **Check collision.** If `specs/<slug>/` already exists, stop and ask whether to overwrite, append, or pick a new slug.
 3. **Create folder:** `specs/<slug>/`.
 4. **Initialize state object** at `specs/<slug>/spec-state.json`. First `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <slug>` — this is the ONE sanctioned file-creation step; never a raw Bash `cp`, which the PreToolUse guard hook denies unconditionally (no path-based allowlist can be made safe against command substitution). Then make **every** subsequent write through the same CLI; never hand-edit the file (Edit/Write are hook-denied, and bash redirection / `sed` is prohibited):

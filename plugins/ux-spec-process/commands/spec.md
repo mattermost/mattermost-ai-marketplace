@@ -11,6 +11,7 @@ Resolve `$ARGUMENTS` to a project slug under `specs/` (exact match → fuzzy →
 - `specs/<slug>/02-research-brief.md` exists
 - `specs/<slug>/03-prd.md` exists
 - `specs/<slug>/04-solution-directions.md` exists
+- `specs/<slug>/05-flow-audit.md` exists
 - `specs/<slug>/06-prototype-options.md` exists (the selected option should be noted; if not, ask the user which option was chosen)
 - `specs/<slug>/spec-state.json` exists
 

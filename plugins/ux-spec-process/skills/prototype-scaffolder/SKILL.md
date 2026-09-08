@@ -10,7 +10,7 @@ tags: [prototype, scaffolding, react, typescript, vite, defense-ux]
 
 ## Purpose
 
-The Prototype Scaffolder generates the complete file structure for a new prototype page in the sandbox project `prototype-playground/mattermost-proto-playground` (the sole prototype build target). It creates the page directory with TSX component, SCSS module, optional sub-component directories, and registers the page in the `PROTOTYPES` array in `src/manifests/prototypes.ts`. This ensures every prototype page follows the established pattern used by existing pages (e.g., `example-flow/`), reducing setup time and preventing structural inconsistencies across prototype screens.
+The Prototype Scaffolder generates the complete file structure for a new prototype page in the sandbox at `meta.prototype_root` (a clone of https://github.com/mattermost/mattermost-proto-playground). It creates the page directory with TSX component, SCSS module, optional sub-component directories, and registers the page in the `PROTOTYPES` array in `src/manifests/prototypes.ts`. If the sandbox already has pages, glob `<meta.prototype_root>/src/pages/` and mirror a real one; if not, use the template in this skill. If `meta.prototype_root` is unset or missing, stop — do not guess a path.
 
 ## When to Use
 
@@ -99,12 +99,12 @@ The Prototype Scaffolder generates the complete file structure for a new prototy
 
 ## System Prompt
 
-You are a code scaffolding agent for the sandbox project `prototype-playground/mattermost-proto-playground` (the sole prototype build target). Your job is to create the complete file structure for a new prototype page following established project conventions.
+You are a code scaffolding agent for the sandbox at `meta.prototype_root` (the sole prototype build target). Your job is to create the complete file structure for a new prototype page following that project's conventions.
 
 **Before scaffolding, confirm the real conventions at runtime** — they drift and must not be assumed:
-- The component inventory: `ls prototype-playground/mattermost-proto-playground/src/components/ui` (and `layout`, `navigation`). Boilerplate must import only components that appear here.
+- The component inventory: `ls <meta.prototype_root>/src/components/ui` (and `layout`, `navigation`). Boilerplate must import only components that appear here.
 - The registration manifest: read `src/manifests/prototypes.ts` to see the current `PrototypeEntry` shape and the existing `PROTOTYPES` array before adding an entry.
-- A real starter page to mirror: read `src/pages/example-flow/ExampleFlow.tsx` (and its `.module.scss`) for the canonical minimal page shape.
+- If `src/pages/` already has pages, read one existing page + its `.module.scss` for the current shape. If the sandbox is empty, use the template in Step 3.
 
 ### SCAFFOLDING PROCESS
 
@@ -127,7 +127,7 @@ src/pages/{PageName}/
 ```
 
 **Step 3: Generate Main Page Component ({PageName}.tsx)**
-Mirror the minimal shape of `src/pages/example-flow/ExampleFlow.tsx`. There is **no dedicated back-button primitive** in this project — do not import one from a `nav/` path (it does not exist and will break the build). The app shell provides chrome/back navigation around the routed page. If a page genuinely needs in-page back navigation, use `useNavigate`/`<Link>` from `react-router-dom` (as real pages like `DataSpillageDelivered/RemoveFlow.tsx` do) — verify the import before using it.
+Use the template below (or mirror an existing sandbox page if one is present). There is **no dedicated back-button primitive** — do not import one from a `nav/` path. The app shell provides chrome/back navigation around the routed page. If a page genuinely needs in-page back navigation, use `useNavigate`/`<Link>` from `react-router-dom` and verify the import exists before using it.
 
 ```tsx
 import styles from './{PageName}.module.scss';
@@ -240,7 +240,7 @@ src/pages/{FeatureName}Options/
   ...
 ```
 
-The index page follows the multi-option index pattern used by existing option sets in the repo (e.g. `src/pages/dpc/` with its `comparison/` index, or `PBEFinalDesignV2`). Read a current example before scaffolding — do not assume a `PBEApproaches/PBEIndex.tsx` file exists. The index typically has:
+The index page follows the multi-option pattern in this skill. If the sandbox already has a multi-option set, glob `src/pages/` and mirror it; otherwise use the typical shape below. Do not require any named example page to exist. The index typically has:
 - Array of approach objects with `path`, `name`, `title`, `philosophy`, `recommended`, `states`
 - Card grid layout linking to per-option routes
 - "Recommended" badge on the preferred option

@@ -150,7 +150,7 @@ Markdown document with verdict, existing-usage table, conflict analysis, alterna
 **Input:**
 - Proposed: `star-outline` icon
 - Intended semantic: "Recommended channel"
-- Audit target: mattermost-proto-playground codebase
+- Audit target: the sandbox at `meta.prototype_root`
 - Context: Browse Channels modal channel list
 
 **Output:**

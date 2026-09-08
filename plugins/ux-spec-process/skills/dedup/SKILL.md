@@ -32,7 +32,7 @@ Before writing **each** body section of any phase artifact. Run it as a per-sect
 
    > **<Topic> →** see [Phase N § <Section>](../<N>-<artifact>.md#<anchor>) — *"<≤15-word direct quote of the key claim>"*
 
-   The blockquote is **one line**. The quote anchors the gist inline (~10–15 words of evidence); the link offers the depth. Link by stable phase + anchor so the reader can click through for the long version. In rendered markdown and Confluence this shows as a stylized blockquote with a backlink; in `spec.html` the same blockquote pattern is reused for visual consistency.
+   The blockquote is **one line**. The quote anchors the gist inline (~10–15 words of evidence); the link offers the depth. Link by stable phase + anchor so the reader can click through for the long version. In rendered markdown and Confluence this shows as a stylized blockquote with a backlink.
 
 4. **NEW content gets the words.** Frame each section around what THIS phase contributes — requirements, threat vectors, evaluation rationales, flow diagrams, edge cases, behavior — with upstream citations as backing context, not as re-explained preamble. Never open a section by paraphrasing an earlier phase as your own framing.
 

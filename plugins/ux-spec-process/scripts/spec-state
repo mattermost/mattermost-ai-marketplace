@@ -73,6 +73,14 @@ def validate_slug(slug):
 
 def state_path(slug):
     validate_slug(slug)
+    # Text validation blocks '..' and '/', but a valid-looking slug whose
+    # specs/<slug> directory is a symlink can still resolve outside SPECS_DIR.
+    # Resolve both paths and reject anything escaping the canonical base.
+    base = os.path.realpath(SPECS_DIR)
+    candidate = os.path.realpath(os.path.join(SPECS_DIR, slug))
+    if base != candidate and os.path.commonpath([base, candidate]) != base:
+        die("slug %r resolves outside the specs workspace (symlink escape) — "
+            "rejecting" % slug)
     return os.path.join(SPECS_DIR, slug, "spec-state.json")
 
 
@@ -290,11 +298,17 @@ def cmd_bootstrap(args):
     """
     validate_slug(args.slug)
     path = state_path(args.slug)
-    if os.path.exists(path):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    # O_EXCL makes the existence check and creation one atomic step, closing the
+    # TOCTOU race where two concurrent bootstraps both pass a separate exists()
+    # check and the later copy truncates the first file.
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+    except FileExistsError:
         die("spec-state.json already exists for slug %r at %s — bootstrap is "
             "for new specs only; use apply-delta to modify it" % (args.slug, path))
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    shutil.copyfile(TEMPLATE_PATH, path)
+    with os.fdopen(fd, "wb") as dst, open(TEMPLATE_PATH, "rb") as src:
+        shutil.copyfileobj(src, dst)
     print("OK: bootstrapped %s from %s" % (path, TEMPLATE_PATH))
 
 

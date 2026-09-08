@@ -142,7 +142,7 @@ machine). Therefore **every entry path must have a `spec-state.json` before any 
 
 ## Available agents (subagent names)
 
-Models are **inherited from the session** — no per-agent model is pinned here. Record the active model in each phase's `phase_started` audit entry (`details.model`).
+Phase agents are pinned to **`sonnet`** except `prototype-agent`, which inherits the session model. Record the active model in each phase's `phase_started` audit entry (`details.model`).
 
 - `discovery-agent` (Phase 1) — brain dump → Problem Statement
 - `research-agent` (Phase 2) — standards + competitive intel → Research Brief
@@ -154,71 +154,6 @@ Models are **inherited from the session** — no per-agent model is pinned here.
 
 Phase 8 (publication to Confluence) has no agent — it is handled by the `spec-publish` command flow and the
 `spec-updater` skill, both under explicit user confirmation.
-
-## HTML review surface (runs across every phase)
-
-Phase agents invoke the `html-spec-renderer` skill to produce/update HTML review artifacts:
-`specs/<spec-id>/spec.html` (master living surface) plus per-phase artifacts and the per-spec
-`specs/<spec-id>/verify-board.html`. HTML is the *review surface*; markdown remains canonical for
-Confluence publication. Re-render the affected spec's `spec.html` and `verify-board.html` whenever a
-VERIFY item is added, resolved, or deferred — or after you apply a pasted verify-board payload.
-
-## VERIFY-BOARD PAYLOAD INGESTION
-
-Each spec has its own `specs/<spec-id>/verify-board.html` — a per-spec kanban tracking that spec's VERIFY
-items. When the user drags items between columns and clicks "Copy for agent ↗", they paste a
-`verify-board-payload` block into chat. Ingest it and update spec state mechanically.
-
-Recognize the payload by its code-fence language tag: ```verify-board-payload (followed by a JSON block).
-The schema is documented in the `html-spec-renderer` skill (module 16).
-
-**Schema version handling:**
-- **v2 (current, per-spec):** top-level `spec_id` identifies the affected spec; per-item `phase` is just `P<N>`.
-- **v1 (legacy, cross-spec):** per-item `phase_ref` is `<spec-id>/P<N>`; no top-level `spec_id`. Parse as fallback.
-
-**Step 1 — Identify the affected spec:**
-- For v2: read `spec_id` from the top of the payload. If the value doesn't match any folder in `specs/`,
-  surface the failure with the offered candidates and skip ingestion.
-- For v1: parse `phase_ref` per item; group items by spec; process each group independently.
-
-**Pilot payload guard:** if `spec_id === "pilot-demo-aggregate"` OR any item carries a `_pilot_source_spec`
-field, recognize this as the pilot demonstration board and refuse to apply. Respond: *"This looks like a
-payload from the pilot multi-spec demo. The production model is one verify-board per spec; regenerate from a
-real per-spec board to apply changes."* Do not write to any spec state.
-
-For each entry in `pending_changes`:
-
-1. Confirm the spec folder exists at `specs/<spec_id>/`. If not, surface the failure and skip the entry —
-   never silently drop.
-2. Locate the VERIFY item in `specs/<spec_id>/spec-state.json::context.open_questions[]` by `id`. If the id
-   is not found, surface as an unknown-id failure and skip.
-3. Map the `to` column to the `update-question` flags (the CLI self-stamps `resolved_at`; the human move-time
-   is recorded separately by the audit entry in step 5):
-   - `verify-pm`  → `--status open --owner pm`
-   - `verify-eng` → `--status open --owner eng`
-   - `resolved`   → `--status resolved --resolution "<comment>"`
-   - `deferred`   → `--status deferred --resolution "<comment>"` (the CLI **rejects** this on a `blocker=true`
-     item — a blocker must be decided or branched, never deferred; see the decide-or-fork rule below)
-4. Apply the change in place: `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state update-question <spec_id> --id <V-id> …`. The CLI locates
-   the entry by exact id (unknown id → reject), updates only the given fields, and preserves the rest (text,
-   blocker, phase_ref, raised_at). A move to `resolved` pairs with `verify_item_resolved`; other moves pair
-   with `verify_item_moved` (step 5).
-5. Append the audit entry via the CLI (it stamps the ISO-8601 `timestamp` itself; the payload's `moved_at`
-   is preserved as a non-timestamp `moved` field inside `--details` because a `*_at` key would be rejected):
-   ```bash
-   ${CLAUDE_PLUGIN_ROOT}/scripts/spec-state log-event <spec_id> --event verify_item_moved --phase <N> --actor human \
-     --details '{"id":"<V-id>","from":"<from>","to":"<to>","comment":<comment|null>,"moved":"<moved_at ISO>","source":"verify-board-payload"}'
-   ```
-   (Use `--event verify_item_resolved` when `to` is `resolved`.)
-6. After all entries are applied, re-render the affected spec's `spec.html` AND its
-   `specs/<spec_id>/verify-board.html` so the local board reflects the now-authoritative state on next reload.
-
-Report back to the user: number applied, any failures (with reason), affected spec(s), and confirmation that
-the local board can be reset to clear the `.has-pending` indicators.
-
-Do not auto-apply if a `pending_changes` entry has an empty comment AND the move is from a verify-* column to
-`deferred`. Surface those and ask for confirmation before deferring without rationale — "deferred with no
-reasoning" is exactly the failure mode the `[VERIFY WITH PM]` discipline is designed to prevent.
 
 ## COMPLEXITY TIER → CEREMONY (read `meta.complexity_tier` first, then run the phase)
 
@@ -272,7 +207,7 @@ all tiers.
 
 When the Phase 1 intake round resolves (per the two-stage clarification gate) and **before you accept the
 Problem Statement artifact**, write `scope_lock` from the resolved clarifications:
-- `complexity_tier` ← `meta.complexity_tier`
+- `complexity_tier` ← the tier resolved in the Phase-1 intake. If it differs from `meta.complexity_tier` (e.g. an auto-bootstrapped spec still carrying the template default `"Tier 1 — Full Spec"`), first `apply-delta` `meta.complexity_tier` to the resolved value and `log-event --event tier_set` — before writing scope_lock, so a bootstrap default never drives tier-scoped phase/gate selection.
 - `scope_summary`, `in_scope[]`, `out_of_scope[]` ← from the intake answers / problem statement
 - `surface_count` ← how many UI surfaces/screens the feature is expected to touch (drives Phase 5/6 effort)
 - `comparator_count` ← how many competitor platforms Phase 2 will analyze / how many solution approaches
@@ -417,8 +352,12 @@ When `phase.current == 6`:
 - After Stage 1 + Stage 2 pass, invoke `prototype-agent` to build **one conceptually distinct design-option
   prototype per carried-forward direction** (count = `len(gates.phase_4.carried_forward[])`, recorded at Gate 4
   approval) plus an option comparison matrix following the multi-option pattern.
-- The build target is the sandbox `prototype-playground/mattermost-proto-playground`. Component references
-  must be enumerated from the live sandbox inventory at build time, not from a hardcoded list.
+- The build target is `meta.prototype_root` (a clone of
+  https://github.com/mattermost/mattermost-proto-playground). Resolve it before invoking this
+  agent: use the stored path if the directory exists; otherwise find an existing clone or ask the
+  user to clone that repo and give the path; persist the result to `meta.prototype_root`. Component
+  references must be enumerated from `<meta.prototype_root>/src/components/` at build time, not
+  from a hardcoded list. Never write into `mattermost/` or `mattermost-blocks-prototype/`.
 - Gate 6 approval requires the user to select a preferred option; record it in `gates.phase_6.selected_option`
   (and mirror to `artifacts.prototype.selected_option`).
 - The code prototype is the primary design artifact. There is no Phase 6b.
@@ -429,7 +368,7 @@ When `phase.current == 6`:
 
 - `spec new [problem_brief]` — initialize a new spec: bootstrap `spec-state.json` via
   `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state bootstrap <slug>` (never Bash `cp`), then via the CLI `apply-delta` set `phase.current = 0`,
-  `phase.status = "initialized"`, `phase.run_status = "active"`, store the brief in `artifacts.brain_dump_raw`, and `log-event --event spec_created`
+  `phase.status = "initialized"`, `phase.run_status = "active"`, store the brief in `artifacts.brain_dump_raw` **and write it to `specs/<slug>/00-brain-dump.md`** (a normal file write, not the guarded state file — so `/discover`'s non-empty brain-dump precondition is satisfied), and `log-event --event spec_created`
   (the CLI stamps the timestamp). **Set `meta.complexity_tier`** (via `apply-delta`) per the parent
   `defense-ux-context` tier definitions (default Tier 2 if unstated; confirm with the user) and `log-event --event tier_set`.
   If Tier 3, also capture the parent spec into

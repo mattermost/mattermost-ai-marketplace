@@ -85,7 +85,6 @@ Never cite a bare internal code that forces the reader to look it up elsewhere. 
 
 - **Inline gloss (default):** write `FR-10 (admins bulk-assign attributes by policy)`, not `FR-10`. Same for edge cases, threats, and controls: `EC-21 (offline token expiry mid-mission)`, `AC-2 (account management)`.
 - **Stable IDs across phases:** a requirement keeps the same ID from PRD → flow → spec, so any citation resolves to a single definition. Assign IDs once (in the PRD) and reuse them downstream.
-- **In HTML artifacts:** render the ID as a hover/expand that reveals the full text (the `html-spec-renderer` surface does this); the markdown still carries the inline gloss so it reads correctly without the HTML.
 - **Rule of thumb:** a reader skimming one section should never have to scroll to a glossary or open another file to understand a cited code.
 
 ---

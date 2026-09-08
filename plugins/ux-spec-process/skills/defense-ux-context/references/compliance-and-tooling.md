@@ -51,7 +51,7 @@ deliberately at Gate 4 controls downstream build cost.
 `design-system-conflict-checker`, `flow-generator`, `flow-auditor`, `feedback-synthesizer`,
 `prototype-scaffolder`, `component-composer`, `state-matrix-builder`, `option-builder`,
 `option-presenter`, `section-writer`, `edge-case-hunter`, `traceability-checker`, `ux-copy-reviewer`,
-`spec-updater`, `clarification-protocol`, `artifact-frontmatter`, `dedup`, `html-spec-renderer`,
+`spec-updater`, `clarification-protocol`, `artifact-frontmatter`, `dedup`,
 `defense-ux-context` (this skill).
 
 ### Templates

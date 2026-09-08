@@ -52,15 +52,11 @@ Individual phases can also be driven directly: `discover`, `research`, `prd`, `i
   Confluence (draft-only, gated behind explicit confirmation). When absent, the pipeline runs entirely on
   local/manual inputs and `spec-publish` is unavailable. The agents use whatever Atlassian MCP is
   connected — no tool names are hardcoded.
-- **Prototype sandbox** — used for **Phase 6 only**. Prototypes are built in a component sandbox at the
-  workspace-relative path `meta.prototype_root` (default `prototype-playground/mattermost-proto-playground/`).
-  Point `meta.prototype_root` at your own prototyping sandbox if it lives elsewhere. Phases 1–5 and 7 run
-  without it.
-- **Mermaid CLI (`mmdc`, from `@mermaid-js/mermaid-cli`)** — used by `html-spec-renderer` to pre-render the
-  Phase 5 flowchart (and any other Mermaid diagram in the HTML living surface) to inline SVG at generation
-  time, which the air-gap/IL-honest rules require. When `mmdc` is unavailable, `html-spec-renderer`
-  automatically falls back to a hand-authored inline-SVG pattern — no diagrams are skipped, but authoring
-  them by hand is more effort than letting `mmdc` generate them from Mermaid source.
+- **Prototype sandbox** — used for **Phase 6 only**. Prototypes are built in a clone of
+  [mattermost-proto-playground](https://github.com/mattermost/mattermost-proto-playground). The path is
+  stored in `meta.prototype_root` (typical: `prototype-playground/mattermost-proto-playground/`). If a
+  clone already exists, Phase 6 uses it or asks you for the path; if not, it pauses and tells you to
+  clone that repo. Phases 1–5 and 7 run without it.
 
 ## How it's wired
 

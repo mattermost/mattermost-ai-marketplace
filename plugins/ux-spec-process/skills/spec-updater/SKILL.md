@@ -257,9 +257,9 @@ Step 6: Resolve inline comments (if feedback came from comments)
 
 ---
 
-## Markdown → Confluence Export (Phase 7/8 end-state specs & final proposals ONLY)
+## Markdown → Confluence Export (Phase 7 spec & Phase 8 maintenance ONLY)
 
-This is the conversion contract for getting a finished spec out of markdown and into Confluence. It applies to **END-STATE artifacts only** — the canonical Phase-7 spec (`07-spec.md`) and final proposals. **Pre-spec artifacts (Phases 1–6) never go to Confluence** — their shareable surface is the `html-spec-renderer` living surface (per the `defense-ux-context` skill's Output Rules). The internal validation siblings (`07-spec-edge-cases.md`, `07-spec-traceability.md`) and generated HTML views (`spec.html`, `traceability-heatmap.html`) are **not** published — only `07-spec.md` publishes.
+This is the conversion contract for getting a finished spec out of markdown and into Confluence. The publish allowlist is exactly two things: the canonical Phase-7 spec (`07-spec.md`) and Phase-8 maintenance updates to it. **Nothing else publishes.** Pre-spec artifacts (Phases 1–6) and the internal validation siblings (`07-spec-edge-cases.md`, `07-spec-traceability.md`) stay **local** — only `07-spec.md` publishes.
 
 ### Conversion approach: markdown → Confluence storage format
 
@@ -279,7 +279,7 @@ Confluence stores pages as **XHTML "storage format,"** not markdown. Two support
 | Callouts / admonitions (BLUF, `[VERIFY WITH PM]`, blockers) | `<ac:structured-macro ac:name="info">` / `name="note"` / `name="warning"` | BLUF → `info`; `[VERIFY WITH PM]` and open questions → `note`; P1 blockers → `warning`. Pin these near the top so the skim layer survives. |
 | Status badges (P1/P2/P3, draft) | `<ac:structured-macro ac:name="status">` with a `colour` + `title` param | Always pair colour with the text title (P1/P2/P3) — never colour alone (carries the WCAG color+text rule into Confluence). |
 | Links (Figma, sibling specs, Jira) | `<a href="…">` or `<ac:link>` for intra-Confluence | Figma/external → plain `<a>`. Cross-spec → `<ac:link><ri:page ri:content-title="…"/></ac:link>`. |
-| Images / diagram exports | `<ac:image><ri:attachment ri:filename="…"/></ac:image>` | Phase-5 flow SVGs that need to appear in Confluence are attached as image exports (PNG/SVG) — Confluence does not render the interactive HTML. The interactive flowchart stays in the HTML living surface; Confluence gets a static export. |
+| Images / diagram exports | `<ac:image><ri:attachment ri:filename="…"/></ac:image>` | Any diagram or image that the published `07-spec.md` references is attached as an image export (PNG/SVG) — Confluence renders the static attachment. |
 
 Round-trip rule: read the existing page with `contentFormat: "markdown"`, edit in markdown, write back via the markdown representation when path (1) is lossless; switch to storage-format XHTML only for the blocks in the table that need it. Locate sections by heading text (never a fixed number), per the system prompt.
 

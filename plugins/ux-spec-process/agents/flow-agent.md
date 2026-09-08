@@ -38,7 +38,7 @@ Emit the two-layer skim block as the FIRST thing in the flow review by invoking 
 
 DEDUP — CITE, DON'T RESTATE:
 
-Before writing each body section, invoke the `dedup` skill (via the Skill tool). The Phase 5 flow review is the second-heaviest text-bloat offender (39K+ words observed), so this pass is load-bearing. Phase-specific failure mode: routing logic that appears as 6+ prose paragraphs MUST be expressed as a Mermaid decision tree plus a branch table — the prose form is a dedup failure. The Mermaid source is pre-rendered to inline SVG via `mmdc` for the HTML artifact (Task 7b) — never shipped as a runtime CDN diagram. ASCII mockups are NEW content and belong inline, but the routing prose around them is duplicative of the diagram — favor the diagram. Flow diagrams, state matrices, per-story coverage, security findings (P1/P2/P3 per conventions.md §1), and copy decisions are Phase 5's NEW content — those get the words. Per conventions.md §5, gloss every requirement/edge-case code inline (`FR-26 (member channel-header indicator)`), never bare. Dedup quality is enforced at gate review.
+Before writing each body section, invoke the `dedup` skill (via the Skill tool). The Phase 5 flow review is the second-heaviest text-bloat offender (39K+ words observed), so this pass is load-bearing. Phase-specific failure mode: routing logic that appears as 6+ prose paragraphs MUST be expressed as a Mermaid decision tree (a fenced ```mermaid block in the markdown) plus a branch table — the prose form is a dedup failure. ASCII mockups are NEW content and belong inline, but the routing prose around them is duplicative of the diagram — favor the diagram. Flow diagrams, state matrices, per-story coverage, security findings (P1/P2/P3 per conventions.md §1), and copy decisions are Phase 5's NEW content — those get the words. Per conventions.md §5, gloss every requirement/edge-case code inline (`FR-26 (member channel-header indicator)`), never bare. Dedup quality is enforced at gate review.
 
 YOUR TASKS (In Order):
 0. Intake Clarification: Run Step 0 above — surface questions and PAUSE before any audit work
@@ -48,17 +48,7 @@ YOUR TASKS (In Order):
 4. Navigation Consistency Review: Validate UI patterns, IA, wayfinding — per carried-forward direction
 5. Feedback Disposition: apply the (a)/(b)/(c) procedure
 6. Issue Categorization: Organize by severity (P1/P2/P3 per `conventions.md` §1 — the single severity scale; display synonyms MUST-FIX/SHOULD-FIX/NICE-TO-HAVE are optional labels for the same tiers)
-7. Review Package Generation: Produce comprehensive feedback document — emit the `artifact-frontmatter` skim layer at the top, then write the body with the `dedup` pass per section
-8. HTML Rendering: Invoke the `html-spec-renderer` skill ONCE PER MAJOR FLOW.
-   (a) For each major flow with branching logic, generate a standalone `phase-5-flow/{flow-name}.html` using the **interactive flowchart pattern** defined in the `html-spec-renderer` skill (Module 15): SVG flowchart with clickable nodes + sticky side panel that updates on click. Node variants: term (oat rounded), gate (diamond), ok (olive tint), warn (clay tint), bad (rust tint). Edge variants: solid gray, olive (yes), dashed dark (no). FR coverage strip below. Follow the reference pattern in the `html-spec-renderer` skill rather than any one project's instance file.
-   (b) **The flowchart MUST be pre-rendered to inline `<svg>` — never a runtime Mermaid CDN script.** This is the IL5/air-gap hard rule from `html-spec-renderer` §4 (the `cdn.jsdelivr` Mermaid loader is an automatic render failure). Concrete build step at render time, not view time:
-       - Author the routing logic as Mermaid source: `specs/{feature-id}/phase-5-flow/{flow-name}.mmd`
-       - Pre-render to SVG: `mmdc -i {flow-name}.mmd -o {flow-name}.svg`
-       - Inline the `<svg>…</svg>` contents directly into `{flow-name}.html` (no `<img src>`, no external ref).
-       - If `mmdc` is unavailable, fall back to the hand-authored SVG node/edge pattern (Module 15) — do NOT ship a CDN Mermaid loader as a stopgap.
-       - The emitted file must grep clean for `mermaid` / `jsdelivr` / `<script src` (zero hits).
-   (c) **DO NOT** write multi-paragraph prose routing descriptions. The flowchart + side panel + branch table replaces the prose. This is enforced by dedup pass — the prose form is a dedup failure mode.
-   (d) Update the master `spec.html` Phase 5 collapsible with: per-story flow coverage badges, security findings P1/P2/P3 panel, links to the standalone flow-diagram HTMLs.
+7. Review Package Generation: Produce comprehensive feedback document — emit the `artifact-frontmatter` skim layer at the top, then write the body with the `dedup` pass per section. Express flow routing as compact markdown (a branch table or step list per flow), not multi-paragraph prose — the `dedup` pass treats prose routing as a failure mode.
 
 SKILL INVOCATIONS (in sequence):
 1. artifact-frontmatter: emits the 60-second skim layer at the top of the flow review

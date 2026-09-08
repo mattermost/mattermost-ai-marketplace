@@ -10,7 +10,7 @@ tags: [prototype, options, design-exploration, phase-6, decision-aid]
 
 ## Purpose
 
-The Option Builder translates Phase 4 solution direction approaches into concrete, buildable prototype options within the sandbox `prototype-playground/mattermost-proto-playground` (the sole prototype build target). Each option is a distinct UX approach rendered as a full interactive page, following the repo's established multi-option pattern (index page + per-option pages + shared directory). Mirror a current example in the repo (e.g. `src/pages/dpc/` with its `comparison/` index, or `PBEFinalDesignV2/`) — read it first, since exact file names drift.
+The Option Builder translates Phase 4 solution direction approaches into concrete, buildable prototype options in the sandbox at `meta.prototype_root` (a clone of https://github.com/mattermost/mattermost-proto-playground). Each option is a distinct UX approach rendered as a full interactive page, following a multi-option pattern (index page + per-option pages + shared directory). If the sandbox already has a multi-option page set, glob `<meta.prototype_root>/src/pages/` and mirror its real structure; if not, use the typical shape below. Do not require any named example page to exist. If `meta.prototype_root` is unset or missing, stop — do not guess a path.
 
 This skill is the entry point for Phase 6. It defines the option structure, creates the directory scaffold, and sets up the index page that serves as the decision-making surface for stakeholders.
 
@@ -72,13 +72,11 @@ This skill is the entry point for Phase 6. It defines the option structure, crea
 
 ## System Prompt
 
-You are an option builder for the sandbox project `prototype-playground/mattermost-proto-playground` (the sole prototype build target). You create multi-option prototype structures following the repo's established multi-option pattern.
+You are an option builder for the sandbox at `meta.prototype_root` (the sole prototype build target — a clone of https://github.com/mattermost/mattermost-proto-playground). You create multi-option prototype structures following that repo's multi-option pattern.
 
 ### CANONICAL PATTERN REFERENCE
 
-There is no fixed canonical directory — **read a current multi-option page in the repo before scaffolding** and mirror its real structure. Good current references (verify they still exist; do not assume file names):
-- `src/pages/dpc/` — per-option subdirs (`a1/`, `a2/`, …) + a `comparison/` index + a `shared/` directory with `fixtures.ts`
-- `src/pages/PBEFinalDesignV2/` — `shared/fixtures.ts` + per-option content
+There is no fixed canonical directory. If the sandbox has an existing multi-option page set, glob `src/pages/` and mirror its real structure. If not, use the typical shape below. Do not require any named example page to exist.
 
 The typical shape (names vary by feature):
 
@@ -98,7 +96,7 @@ src/pages/{FeatureSlugOrName}/
   OptionC.tsx               — ...
 ```
 
-Compose option content only from components confirmed present in the runtime inventory (`ls prototype-playground/mattermost-proto-playground/src/components/ui`), imported as default exports from `@/components/ui/<Name>/<Name>`.
+Compose option content only from components confirmed present in the runtime inventory (`ls <meta.prototype_root>/src/components/ui`), imported as default exports from `@/components/ui/<Name>/<Name>`.
 
 ### CREATION PROCESS
 
@@ -127,7 +125,7 @@ Mirror a current option-index page in the repo (read it first):
 - Cards link to per-option routes
 
 **Step 3: Generate shared fixtures**
-- Create `shared/fixtures.ts` with demo data relevant to the feature, modeled on an existing `shared/fixtures.ts` in the repo (e.g. `src/pages/dpc/shared/fixtures.ts`)
+- Create `shared/fixtures.ts` with demo data relevant to the feature. If the sandbox already has a `shared/fixtures.ts` under some page, mirror its shape; otherwise define a minimal typed fixtures module.
 - Define user personas inline in the fixtures file — there is no `@/fixtures/demoUsers` module; reuse an existing feature's fixtures shape instead
 - Define feature-specific data structures
 

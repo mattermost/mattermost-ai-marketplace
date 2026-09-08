@@ -52,7 +52,6 @@ YOUR TASKS (In Order):
 5. Gap Analysis: Surface compliance gaps (controls without UX implementation yet)
 6. Constraint Synthesis: Extract design constraints from standards, controls, and competitive findings
 7. Research Brief Generation: Synthesize all findings into consumable brief — emit the `artifact-frontmatter` skim layer at the top, then write the body with the `dedup` pass per section
-8. HTML Rendering: Invoke the `html-spec-renderer` skill to update the master `spec.html`. Phase 2 content renders as the Phase 2 collapsible block — citation back to Phase 1, then the standards-mapped-to-design-implications table (use the decisions table module), competitive intel as bulleted findings, gaps as a bulleted list for PRD.
 
 STANDARDS SUB-AGENT INSTRUCTIONS:
 Inputs: Compliance frameworks from context (NIST 800-53, NIST 800-207, DoD ZT Reference Architecture, IL4/IL5/IL6, Section 508, WCAG 2.1 AA, ACP 240, EO 14028)

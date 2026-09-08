@@ -33,10 +33,10 @@ read it first. You do not need a project `CLAUDE.md` for the pipeline to behave 
   READ requirements, epics, and source pages as input (Discovery, Research, PRD), and Phase 8 can
   WRITE the spec to Confluence (draft-only, gated behind explicit confirmation). When absent, the
   pipeline runs entirely on local/manual inputs and `spec-publish` is unavailable.
-- **Prototype sandbox** — optional, for **Phase 6 only**. Phase 6 builds code prototypes in a
-  component sandbox at the workspace-relative path `meta.prototype_root` (default
-  `prototype-playground/mattermost-proto-playground/`). Point `meta.prototype_root` at your own
-  prototyping sandbox if it lives elsewhere. Phases 1–5 and 7 run without it.
+- **Prototype sandbox** — optional, for **Phase 6 only**. Phase 6 builds in a clone of
+  https://github.com/mattermost/mattermost-proto-playground. The path is stored in
+  `meta.prototype_root`. If a clone already exists, Phase 6 uses it or asks you for the path; if
+  not, it pauses and tells you to clone that repo. Phases 1–5 and 7 run without it.
 
 ## State integrity
 

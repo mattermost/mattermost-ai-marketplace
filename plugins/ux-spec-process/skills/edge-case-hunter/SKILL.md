@@ -165,7 +165,7 @@ doesn't address what happens when a user loses admin permissions mid-operation" 
       "example": "IL5"
     }
   },
-  "required": ["spec_draft", "feature_domain"]
+  "required": ["spec_draft", "feature_domain", "mission_tier"]
 }
 ```
 

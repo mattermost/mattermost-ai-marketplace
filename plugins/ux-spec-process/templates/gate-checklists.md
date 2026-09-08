@@ -201,7 +201,7 @@ Bypasses are permanently recorded in the audit log and visible in the spec's Key
 | 5.7 | Mobile flows documented or explicitly marked desktop-only | all | REQUIRED | Mobile coverage check |
 | 5.8 | Feedback disposition recorded in the Phase-5 artifact and gate-approval note — one of: (a) real feedback synthesized with source refs; (b) synthetic persona-lens critique labeled [SYNTHETIC — persona-lens, not stakeholder input]; (c) none, with one-line reason. Inferring stakeholder feedback from artifact content alone is prohibited. | T1–T2 | REQUIRED | Disposition (a)/(b)/(c) recorded — never inferred |
 | 5.9 | All MUST-FIX feedback items resolved | all | REQUIRED | Zero unresolved MUST-FIX |
-| 5.10 | Flow definitions present for EVERY carried-forward direction (generated via flow-generator or designer-provided), rendered per the Mermaid/inline-SVG rule (Tier 3: scoped to the changed flows only) | all | REQUIRED | Flow-definition set present per direction in `gates.phase_4.carried_forward[]` |
+| 5.10 | Flow definitions present for EVERY carried-forward direction (generated via flow-generator or designer-provided), expressed as Mermaid decision-tree source + branch table (Tier 3: scoped to the changed flows only) | all | REQUIRED | Flow-definition set present per direction in `gates.phase_4.carried_forward[]` |
 
 **Gate Decision Criteria:**
 - The decide-or-fork checkpoint (5.0a) runs *before* Phase 5 intake — a load-bearing `[VERIFY WITH PM]` blocker must be **decided or explicitly branched into a named sibling spec**, never deferred into a silent fork.

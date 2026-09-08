@@ -55,17 +55,7 @@ For each phase:
 
 2. **Run the phase.** Invoke the orchestrator with the phase directive. Commands complete without blocking on gate sign-off (async approval); never start the next phase without approval. The orchestrator appends a `phase_started` event (real ISO timestamp) on entry and `phase_completed` on a clean validation.
 
-3. **Render HTML artifacts (advisory-failable).** Invoke the `html-spec-renderer` skill to:
-   - Generate / update the per-phase HTML artifact per the pattern matrix in the `html-spec-renderer` skill (e.g., Phase 4 → `04-options.html` side-by-side comparison; Phase 5 → `phase-5-flow/<flow>.html` interactive flowcharts; Phase 6 → `prototype-tour.html`).
-   - Regenerate the master `spec.html` to incorporate the new phase block.
-   - Update `verify-board.html` if the phase produced new `[VERIFY WITH PM]` items.
-   - On Phase 7 completion, also produce / refresh `traceability-heatmap.html`.
-
-   This step is **advisory-failable**: if the skill errors or is unavailable, log the failure as a phase warning and continue to the checkpoint — do not block the phase loop. Surface "HTML render: ok | skipped (reason) | failed (reason)" in the checkpoint summary's Warnings line.
-
-   Skip this step entirely for `redo` and `skip next` choices that have not yet produced a new artifact.
-
-4. **Checkpoint after the phase.** Print:
+3. **Checkpoint after the phase.** Print:
    ```
    ─────────────────────────────────────────
    Phase <N> complete: <phase name>
@@ -86,9 +76,9 @@ For each phase:
      [q] quit            → exit without further changes
    ```
 
-5. **Wait for explicit affirmative.** Accept single-letter shortcuts (`c`, `p`, `r`, `e`, `s`, `q`) or the full word. Do **not** accept "ok", "sure", or implied consent. On any unrecognized input, re-prompt.
+4. **Wait for explicit affirmative.** Accept single-letter shortcuts (`c`, `p`, `r`, `e`, `s`, `q`) or the full word. Do **not** accept "ok", "sure", or implied consent. On any unrecognized input, re-prompt.
 
-6. **Handle the choice** (every state mutation gets a **typed audit event** from the closed vocabulary in `spec-state-object.json::$conventions.audit_event_vocabulary`, with a **real ISO-8601 timestamp** — never `{action: ...}` ad-hoc shapes or `T00:00:0N` placeholders):
+5. **Handle the choice** (every state mutation gets a **typed audit event** from the closed vocabulary in `spec-state-object.json::$conventions.audit_event_vocabulary`, with a **real ISO-8601 timestamp** — never `{action: ...}` ad-hoc shapes or `T00:00:0N` placeholders):
    - **continue** → proceed to Phase N+1
    - **pause** → set `phase.run_status = "paused"`, append `run_abandoned` is NOT used here (the run isn't abandoned) — just exit cleanly and print the final report; user can re-run `/spec-run <slug>` to resume (which appends `run_resumed`)
    - **redo** → delete the phase's artifact file, decrement `phase.current`, append a `phase_rerun` event `{ timestamp, event:"phase_rerun", phase:N, actor:"human", details:{ reason:"user redo" } }`, re-run the same phase

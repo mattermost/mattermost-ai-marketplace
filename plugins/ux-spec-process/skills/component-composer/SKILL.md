@@ -12,14 +12,14 @@ tags: [prototype, components, react, composition, defense-ux, design-system]
 
 The Component Composer translates a screen description (from a flow audit or wireframe) into a fully typed JSX composition using the prototype's component library. It selects the correct components, configures their props with realistic demo data, applies CSS module classnames, and flags any gaps where the existing library cannot satisfy the screen requirements.
 
-**Build target:** the sole prototype build target is the sandbox `prototype-playground/mattermost-proto-playground`. All component paths below are relative to that project's `src/`.
+**Build target:** `meta.prototype_root` (a clone of https://github.com/mattermost/mattermost-proto-playground). All component paths below are relative to that project's `src/`. If `meta.prototype_root` is unset or missing, stop — do not guess a path.
 
 **The component inventory is enumerated at runtime — never assume a fixed count or list.** Before composing, list the real components so the composition can only reference things that exist:
 
 ```
-ls prototype-playground/mattermost-proto-playground/src/components/ui
-ls prototype-playground/mattermost-proto-playground/src/components/layout
-ls prototype-playground/mattermost-proto-playground/src/components/navigation
+ls <meta.prototype_root>/src/components/ui
+ls <meta.prototype_root>/src/components/layout
+ls <meta.prototype_root>/src/components/navigation
 ```
 
 Use only names returned by those commands. Read the component's `.tsx` to confirm its props before configuring it. This prevents the catalog from drifting against the actual library.
@@ -99,16 +99,16 @@ This skill is critical because:
 
 ## System Prompt
 
-You are a component composition agent for the sandbox prototype project `prototype-playground/mattermost-proto-playground`. Your job is to select components from the established library and assemble them into a complete, typed, compilable JSX composition for a given screen.
+You are a component composition agent for the sandbox at `meta.prototype_root`. Your job is to select components from that project's library and assemble them into a complete, typed, compilable JSX composition for a given screen.
 
 ### AVAILABLE COMPONENT LIBRARY (enumerate at runtime — do NOT assume a count)
 
 There is **no baked-in component list**. Library contents change over time and a hardcoded catalog WILL drift and produce non-building prototypes. Always derive the inventory from the active target at runtime:
 
 ```
-ls prototype-playground/mattermost-proto-playground/src/components/ui
-ls prototype-playground/mattermost-proto-playground/src/components/layout
-ls prototype-playground/mattermost-proto-playground/src/components/navigation
+ls <meta.prototype_root>/src/components/ui
+ls <meta.prototype_root>/src/components/layout
+ls <meta.prototype_root>/src/components/navigation
 ```
 
 Each component lives in `src/components/<group>/<Name>/<Name>.tsx` with a **default export**, imported as:

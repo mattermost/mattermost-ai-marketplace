@@ -74,9 +74,8 @@ DEDUP — CITE, DON'T RESTATE:
 Before writing each spec section, invoke the `dedup` skill (via the Skill tool). Phase 7 is the last chance to clean up restatement, and the spec is the published artifact, so dedup quality matters most here. The spec communicates BEHAVIOR (what the system does and why) — it does not re-narrate the problem, re-list requirements, or re-explain why each control matters; the PRD already did that. Mockup references replace mockup descriptions; cite the Figma file rather than re-narrate it. The Tier-1 compliance appendix is the one place comprehensive citation back to Phase 2's standards mapping belongs — and even there, a linked table, not re-narration. Admin/end-user behavior, edge cases, and terminology lock-down are Phase 7's NEW content — those get the words. Per conventions.md §5, gloss every requirement/edge-case/control code inline (`EC-21 (offline token expiry mid-mission)`), never bare. Dedup quality is enforced at gate review.
 
 GATE ARTIFACT DEFINITION:
-The Phase 7 gate artifact is **the spec itself** (`07-spec.md`) plus its generated `spec.html`
-review surface — the REQUIRED sections, plus any INCLUDE-WHEN-NEEDED sections that add value,
-with internal validation folded in. There is no mandatory section count, no minimum edge-case
+The Phase 7 gate artifact is **the spec itself** (`07-spec.md`) — the REQUIRED sections, plus any
+INCLUDE-WHEN-NEEDED sections that add value, with internal validation folded in. There is no mandatory section count, no minimum edge-case
 count, and no published appendix requirement. Edge cases and traceability are INTERNAL passes:
 their findings are folded into the spec text or surfaced as open questions, and their full record
 lives in the internal siblings `07-spec-edge-cases.md` / `07-spec-traceability.md` (this matches
@@ -102,21 +101,10 @@ YOUR TASKS (In Order):
    appendix and NOT merged into `07-spec.md`.
 4. Internal Validation — Traceability: Verify PRD requirement coverage via `traceability-checker`.
    Flag any gaps as open questions. Record the matrix in the internal sibling `07-spec-traceability.md`
-   (markdown, canonical, diff-/Confluence-safe) — this is the validation audit trail and the source
-   the heatmap renders from, NOT a published appendix merged into `07-spec.md`.
+   (markdown, canonical, diff-/Confluence-safe) — this is the validation audit trail, NOT a published
+   appendix merged into `07-spec.md`.
 5. Internal Validation — Completeness: Scan for vague language, [TBD] markers, missing Figma
    links. Fix or flag.
-6. HTML Rendering: Invoke the `html-spec-renderer` skill to produce the FINAL master `spec.html` — the living surface that ties together every prior phase. This is the Phase 7 gate artifact. The spec.html includes:
-   - Masthead + BLUF + summary band + VERIFY rail + phase timeline (all 7 phases done)
-   - One `<details class="phase">` collapsible per phase with the phase's content
-   - Phase 4 collapsible links to standalone `phase-4-ideation/options.html`
-   - Phase 5 collapsible links to standalone `phase-5-flow/*.html` per flow
-   - Phase 6 collapsible links to standalone `phase-6-prototype/prototype-tour.html`
-   - Reference sections: decisions log, compliance footprint, cross-spec coordination
-   - Traceability heatmap section linking to standalone `traceability-heatmap.html`
-   - Print mode flattened for SCIF distribution
-   Optional local reference (not shipped with this plugin): `process-improvements-pilot/spec-html/hierarchical-attributes.spec.html`. The master spec.html is the artifact a reviewer opens for gate sign-off; markdown spec remains canonical for Confluence publication.
-7. Traceability Heatmap (internal/review surface, NOT a gate-blocking appendix): Invoke `html-spec-renderer` (Module 18 — Traceability heatmap) to render `specs/{feature-id}/traceability-heatmap.html` from the Task-4 `traceability-checker` output and `state.artifacts.traceability_matrix`. This is the visual *view* of the canonical markdown matrix (`07-spec-traceability.md`); it answers "which requirements have design gaps, blockers vs. polish" at a glance for gate reviewers. It is additive — the markdown matrix is canonical and the heatmap never gates a phase on its own. Optional local reference (not shipped with this plugin): `process-improvements-pilot/traceability-sample/heatmap.html`.
 
 SKILLS YOU INVOKE (by name, via the Skill tool):
 - `clarification-protocol`: Step 0 intake (mandatory) + any in-phase ambiguity round
@@ -125,7 +113,6 @@ SKILLS YOU INVOKE (by name, via the Skill tool):
 - `section-writer`: invoke per section as needed — skip sections that don't apply
 - `edge-case-hunter`: internal validation — findings folded into spec or flagged as open questions; recorded in `07-spec-edge-cases.md`
 - `traceability-checker`: internal validation — gaps flagged as open questions; matrix recorded in `07-spec-traceability.md`
-- `html-spec-renderer`: master `spec.html` (Task 6) + traceability heatmap `traceability-heatmap.html` (Task 7)
 
 SECTION GUIDANCE:
 
@@ -171,9 +158,7 @@ looks the same and a reviewer always knows where to look:
 |---|---|---|
 | `07-spec.md` | The UX spec draft itself — the published artifact. REQUIRED sections + INCLUDE-WHEN-NEEDED sections that carry decisions. Skim layer at top. | Yes — this is what publishes to Confluence (Phase 8). |
 | `07-spec-edge-cases.md` | INTERNAL validation record — `edge-case-hunter` findings (P1/P2/P3 per `conventions.md` §1) and how each was resolved (folded into `07-spec.md`, or surfaced as an open question). | Internal — not a published appendix. |
-| `07-spec-traceability.md` | INTERNAL validation record — the `traceability-checker` markdown matrix (requirement × coverage status). Diff-friendly, Confluence-safe; the source the heatmap renders from. | Internal — not a published appendix. |
-| `spec.html` | Generated living surface (Task 6) — the review/sign-off surface. | Generated view, not canonical content. |
-| `traceability-heatmap.html` | Generated view of `07-spec-traceability.md` (Task 7). | Generated view. |
+| `07-spec-traceability.md` | INTERNAL validation record — the `traceability-checker` markdown matrix (requirement × coverage status). Diff-friendly, Confluence-safe. | Internal — not a published appendix. |
 
 **The two `-edge-cases` / `-traceability` siblings keep edge cases and traceability as INTERNAL
 validation per the menu model** — they are NOT gate-blocking appendices and are NOT merged into
@@ -184,7 +169,7 @@ appendix requirement the template's menu model removed.
 
 **Tier 3 (Incremental):** emit the addendum equivalent — `07-spec-addendum.md` (referencing the
 parent spec) plus the same two internal siblings `07-spec-addendum-edge-cases.md` and
-`07-spec-addendum-traceability.md`, and the generated `spec.html` + `traceability-heatmap.html`.
+`07-spec-addendum-traceability.md`.
 
 No separate JSON output. Do not produce additional appendix files beyond this set unless the
 user explicitly requests them.

@@ -53,7 +53,6 @@ YOUR TASKS (In Order):
 3. Pre-flight Review: Validate completeness; flag gaps and ambiguities
 4. [VERIFY WITH PM] Flagging: Mark all items requiring PM decision/approval
 5. Gate Artifact Production: PRD Document + Threat Model + Pre-flight Report — emit the `artifact-frontmatter` skim layer at the top of the PRD, then write the body with the `dedup` pass per section
-6. HTML Rendering: Invoke the `html-spec-renderer` skill to update the master `spec.html`. Phase 3 content renders as the Phase 3 collapsible block — citation back to Phases 1 + 2, "what changed in vN" table for any amendments, requirements as `<details class="req">` file-tour collapsibles (one per FR with v1.0/v2.0 release tag), threat heatmap module (consistent 22px/vector bar scale), pre-flight verdict module.
 
 SKILLS YOU INVOKE (by name, via the Skill tool):
 - `clarification-protocol`: Step 0 intake (mandatory) + any in-phase ambiguity round
