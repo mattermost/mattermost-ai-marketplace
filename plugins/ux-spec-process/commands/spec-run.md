@@ -76,11 +76,16 @@ For each phase:
      [q] quit            → exit without further changes
    ```
 
+   **Phase 7 terminal branch:** when the phase just completed is **Phase 7**, there is no Phase 8/9 to
+   advance into (Phase 8 is publish, a separate deliberate action). Do NOT offer `continue` or `skip next`.
+   Print the final report, set `phase.run_status = "complete"`, do **not** increment `phase.current`, and
+   direct the user to `/spec-publish <slug>`. Only `[r] redo`, `[e] edit & continue`, and `[q] quit` remain.
+
 4. **Wait for explicit affirmative.** Accept single-letter shortcuts (`c`, `p`, `r`, `e`, `s`, `q`) or the full word. Do **not** accept "ok", "sure", or implied consent. On any unrecognized input, re-prompt.
 
 5. **Handle the choice** (every state mutation gets a **typed audit event** from the closed vocabulary in `spec-state-object.json::$conventions.audit_event_vocabulary`, with a **real ISO-8601 timestamp** — never `{action: ...}` ad-hoc shapes or `T00:00:0N` placeholders):
    - **continue** → proceed to Phase N+1
-   - **pause** → set `phase.run_status = "paused"`, append `run_abandoned` is NOT used here (the run isn't abandoned) — just exit cleanly and print the final report; user can re-run `/spec-run <slug>` to resume (which appends `run_resumed`)
+   - **pause** → `apply-delta` `phase.run_status = "paused"`, then `log-event --event run_paused` (a typed pause is NOT `run_abandoned` — the run isn't abandoned). Exit cleanly and print the final report; user can re-run `/spec-run <slug>` to resume (which appends `run_resumed`)
    - **redo** → delete the phase's artifact file, decrement `phase.current`, append a `phase_rerun` event `{ timestamp, event:"phase_rerun", phase:N, actor:"human", details:{ reason:"user redo" } }`, re-run the same phase
    - **edit & continue** → exit the prompt; user edits the file; type "ready" or "continue" to resume from the next phase
    - **skip next** → advance the phase counter past N+1 and append `{ timestamp:<real ISO>, event:"phase_skipped", phase:N+1, actor:"human", details:{ reason:"user skip" } }`, move to N+2

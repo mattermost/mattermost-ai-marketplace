@@ -16,17 +16,27 @@ Resolve `$ARGUMENTS` to a project slug under `specs/` (exact match → fuzzy →
 build target is a clone of https://github.com/mattermost/mattermost-proto-playground. Never write
 into `mattermost/`, `mattermost-blocks-prototype/`, or any other product repo.
 
-1. If `meta.prototype_root` is already set and that directory exists, use it.
+**Identity check (shared — every resolve/reuse path MUST pass this before use OR persistence).** A
+directory is a valid build target ONLY if it is identifiably mattermost-proto-playground, not merely
+any repo with `package.json` + `src/` (that would match a product repo and risk writing into it).
+Confirm **both**: (a) `package.json` exists and its `name` field is `mattermost-proto-playground`;
+and (b) `src/` exists. If `name` doesn't match, also accept a git identity match — `git -C <root>
+remote get-url origin` resolves to `mattermost/mattermost-proto-playground`. If neither identity
+signal holds, **abort** — never build against or persist an unverified path.
+
+1. If `meta.prototype_root` is already set and that directory **passes the identity check**, use it.
+   (A stored path that no longer passes — moved, swapped, or a bare product repo — is re-resolved, never trusted.)
 2. Else look for an existing clone at `prototype-playground/mattermost-proto-playground/` or
-   `mattermost-proto-playground/`. If found, confirm the path with the user (or accept it) and
-   persist it to `meta.prototype_root` via `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta`.
+   `mattermost-proto-playground/`. If found **and it passes the identity check**, confirm the path with
+   the user (or accept it) and persist it to `meta.prototype_root` via
+   `${CLAUDE_PLUGIN_ROOT}/scripts/spec-state apply-delta`.
 3. Else ask the user for the path to their clone. If they don't have one, pause and tell them to
    set it up from that repo:
    ```
    git clone https://github.com/mattermost/mattermost-proto-playground.git prototype-playground/mattermost-proto-playground
    ```
-   Then ask for the path, persist it to `meta.prototype_root`, and only then continue.
-4. Abort if the resolved directory is missing `package.json` or `src/`.
+   Then run the identity check, persist it to `meta.prototype_root` only if it passes, and only then continue.
+4. Abort if the resolved directory fails the identity check above.
 
 If the artifact preconditions fail, abort and tell the user which prior phase to run.
 

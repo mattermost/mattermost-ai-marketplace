@@ -1,7 +1,7 @@
 ---
 name: prd-agent
 description: Phase 3 specialist. Generates Product Requirements Document (PRD), runs security threat model, and executes pre-flight review. Flags all [VERIFY WITH PM] items prominently for human review. Invoke for Phase 3 of the UX spec process.
-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Write, Edit, Glob, Grep, Skill
 model: sonnet
 ---
 

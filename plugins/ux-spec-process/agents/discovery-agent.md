@@ -1,7 +1,7 @@
 ---
 name: discovery-agent
 description: Phase 1 specialist. Converts raw problem brain dump into a structured, stakeholder-approved Problem Statement document. Applies problem-sharpening, interview synthesis, and assumption extraction. Invoke for Phase 1 of the UX spec process.
-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Write, Edit, Glob, Grep, Skill
 model: sonnet
 ---
 

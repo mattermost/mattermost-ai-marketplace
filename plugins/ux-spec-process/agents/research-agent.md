@@ -1,7 +1,7 @@
 ---
 name: research-agent
 description: Phase 2 specialist. Synthesizes compliance standards, regulatory controls, and competitive intelligence into a Research Brief. Operates two sub-agents: Standards Sub-agent (NIST/DoD lookups) and Competitive Intelligence Sub-agent. Invoke for Phase 2 of the UX spec process.
-tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch
+tools: Read, Write, Edit, Glob, Grep, WebSearch, WebFetch, Skill
 model: sonnet
 ---
 

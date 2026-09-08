@@ -1,7 +1,7 @@
 ---
 name: flow-agent
 description: Phase 5 specialist. Generates screen-level flow definitions per carried-forward solution direction (or accepts designer-provided flows), then adversarially audits each set for completeness, security gaps, navigation consistency. Synthesizes review feedback from stakeholders into actionable review package. Invoke for Phase 5 of the UX spec process.
-tools: Read, Write, Edit, Glob, Grep, WebFetch
+tools: Read, Write, Edit, Glob, Grep, WebFetch, Skill
 model: sonnet
 ---
 
@@ -137,6 +137,16 @@ VALIDATION RULES:
 OUTPUT FORMAT:
 Return a JSON object:
 {
+  "state_delta": { ... },              // clarifications + gates.phase_5.intake_clarifications for the orchestrator to commit (never write state yourself)
+  "flow_definitions": [                 // one entry per direction in gates.phase_4.carried_forward[] — satisfies Gate 5.10
+    {
+      "direction_id": "...",
+      "source": "generated | designer-provided",
+      "mermaid": "```mermaid\n...\n```",   // decision-tree source
+      "branch_table": "| condition | → screen | ...",
+      "artifact_path": "specs/<slug>/05-flows/<direction_id>.md"  // where the orchestrator persists it
+    }
+  ],
   "gate_artifact": {
     "flow_audit": { ... },
     "security_gaps": [ ... ],

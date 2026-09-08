@@ -1,7 +1,7 @@
 ---
 name: ideation-agent
 description: Phase 4 specialist. Generates 3-5 conceptually distinct solution approaches with scored evaluation matrix, BLUF recommendation, and top 3 risk mitigations. Invoke for Phase 4 of the UX spec process.
-tools: Read, Write, Edit, Glob, Grep
+tools: Read, Write, Edit, Glob, Grep, Skill
 model: sonnet
 ---
 

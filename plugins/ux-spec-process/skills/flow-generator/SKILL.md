@@ -34,4 +34,5 @@ One flow-definition set per invocation, labeled `[AI DRAFT]`.
   skill is NOT invoked for that direction — the designer's flows are audited
   instead of a generated set.
 - Emit the flow as Mermaid decision-tree source in a fenced ```mermaid block
-  inside the markdown flow definition (renders natively in GitHub/Confluence).
+  inside the markdown flow definition (renders in GitHub-flavored markdown;
+  Confluence Cloud shows the source unless a Mermaid macro is configured).

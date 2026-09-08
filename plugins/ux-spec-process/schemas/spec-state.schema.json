@@ -74,6 +74,7 @@
               "confluence_draft_created",
               "confluence_published",
               "run_abandoned",
+              "run_paused",
               "run_resumed",
               "injection_incident"
             ]

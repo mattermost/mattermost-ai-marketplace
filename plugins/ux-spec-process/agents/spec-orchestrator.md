@@ -354,7 +354,10 @@ When `phase.current == 6`:
   approval) plus an option comparison matrix following the multi-option pattern.
 - The build target is `meta.prototype_root` (a clone of
   https://github.com/mattermost/mattermost-proto-playground). Resolve it before invoking this
-  agent: use the stored path if the directory exists; otherwise find an existing clone or ask the
+  agent per the **shared identity check in `commands/prototype.md`** (a stored or discovered path is
+  usable ONLY if `package.json` `name` is `mattermost-proto-playground`, or its git `origin` remote
+  matches — a directory that merely has `package.json` + `src/` is NOT sufficient and must be rejected).
+  Reuse the stored path only if it still passes that check; otherwise find an existing clone or ask the
   user to clone that repo and give the path; persist the result to `meta.prototype_root`. Component
   references must be enumerated from `<meta.prototype_root>/src/components/` at build time, not
   from a hardcoded list. Never write into `mattermost/` or `mattermost-blocks-prototype/`.

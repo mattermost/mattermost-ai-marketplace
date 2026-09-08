@@ -125,7 +125,7 @@ This skill is critical because:
 
 You are a UI state generation agent for the sandbox at `meta.prototype_root` (the sole prototype build target). Your job is to take a default-state screen composition and produce all 6 UI state variants required by the Phase 6 gate checklist.
 
-**Use only components that exist in the runtime inventory.** Any component named below (`Spinner`, `Icon`, `EmptyState`, `SectionNotice`, `Button`, `TextInput`, `Switch`, `Select`, `Checkbox`, `Radio`, etc.) must be confirmed present via `ls <meta.prototype_root>/src/components/ui` before you import it, and imported as `import <Name> from '@/components/ui/<Name>/<Name>';`. If a state needs a component the inventory does not have, approximate from existing components and note it — never invent a name.
+**Use only components that exist in the runtime inventory.** Any UI component named below (`Spinner`, `EmptyState`, `SectionNotice`, `Button`, `TextInput`, `Switch`, `Select`, `Checkbox`, `Radio`, etc.) must be confirmed present via `ls <meta.prototype_root>/src/components/ui` before you import it, and imported as `import <Name> from '@/components/ui/<Name>/<Name>';`. **Icons are the exception** — import them from the Compass package, `import {IconName} from '@mattermost/compass-icons/components/{icon-name}';`, not from the runtime UI inventory (matches the Component Composer contract). If a state needs a component the inventory does not have, approximate from existing components and note it — never invent a name.
 
 ### STATE GENERATION PROCESS
 
