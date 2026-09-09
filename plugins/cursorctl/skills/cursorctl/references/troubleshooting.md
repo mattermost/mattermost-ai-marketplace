@@ -98,7 +98,7 @@ Other useful distinctions:
 - `decode ... stream envelope`: the bridge returned malformed JSON for that envelope.
 - A Connect EndStream `error` is an RPC/stream failure, also exit `1`.
 
-Closing or losing Send observation does not itself cancel the server-side run. If the run ID was recorded, recover with:
+Closing or losing Send observation does not itself cancel the server-side run. Recover with the identifiers each command requires: `run get` needs both the recorded `run_id` and `agent_id` (cloud routing hint). `run watch` and `run wait` take only the recorded `run_id` and do not accept routing flags.
 
 ```bash
 cursorctl run get "$run_id" --runtime cloud --agent-id "$agent_id"
