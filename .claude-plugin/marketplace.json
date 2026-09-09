@@ -197,6 +197,17 @@
       }
     },
     {
+      "name": "ux-spec-process",
+      "source": "./plugins/ux-spec-process",
+      "description": "8-phase, gated UX specification pipeline for DoD/defense collaboration features — orchestrator + phase agents + composable skills, from problem brain-dump to publish-ready spec",
+      "version": "1.0.0",
+      "category": "design",
+      "tags": ["ux", "spec", "design", "dod", "orchestration", "gated-workflow"],
+      "author": {
+        "name": "Abhijit Singh"
+      }
+    },
+    {
       "name": "cursorctl",
       "source": "./plugins/cursorctl",
       "description": "Use the cursorctl CLI to spawn, send, detach, inspect, and collect Cursor cloud or local agents from Claude Code",
