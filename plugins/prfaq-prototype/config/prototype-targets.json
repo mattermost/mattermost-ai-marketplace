@@ -1,0 +1,64 @@
+{
+  "_note": "BUNDLED DEFAULT for the prfaq-prototype plugin. Swappable prototype build targets: the prototype-builder agent and the sandbox-scaffolder / sandbox-composer skills READ this file — they never hardcode a playground. To point at YOUR playground WITHOUT editing the installed plugin, copy this file to `prototype-targets.json` (or `.claude/prototype-targets.json`) in your project and edit `workspace_relative_root`; the pipeline prefers a project copy over this bundled default. Add a newer playground by adding an entry and flipping `active_default` — no agent or skill edit required.",
+  "schema_version": "1.0.0",
+  "active_default": "proto-playground",
+  "targets": {
+    "proto-playground": {
+      "label": "proto-playground — Compass UI (current default)",
+      "default": true,
+      "status": "canonical",
+      "workspace_relative_root": "prototype-playground/proto-playground",
+      "folder_convention": "kebab-slug",
+      "prototype_dir": "src/pages/prototypes/<slug>",
+      "orchestrator_file": "<PascalSlug>.tsx",
+      "component_import_source": "@mattermost/compass-ui",
+      "component_source_glob": "packages/compass-ui/src/components/**/*.tsx",
+      "app_local_components_glob": "src/components/**/*.tsx",
+      "hooks_glob": "src/hooks/**/*.ts",
+      "manifest_file": "src/manifests/prototypes.ts",
+      "manifest_entry_shape": ["id", "label", "path", "component"],
+      "route_pattern": "/prototypes/<slug>",
+      "scene_api": {
+        "chrome_hook": "usePrototypeChrome",
+        "chrome_import": "@/contexts/PrototypeChromeContext",
+        "scene_register_hook": "useRegisterPrototypeScene",
+        "scene_register_import": "@/contexts/PrototypeSceneContext",
+        "switcher_component": "SceneSwitcher",
+        "switcher_import": "@/components/navigation/SceneSwitcher/SceneSwitcher",
+        "center_slot": "setCenterSlot(<SceneSwitcher/>) inside a useEffect; cleanup setCenterSlot(null); re-run on active-scene change; never position:fixed the control"
+      },
+      "conventions_docs": [
+        "AGENTS.md",
+        "src/pages/prototypes/AGENTS.md",
+        ".cursor/skills/scaffold-prototype/SKILL.md",
+        ".claude/rules/styling.md"
+      ],
+      "example_prototype": "src/pages/prototypes/action-controls-view-channel",
+      "starter_template": "src/pages/prototypes/example-flow",
+      "base_layouts": {
+        "_note": "Prefer composing each scene ON TOP of one of these REAL app surfaces (runtime-verify the names). Resolution priority: (1) reuse an existing prototype that already assembles the surface, (2) compose from these shell/layout components, (3) if the surface isn't covered, ask the human for a screenshot to build on top of, (4) else build freeform and flag it. Never hand-roll a frame when a real base layout or reference prototype exists.",
+        "channel-view": { "shell_components": ["ChannelShell", "ChannelHeader", "ChannelsSidebar", "TeamSidebar", "GlobalHeader", "RightSidebar"], "reference_prototypes": ["action-controls-view-channel", "external-call-participants"] },
+        "system-console": { "shell_components": ["AdminConsoleSidebar", "AdminConsoleHeader", "AdminPanel", "AdminPanelHeader", "AdminPanelFooter"], "reference_prototypes": ["delegated-system-administration", "action-controls-view-channel"] },
+        "dm-gm-composer": { "shell_components": ["ChannelShell", "MessageInput", "Message", "MessageHeader"], "reference_prototypes": ["external-call-participants"] }
+      },
+      "reference_dir": "prototype-runs/<slug>/reference/  (human-provided screenshots of surfaces to build on top of; optional, non-blocking)",
+      "themes": ["denim", "sapphire", "quartz", "indigo", "onyx"],
+      "styling": "SCSS Modules, full BEM single-root, tokens from src/styles/tokens.scss — no hardcoded hex/px/ms; @mattermost/compass-icons; Open Sans (body) / Metropolis (headings)",
+      "commands": { "install": "npm install", "dev": "npm run dev", "build": "npm run build", "preview": "npm run preview" },
+      "base_path": "/mattermost-proto-playground/",
+      "local_url_pattern": "http://localhost:<port>/mattermost-proto-playground/prototypes/<slug>  (dev :5173/5175, preview :4173)",
+      "dev_note": "`npm run dev` also runs a compass-ui dts watcher (`vite build --watch`) that prints benign TS6142 '--jsx is not set' noise and can tear down the parallel run; it does NOT reflect prototype code errors. `npm run build` and `npm run preview` are clean — use `npm run build` for validation and `npm run preview` for screenshots. The vite base is still `/mattermost-proto-playground/` in this playground.",
+      "reviewer_comments": "built-in — per-scene when the orchestrator calls useRegisterPrototypeScene(scene); Neon/Vercel backend in deploy, in-memory in local dev",
+      "deploy": {
+        "local": "npm run dev (default, always available)",
+        "vercel": {
+          "supported": true,
+          "config": "vercel.json",
+          "guide": "VERCEL_SETUP.md",
+          "gated": "explicit user request only — deploying is an external publish and must be confirmed per Output Rules"
+        }
+      },
+      "multi_option_convention": "One prototype slug per PRFAQ run. Each design OPTION is a scene-set the reviewer flips between via SceneSwitcher in the center slot (option chips), so options compare side-by-side under one URL and per-scene comments scope cleanly. Only when options diverge so structurally that a shared shell misleads, fall back to sibling manifest entries <slug>-option-a / <slug>-option-b."
+    }
+  }
+}
