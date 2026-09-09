@@ -39,6 +39,7 @@ Staff-contributed Claude Code plugins for Mattermost engineering workflows. Brow
 | [`qa-analysis`](plugins/qa-analysis/)                          | Analyze a GitHub pull request for risk level and generate concrete QA recommendations                            | testing    | 1.0.0   |
 | [`cursor-automations`](plugins/cursor-automations/)            | Internal Cursor automation commands for Mattermost engineering workflows — invoked by Cursor Automations, not for individual use | devops       | 1.0.0   |
 | [`ux-spec-process`](plugins/ux-spec-process/)                  | 8-phase, gated UX specification pipeline for DoD/defense features — orchestrator + phase agents + composable skills | design       | 1.0.0   |
+| [`cursorctl`](plugins/cursorctl/)                              | Spawn, send, detach, inspect, and collect Cursor cloud or local agents via the `cursorctl` CLI                                    | productivity | 1.0.0   |
 
 ## Auto-Setup for Your Projects
 
