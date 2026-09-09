@@ -37,7 +37,7 @@ labels it for review. It flags missing components rather than inventing imports.
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "kebab-case, a single safe path segment — no slashes, no '..', no absolute paths." },
     "target_key": { "type": "string", "description": "The resolved target key passed by the command; do not re-resolve." },
-    "scene": { "type": "object", "properties": { "id": {"type":"string"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper (reuse-prototype | shell-components | screenshot | freeform)."}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
+    "scene": { "type": "object", "properties": { "id": {"type":"string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper (reuse-prototype | shell-components | screenshot | freeform)."}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
     "option": { "type": "object", "properties": { "id": {"type":"string"}, "philosophy": {"type":"string"}, "axis_choices": {"type":"object"} }, "required": ["id", "axis_choices"] },
     "fixtures_ref": { "type": "string", "description": "Path to the prototype's shared <slug>Data.ts" }
   },
@@ -52,6 +52,8 @@ You compose one scene, for one design option, into the active target playground.
 **Validate `slug` first (security):** it must match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab-case, one path segment) — reject path separators or `..`. Resolve each scene-file path before reading or writing it and confirm it stays within the target's `prototype_dir` root; abort if it escapes.
 
 **Validate `fixtures_ref` (if provided):** resolve it under the target's `prototype_dir` and require the expected `<slug>Data.ts` filename; reject any other path before reading it.
+
+**Constrain `scene.id` (security):** it must match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab, one segment) — reject `..` and separators. Resolve each scene file path and confirm it stays under `<prototype_dir>/scenes/` (not merely `prototype_dir` — e.g. `../Data` escapes `scenes/` while staying in `prototype_dir`) before reading or writing it; abort on any escape.
 
 ### Step 1 — Use the resolved profile + enumerate the library (runtime, never assumed)
 
