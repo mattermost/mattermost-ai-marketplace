@@ -37,7 +37,7 @@ labels it for review. It flags missing components rather than inventing imports.
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "kebab-case, a single safe path segment — no slashes, no '..', no absolute paths." },
     "target_key": { "type": "string", "description": "The resolved target key passed by the command; do not re-resolve." },
-    "scene": { "type": "object", "properties": { "id": {"type":"string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper (reuse-prototype | shell-components | screenshot | freeform)."}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
+    "scene": { "type": "object", "properties": { "id": {"type":"string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper.", "properties": {"resolution": {"type":"string", "enum": ["reuse-prototype", "shell-components", "screenshot-needed", "freeform"]}}}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
     "option": { "type": "object", "properties": { "id": {"type":"string"}, "philosophy": {"type":"string"}, "axis_choices": {"type":"object"} }, "required": ["id", "axis_choices"] },
     "fixtures_ref": { "type": "string", "description": "Path to the prototype's shared <slug>Data.ts" }
   },
@@ -126,7 +126,7 @@ The composed scene must type-check. Prefer the minimal set of real components th
   "scene": "<scene id>",
   "option": "<option id>",
   "file": "src/pages/prototypes/<slug>/scenes/<Scene>.tsx",
-  "base_surface_used": { "resolution": "reuse-prototype|shell-components|screenshot|freeform", "from": "action-controls-view-channel | ChannelShell+ChannelHeader | reference/console.png | none" },
+  "base_surface_used": { "resolution": "reuse-prototype | shell-components | screenshot-needed | freeform", "from": "action-controls-view-channel | ChannelShell+ChannelHeader | reference/console.png | none" },
   "components_used": [ { "name": "SectionNotice", "from": "@mattermost/compass-ui", "props_confirmed": true } ],
   "component_gaps": [ { "need": "action-registry row", "resolution": "composed from Table + Switch + Chip" } ],
   "authored_copy": [ { "text": "You can't view this channel on this network.", "surface": "blocked-view", "flag": "[AI DRAFT — COPY]" } ],
