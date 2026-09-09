@@ -26,7 +26,7 @@ persona_panel, option_count.]
    `prototype-runs/<slug>/00-prfaq-extract.md`. Confirm customer names were scrubbed and contradictions
    reconciled; if the parser flagged an `UNRESOLVED_CONTRADICTION` or a `placeholder_prfaq`, those become
    clarification questions.
-2. **Map scenes** — invoke the `scene-mapper` skill on the extract + the active target profile. It writes
+2. **Map scenes** — invoke the `scene-mapper` skill on the extract + the active target profile (pass the run's `option_count` as scene-mapper's `option_count_hint`). It writes
    `prototype-runs/<slug>/02-scene-plan.md` with the ranked scene inventory, option-divergence axes,
    candidate options, assumptions ledger, and component feasibility.
 3. **Write the prototype brief** — compose `prototype-runs/<slug>/01-prototype-brief.md`: a skimmable

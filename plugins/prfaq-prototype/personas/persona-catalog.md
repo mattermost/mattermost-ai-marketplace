@@ -1,13 +1,13 @@
 # FY26 Persona Catalog — UX Spec Pipeline
 
-**Single source of truth** for customer persona critics. Source deck: `Personas/Proposed-Personas/`.
+**Single source of truth** for the persona critics used by the optional persona review.
 
 ## Canonical layout
 
 | What | Location | Notes |
 |------|----------|-------|
 | **Profile (canonical)** | `Personas/<Display Name>/<Display Name>.md` | Rich role-play brief — only copy per persona |
-| **Claude Code agent** | `.claude/agents/persona-critic.md` | Generic loader; pass persona slug + artifact |
+| **Claude Code agent** | `agents/persona-critic.md` (this plugin) | Generic loader; pass persona slug + artifact |
 
 Do **not** create duplicate profiles under kebab-case paths. Agent slugs (`jake-reynolds`) are stable IDs; display-name folders hold the content.
 
@@ -55,7 +55,7 @@ Do **not** create duplicate profiles under kebab-case paths. Agent slugs (`jake-
 | `emily-warren` | Emily Warren | End User | `Personas/Emily Warren/Emily Warren.md` |
 | `jacob-lee` | Jacob Lee | Extension Developer | `Personas/Jacob Lee/Jacob Lee.md` |
 
-## Default panels (`spec persona-critique <slug> <artifact>` per persona)
+## Default panels (per persona-review run)
 
 | Domain | Panel slugs |
 |--------|-------------|
@@ -63,20 +63,13 @@ Do **not** create duplicate profiles under kebab-case paths. Agent slugs (`jake-
 | **cyber-defense** | `james-calderon`, `brian-taylor`, `morgan-reese`, `sophia-martins`, `ryan-holt` (+ `jason-whitaker` for deploy/SOC) |
 | **devsecops** | `jordan-blake`, `alex-johnson`, `victoria-clarke`, `emily-warren`, `jacob-lee` (+ `linda-harris` Phase 4+) |
 
-Set `meta.use_case_domain` in `spec-state.json` or pass `--domain`.
-
-## Process integration
-
-| Phase | Artifact output |
-|-------|-----------------|
-| 4 Ideation | `specs/<slug>/persona-reviews/phase-4-panel.md` |
-| 5 Flows | `specs/<slug>/persona-reviews/phase-5-panel.md` |
-| 6 Prototype | `specs/<slug>/persona-reviews/phase-6-panel.md` |
+Pass `--persona-panel=domain` to use the feature's domain panel (IL4+ default: MissionOps), or
+`--persona-panel=all` / `--persona-panel=<slugs>`.
 
 ## Invocation
 
 Run via the plugin: `/prfaq-prototype:prototype <PRFAQ> --persona-review=prfaq|prototype|both`
 (`--persona-panel=domain|all|<slugs>`). Or invoke the `persona-critic` agent directly with a persona slug
-+ an artifact path. (There is no `spec persona-critique` command in this plugin.)
++ an artifact path. Digests are written to `prototype-runs/<slug>/persona-reviews/`.
 
-Persona panels are OPTIONAL (gate items 4.11/5.11/6.13, CONDITIONAL, Tier 1): if run, zero unresolved P1.
+Persona review is OPTIONAL; if run, aim for zero unresolved P1 findings.

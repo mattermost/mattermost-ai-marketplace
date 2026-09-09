@@ -60,7 +60,10 @@ never assume a component exists.
 For each `surface` × `actor` × relevant `behavioral_rule/state`, propose a scene. A scene is one screen
 state a stakeholder would click to. Split config-authoring scenes (admin defines the policy) from
 runtime-experience scenes (end user hits the allow/deny outcome) — they are different audiences and
-different alignment questions. Fold the PRFAQ's `verbatim_copy` into the scene it belongs to.
+different alignment questions. Fold the PRFAQ's `verbatim_copy` into the scene it belongs to (keep each
+string's `surface`; strings the parser marked `redacted` are already sanitized — never re-expose a
+customer name). Give each scene a **kebab single-segment `id`** (e.g. `blocked-view`) — it becomes a file
+path under `<prototype_dir>/scenes/`, so no spaces, uppercase, or `..`; put the display text in `label`.
 
 ### Step 2 — Rank scenes by alignment leverage
 
@@ -124,12 +127,12 @@ Write to `prototype-runs/<slug>/02-scene-plan.md`: readable plan, then a fenced 
   "scene_plan": {
     "slug": "...",
     "scenes": [
-      { "id": "S1", "label": "...", "surface": "...", "actor": "...", "purpose": "...",
+      { "id": "blocked-view", "label": "...", "surface": "...", "actor": "...", "purpose": "...",
         "states_needed": ["default", "denied", "..."], "verbatim_copy": ["..."],
         "leverage": "high|medium|low", "leverage_reason": "...", "source_refs": ["..."],
         "base_surface": { "surface": "channel-view|system-console|dm-gm-composer|...", "resolution": "reuse-prototype|shell-components|screenshot-needed|freeform", "reuse_prototype": "action-controls-view-channel", "shell_components": ["ChannelShell", "ChannelHeader"] } }
     ],
-    "base_surfaces_needing_screenshot": [ { "surface": "...", "scenes": ["S?"], "note": "no base layout in the target — a human screenshot would raise fidelity (non-blocking)" } ],
+    "base_surfaces_needing_screenshot": [ { "surface": "...", "scenes": ["<scene-id>"], "note": "no base layout in the target — a human screenshot would raise fidelity (non-blocking)" } ],
     "option_axes": [
       { "id": "AX1", "question": "...", "positions": ["...", "...", "..."], "clarify": true }
     ],
@@ -140,9 +143,9 @@ Write to `prototype-runs/<slug>/02-scene-plan.md`: readable plan, then a fenced 
       { "id": "A-1", "topic": "...", "why_it_matters": "...", "proposed_default": "...", "needs_user_input": true }
     ],
     "component_feasibility": [
-      { "scene": "S1", "likely_components": ["Modal", "SectionNotice", "..."], "gaps": ["COMPONENT_GAP: ..."] }
+      { "scene": "blocked-view", "likely_components": ["Modal", "SectionNotice", "..."], "gaps": ["COMPONENT_GAP: ..."] }
     ],
-    "recommended_scope": { "scenes_for_alignment": ["S1", "S2", "S3"], "note": "highest-leverage subset; each option covers these" }
+    "recommended_scope": { "scenes_for_alignment": ["blocked-view", "authoring", "registry"], "note": "highest-leverage subset; each option covers these" }
   }
 }
 ```

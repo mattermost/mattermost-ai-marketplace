@@ -37,7 +37,7 @@ profile and flipping `active_default` — this skill does not change.
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "example": "attribute-based-action-controls", "description": "kebab-case, a single safe path segment — no slashes, no '..', no absolute paths." },
     "label": { "type": "string", "example": "Attribute-Based Action Controls" },
-    "target_key": { "type": "string", "description": "The resolved target key passed by the command (already resolved, incl. --target / project override); do not re-resolve." },
+    "target_profile": { "type": "object", "description": "The resolved target profile object injected by the command/builder (already resolved, incl. --target / project override); do not re-resolve." },
     "options": { "type": "array", "minItems": 1, "items": { "type": "object", "properties": { "id": {"type":"string"}, "label": {"type":"string"}, "philosophy": {"type":"string"} }, "required": ["id", "label"] }, "description": "The design directions (e.g. option-a, option-b)." },
     "scenes": { "type": "array", "minItems": 1, "items": { "type": "object", "properties": { "id": {"type":"string"}, "label": {"type":"string"} }, "required": ["id", "label"] }, "description": "The screens to build (e.g. blocked-view / authoring / registry)." }
   },
@@ -51,7 +51,7 @@ You scaffold a prototype into the **active target playground**. Never assume con
 
 **Validate `slug` first (security):** it must match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab-case, one path segment) — reject any value containing path separators or `..`. After forming the prototype directory, resolve the path and confirm it stays within the target's `prototype_dir` root; abort if it escapes.
 
-**Constrain scene IDs (security):** require every `scenes[].id` (and the active `scene.id`) to match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab, one segment); resolve each scene file path and confirm it stays under `<prototype_dir>/scenes/` before creating, reading, or writing it — abort on any escape.
+**Constrain scene IDs (security):** require every `scenes[].id` (and the active `scene.id`) to match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab, one segment); resolve each scene file path and confirm it stays under `<prototype_dir>/scenes/` before creating, reading, or writing it — abort on any escape. Apply the same kebab single-segment check to every `options[].id` (it can become a manifest/route path segment in the sibling-entry fallback).
 
 ### Step 1 — Use the resolved target profile (passed in — do not re-resolve)
 
