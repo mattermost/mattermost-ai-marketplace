@@ -77,9 +77,13 @@ For each phase:
    ```
 
    **Phase 7 terminal branch:** when the phase just completed is **Phase 7**, there is no Phase 8/9 to
-   advance into (Phase 8 is publish, a separate deliberate action). Do NOT offer `continue` or `skip next`.
-   Print the final report, set `phase.run_status = "complete"`, do **not** increment `phase.current`, and
-   direct the user to `/spec-publish <slug>`. Only `[r] redo`, `[e] edit & continue`, and `[q] quit` remain.
+   advance into (Phase 8 is publish, a separate deliberate action). Do NOT offer `continue`, `skip next`, or
+   `edit & continue` — all three resume into a nonexistent next phase. Print the final report and direct the
+   user to review `specs/<slug>/07-spec.md`, approve the Phase-7 gate, then run `/spec-publish <slug>`.
+   **Do not set `phase.run_status` or `phase.current` here** — the run becomes `complete` through the normal
+   Phase-7 gate-approval flow (which logs the existing `gate_approved` event); there is no separate completion
+   event to invent. Only `[r] redo` (re-run Phase 7) and `[q] quit` remain; to hand-edit the spec, edit
+   `07-spec.md` directly and run `/spec-publish <slug>`.
 
 4. **Wait for explicit affirmative.** Accept single-letter shortcuts (`c`, `p`, `r`, `e`, `s`, `q`) or the full word. Do **not** accept "ok", "sure", or implied consent. On any unrecognized input, re-prompt.
 

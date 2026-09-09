@@ -282,7 +282,7 @@ Confluence stores pages as **XHTML "storage format,"** not markdown. Two support
 | **Repository-relative links** (dedup citations like `../02-research.md#anchor`, `05-flows/x.md`) | `<ac:link>` to the published page, OR delinked plain text | These point at **local, unpublished** pre-spec artifacts — a raw relative href is a dead link in Confluence. Rewrite each: if the target maps to a published Confluence page, emit `<ac:link><ri:page ri:content-title="…"/>` (optionally `#anchor`); otherwise **strip the link** and keep the quoted gist as plain text. Never emit a repository-relative `<a href>`. |
 | Images / diagram exports | `<ac:image><ri:attachment ri:filename="…"/></ac:image>` | Any diagram or image that the published `07-spec.md` references is attached as an image export (PNG/SVG) — Confluence renders the static attachment. |
 
-Pre-export preflight: scan the draft for repository-relative links (`../NN-*.md`, `NN-*/...md`, `#anchor` into a sibling file) and resolve every one per the Repository-relative links row **before** the first `createConfluencePage` / update call — rewrite to an `<ac:link>` where a published target exists, otherwise delink to plain text. A draft still carrying an unresolved repository-relative link is not export-ready.
+Pre-export preflight: scan the draft for repository-relative links (`../NN-*.md`, `NN-*/...md`, `#anchor` into a sibling file) and resolve every one per the Repository-relative links row **before the dry-run preview** — rewrite to an `<ac:link>` where a published target exists, otherwise delink to plain text. The preview must show the already-converted content, so the user approves exactly what gets written. A draft still carrying an unresolved repository-relative link is not export-ready.
 
 Round-trip rule: read the existing page with `contentFormat: "markdown"`, edit in markdown, write back via the markdown representation when path (1) is lossless; switch to storage-format XHTML only for the blocks in the table that need it. Locate sections by heading text (never a fixed number), per the system prompt.
 
@@ -296,7 +296,7 @@ The export changes only the *format conversion*, never the *write safety*. Every
 4. **Second explicit confirmation to publish** — surfaced as its own ask after the draft write succeeds.
 5. **`[AI DRAFT]` label** — carried through title, lead, and version message until human sign-off removes it.
 
-The conversion is performed only *after* Step 2's confirmation, as part of the Step-4 draft write; the dry-run preview shows the converted result so the user approves exactly what will be written.
+All format conversion — including the repository-relative-link rewrite/delink above — is performed while generating the content, **before the dry-run preview**. The preview therefore shows the fully converted result, and the draft write persists that exact same content, so the user approves precisely what is written to Confluence.
 
 ---
 

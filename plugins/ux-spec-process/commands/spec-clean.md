@@ -9,10 +9,10 @@ Resolve `$ARGUMENTS` to a project slug under `specs/` (exact match → fuzzy mat
 
 1. **List what will be deleted.** Show the user every file under `specs/<slug>/` that will be removed. This includes:
    - All numbered artifacts: `01-*.md`, `02-*.md`, `03-*.md`, `04-*.md`, `05-*.md`, `06-*.md`, `07-*.md`
-   - `spec-state.json`
    - Any agent-generated subdirectories (e.g., `prototypes/`, `wireframes/`, `figma/`)
-2. **Show what will be kept:**
-   - `00-brain-dump.md`
+2. **Show what will be kept / reset:**
+   - `00-brain-dump.md` — kept untouched.
+   - `spec-state.json` — **reset in place by the CLI, not deleted** (see step 5); preserves `meta` fields and returns the run to phase 0.
 3. **Wait for explicit confirmation.** Require the user to type "yes" or "confirm" — do not accept "ok", "sure", or implied consent. If they decline, abort and report nothing was deleted.
 4. **Preflight the reset before deleting anything.** Confirm `specs/<slug>/spec-state.json` exists and parses as valid JSON — `reset` requires and overwrites it. If it is missing or malformed, abort now and delete nothing, so the directory stays consistent with state.
 5. **Reset the state object FIRST — before deleting any artifact.** Doing the mediated state reset before the destructive file deletion is what makes cleanup failure-safe: a later artifact-deletion failure can then never leave the spec with *pre-cleanup* state next to partially-deleted artifacts (the flagged mismatch). `spec-state.json` is never `rm`/`cp`'d directly — reinitialize it via the CLI only (Edit/Write are hook-denied, and the PreToolUse guard hook denies any Bash command that references `specs/*/spec-state.json`, with no exceptions — a regex over shell text cannot safely allowlist one particular command):
