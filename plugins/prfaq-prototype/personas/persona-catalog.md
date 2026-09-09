@@ -69,7 +69,9 @@ Pass `--persona-panel=domain` to use the feature's domain panel (IL4+ default: M
 ## Invocation
 
 Run via the plugin: `/prfaq-prototype:prototype <PRFAQ> --persona-review=prfaq|prototype|both`
-(`--persona-panel=domain|all|<slugs>`). Or invoke the `persona-critic` agent directly with a persona slug
-+ an artifact path. Digests are written to `prototype-runs/<slug>/persona-reviews/`.
+(`--persona-panel=domain|all|<slugs>`) — the plugin flow runs the panel and synthesizes a prioritized
+digest (via `feedback-synthesizer`) into `prototype-runs/<slug>/persona-reviews/`. Or invoke the
+**read-only** `persona-critic` agent directly with a persona slug + an artifact path — it returns a single
+in-character critique and does not write any files.
 
 Persona review is OPTIONAL; if run, aim for zero unresolved P1 findings.

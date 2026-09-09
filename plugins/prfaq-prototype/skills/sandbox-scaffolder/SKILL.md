@@ -41,7 +41,7 @@ profile and flipping `active_default` — this skill does not change.
     "options": { "type": "array", "minItems": 1, "items": { "type": "object", "properties": { "id": {"type":"string"}, "label": {"type":"string"}, "philosophy": {"type":"string"} }, "required": ["id", "label"] }, "description": "The design directions (e.g. option-a, option-b)." },
     "scenes": { "type": "array", "minItems": 1, "items": { "type": "object", "properties": { "id": {"type":"string"}, "label": {"type":"string"} }, "required": ["id", "label"] }, "description": "The screens to build (e.g. blocked-view / authoring / registry)." }
   },
-  "required": ["slug", "label", "options", "scenes"]
+  "required": ["target_profile", "slug", "label", "options", "scenes"]
 }
 ```
 

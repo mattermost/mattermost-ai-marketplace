@@ -37,11 +37,11 @@ labels it for review. It flags missing components rather than inventing imports.
   "properties": {
     "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "kebab-case, a single safe path segment — no slashes, no '..', no absolute paths." },
     "target_profile": { "type": "object", "description": "The resolved target profile object injected by the command/builder; do not re-resolve." },
-    "scene": { "type": "object", "properties": { "id": {"type":"string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper.", "properties": {"resolution": {"type":"string", "enum": ["reuse-prototype", "shell-components", "screenshot-needed", "freeform"]}}}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
+    "scene": { "type": "object", "properties": { "id": {"type":"string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"}, "label": {"type":"string"}, "purpose": {"type":"string"}, "base_surface": {"type":"object", "description":"Resolved base app surface from scene-mapper. `reuse_prototype` is set when resolution=reuse-prototype; `shell_components` when resolution=shell-components.", "properties": {"surface": {"type":"string"}, "resolution": {"type":"string", "enum": ["reuse-prototype", "shell-components", "screenshot-needed", "freeform"]}, "reuse_prototype": {"type":"string"}, "shell_components": {"type":"array", "items": {"type":"string"}}}, "required": ["resolution"]}, "states_needed": {"type":"array"}, "verbatim_copy": {"type":"array"} }, "required": ["id", "label", "purpose", "base_surface"] },
     "option": { "type": "object", "properties": { "id": {"type":"string"}, "philosophy": {"type":"string"}, "axis_choices": {"type":"object"} }, "required": ["id", "axis_choices"] },
     "fixtures_ref": { "type": "string", "description": "Path to the prototype's shared <slug>Data.ts" }
   },
-  "required": ["slug", "scene", "option"]
+  "required": ["target_profile", "slug", "scene", "option"]
 }
 ```
 
