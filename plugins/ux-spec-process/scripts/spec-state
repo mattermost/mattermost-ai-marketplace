@@ -319,12 +319,10 @@ def cmd_reset(args):
     EXISTING spec-state.json (bootstrap refuses if the file already exists;
     this command requires it to). Bash never touches the raw path either way.
     """
-    validate_slug(args.slug)
-    path = state_path(args.slug)
-    if not os.path.exists(path):
-        die("no spec-state.json for slug %r to reset (did you mean bootstrap?)" % args.slug)
-    with open(path) as f:
-        prior = json.load(f)
+    # load_state handles: missing file, malformed JSON (clean REJECT, not a
+    # traceback), and the legacy read-only guard (reset must not overwrite a
+    # legacy spec any more than apply-delta may).
+    prior, path = load_state(args.slug, for_write=True)
     prior_meta = prior.get("meta") if isinstance(prior.get("meta"), dict) else {}
     preserved = {k: prior_meta[k] for k in
                  ("feature_name", "created_at", "author", "author_email", "complexity_tier")
@@ -364,6 +362,8 @@ def cmd_apply_delta(args):
 def cmd_log_event(args):
     if args.event not in EVENT_ENUM:
         die("event %r not in closed vocabulary %s" % (args.event, sorted(EVENT_ENUM)))
+    if args.phase is not None and not (0 <= args.phase <= 8):
+        die("--phase must be 0..8 or null (0=init, 8=publish)")
     details = None
     if args.details:
         try:

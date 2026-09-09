@@ -34,7 +34,7 @@ The orchestrator will:
     - `edge-case-hunter` skill — adversarial review for missing states, contradictions, mobile gaps, security holes
     - `traceability-checker` skill — verify every PRD requirement maps to a spec section
     - `ux-copy-reviewer` skill — catch AI-slop language patterns in any UI copy
-- Save to `specs/<slug>/07-spec-draft.md`.
+- Save to `specs/<slug>/07-spec.md` (content labeled `[AI DRAFT]` until human-reviewed — the filename carries no `-draft` suffix; `07-spec.md` is the canonical Phase-7 artifact the spec-writer, spec-updater, and `/spec-publish` all reference).
 - Commit the transition via the CLI: `apply-delta` `phase.current = 7` and `log-event` the audit entry (the CLI stamps `meta.last_updated` and all timestamps).
 
 ## Hard rule

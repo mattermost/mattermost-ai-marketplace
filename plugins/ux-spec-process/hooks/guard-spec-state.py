@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """PreToolUse guard for specs/*/spec-state.json.
 
-Blocks any tool call that would write to a spec-state.json file directly,
-regardless of which tool is used (Edit, Write, or Bash). There is exactly
+Best-effort defense-in-depth against direct writes to a spec-state.json file.
+Edit/Write are blocked reliably (the path is resolved before matching). Bash is
+matched on raw command text only, which a determined command can dodge (e.g.
+`cd specs/foo && … > spec-state.json`, a shell variable, or another interpreter)
+— so this is a speed-bump, NOT an airtight boundary for Bash. The real integrity
+boundary is the CLI itself: every write goes through full schema + protocol
+validation, so any write that slips past this hook produces a file the next
+`apply-delta`/`validate` rejects-forward. There is exactly
 one sanctioned writer: the bundled spec-state CLI
 (${CLAUDE_PLUGIN_ROOT}/scripts/spec-state), including its `bootstrap`
 subcommand for first-time file creation. The CLI takes only a validated
@@ -65,7 +71,9 @@ def main():
         # non-canonical path can't dodge the pattern while still resolving
         # to the protected file on disk.
         absolute = file_path if os.path.isabs(file_path) else os.path.join(cwd, file_path)
-        canonical = os.path.normpath(absolute).replace(os.sep, "/")
+        # realpath resolves symlinks too (not just '..'/'.'), so a symlinked path
+        # that points at the protected file can't dodge the pattern.
+        canonical = os.path.realpath(absolute).replace(os.sep, "/")
         if STATE_FILE_RE.search(canonical):
             verb = "edits" if tool_name == "Edit" else "writes"
             deny(

@@ -11,7 +11,7 @@ Resolve the slug under `specs/` (exact match → fuzzy → ask).
 
 ## Preconditions
 
-- `specs/<slug>/07-spec-draft.md` exists (run `/spec` first if not — abort).
+- `specs/<slug>/07-spec.md` exists (run `/spec` first if not — abort).
 - `specs/<slug>/spec-state.json` exists.
 
 ## Target resolution
@@ -34,7 +34,7 @@ Before any Confluence write:
      Space:        <space>
      Parent page:  <parent title>
      Page title:   [AI DRAFT] <feature_name> — UX Spec
-     Source file:  specs/<slug>/07-spec-draft.md
+     Source file:  specs/<slug>/07-spec.md
      Word count:   <count>
    This will create a NEW draft page. It will NOT publish.
    Confirm with "yes" or "go ahead" to proceed.
@@ -42,7 +42,7 @@ Before any Confluence write:
 
 2. **Wait for explicit affirmative.** Accept only "yes", "confirm", "go ahead", "publish draft". Do not accept "ok", "sure", or any implied consent. If the user declines, abort and report nothing was written.
 
-3. **On confirmation, reconcile before creating.** The page is created before its identity is persisted to `spec-state.json` (step 5) — if that later write fails and the user retries, a naive re-run would create a second `[AI DRAFT]` page. Before calling `createConfluencePage`, search the target space for an existing page titled exactly `[AI DRAFT] <feature_name> — UX Spec` (this title is the natural idempotency key; it's unique enough within one space for this purpose). If found, this is a retry after a prior run's page creation succeeded but the subsequent state-write (step 5) failed — do not create a duplicate. Reconcile: use the found page's URL and skip directly to step 5, telling the user a pre-existing draft was found and reconciled rather than duplicated. If not found, use the Atlassian MCP `createConfluencePage` tool to create the page as a **draft** (not published). Page title must begin with `[AI DRAFT]`. Body is the markdown content of `07-spec-draft.md` converted to Confluence storage format.
+3. **On confirmation, reconcile before creating.** The page is created before its identity is persisted to `spec-state.json` (step 5) — if that later write fails and the user retries, a naive re-run would create a second `[AI DRAFT]` page. Before calling `createConfluencePage`, search the target space for an existing page titled exactly `[AI DRAFT] <feature_name> — UX Spec` (this title is the natural idempotency key; it's unique enough within one space for this purpose). If found, this is a retry after a prior run's page creation succeeded but the subsequent state-write (step 5) failed — do not create a duplicate. Reconcile: use the found page's URL and skip directly to step 5, telling the user a pre-existing draft was found and reconciled rather than duplicated. If not found, use the Atlassian MCP `createConfluencePage` tool to create the page as a **draft** (not published). Page title must begin with `[AI DRAFT]`. Body is the markdown content of `07-spec.md` converted to Confluence storage format.
 
 4. **Second confirmation for publishing.** Never publish (move from draft to live) without a separate, explicit instruction from the user. This command only creates drafts.
 

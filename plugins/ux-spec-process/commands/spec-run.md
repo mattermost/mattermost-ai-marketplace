@@ -136,7 +136,7 @@ When the loop ends (Phase 7 complete, user paused, or user quit), print:
   Current phase state:         <N> (<status>)
 
   Suggested next step:
-    <one of: review specs/<slug>/07-spec-draft.md, then /spec-publish <slug>>
+    <one of: review specs/<slug>/07-spec.md, then /spec-publish <slug>>
                 <or: resume with /spec-run <slug>>
                 <or: investigate ambiguity in Phase X>
 ═══════════════════════════════════════════
