@@ -131,7 +131,7 @@ Top every generated file with an `// [AI DRAFT]` comment. Leave scene bodies as 
 
 | Error | Cause | Resolution |
 |-------|-------|------------|
-| `TARGET_UNRESOLVED` | No active target / bad `target_key` | Stop; report available targets from prototype-targets.json. |
+| `TARGET_UNRESOLVED` | No resolved `target_profile` injected, or it is missing required keys | Stop; report that the command/builder must inject a resolved target profile. |
 | `ROOT_MISSING` | `workspace_relative_root` absent on disk | Stop; the playground isn't present — tell the user which target to install/clone. |
 | `PROTOTYPE_EXISTS` | Slug dir already present | Offer reuse/extend, new slug, or explicit overwrite; never silent overwrite. |
 | `MANIFEST_SHAPE_DRIFT` | Manifest entry fields differ from the profile | Trust the live manifest; update the profile note and match the live shape. |
