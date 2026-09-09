@@ -11,10 +11,12 @@ tags: [prototype, scaffolding, react, typescript, vite, target-profile, fast-pat
 ## Purpose
 
 Create the file skeleton for a `/prfaq-prototype` prototype in whatever playground is the **active
-target**, without hardcoding that playground. The skill reads `${CLAUDE_PLUGIN_ROOT}/config/prototype-targets.json`, resolves
-the active target profile, confirms the target's real conventions at runtime, and scaffolds a multi-scene,
-multi-option prototype that matches them. Point the pipeline at a newer playground later by adding a
-profile and flipping `active_default` — this skill does not change.
+target**, without hardcoding that playground. **The command/builder resolves the active target** (project
+override → `.claude/prototype-targets.json` → the bundled default, plus any `--target`) and injects the
+resolved `target_profile`; this skill consumes **only** that injected profile — it does not read the config
+or re-resolve the target. It confirms the profile's real conventions at runtime and scaffolds a
+multi-scene, multi-option prototype that matches them. Point the pipeline at a newer playground later by
+adding a profile and flipping `active_default` — this skill does not change.
 
 ## When to Use
 

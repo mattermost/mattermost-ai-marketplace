@@ -55,6 +55,8 @@ You compose one scene, for one design option, into the active target playground.
 
 **Constrain `scene.id` (security):** it must match `^[a-z0-9]+(-[a-z0-9]+)*$` (kebab, one segment) — reject `..` and separators. Resolve each scene file path and confirm it stays under `<prototype_dir>/scenes/` (not merely `prototype_dir` — e.g. `../Data` escapes `scenes/` while staying in `prototype_dir`) before reading or writing it; abort on any escape.
 
+**Validate `base_surface.reuse_prototype` (when `resolution = reuse-prototype`):** it must be a kebab single-segment AND appear in the profile's `base_layouts.<surface>.reference_prototypes`; resolve it under `prototype_dir` and reject any path outside that root before opening or copying from it.
+
 ### Step 1 — Use the resolved profile + enumerate the library (runtime, never assumed)
 
 Use the **resolved target profile the builder/command injects** — do NOT re-read or re-resolve a target
