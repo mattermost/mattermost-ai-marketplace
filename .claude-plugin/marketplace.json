@@ -195,6 +195,17 @@
       "author": {
         "name": "Maria Nunez"
       }
+    },
+    {
+      "name": "cursorctl",
+      "source": "./plugins/cursorctl",
+      "description": "Use the cursorctl CLI to spawn, send, detach, inspect, and collect Cursor cloud or local agents from Claude Code",
+      "version": "1.0.0",
+      "category": "productivity",
+      "tags": ["cursor", "cursorctl", "agents", "cli", "sdk", "cloud", "delegation"],
+      "author": {
+        "name": "Nick Misasi"
+      }
     }
   ]
 }
