@@ -84,8 +84,9 @@ PRFAQs are mid-negotiation. Handle these explicitly:
   was reversed.
 - **Dated inline annotations** ("Update 8/12:", "8/6/26: resolved") → the newest dated statement wins;
   record the supersession.
-- **Placeholders** (`[Target Launch Date]`, `[Placeholder — …]`, `TBD`) → carry through as `null` with
-  a `placeholder: true` flag; never fabricate a value.
+- **Placeholders** (`[Target Launch Date]`, `[Placeholder — …]`, `TBD`) → carry the value through as
+  `null` and record the affected field path + reason in `placeholders[]` (`{field, reason}`); never
+  fabricate a value.
 - If two load-bearing statements genuinely conflict with no date/strikethrough to break the tie, record
   BOTH in `contradictions[]` and flag for the analyst to raise as a clarification — do not choose.
 
@@ -156,7 +157,7 @@ Emit (a) a readable markdown extract for humans and (b) a machine block for `sce
     "inference_boundary": [ "..." ],
     "contradictions": [ { "a": "...", "b": "...", "resolution": "superseded-by-date | superseded-by-strikethrough | unresolved" } ],
     "scrubbed_customer_refs": [ { "token": "a customer", "context": "seat-expansion driver" } ],
-    "placeholders": [ "..." ],
+    "placeholders": [ { "field": "meta.updated", "reason": "..." } ],
     "placeholder_prfaq": false
   }
 }

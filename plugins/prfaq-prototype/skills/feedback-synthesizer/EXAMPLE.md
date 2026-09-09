@@ -13,6 +13,12 @@ A full worked example (raw stakeholder feedback in → categorized output) for t
 **Output:**
 ```json
 {
+  "review_context": {
+    "review_date": "2026-01-15",
+    "artifact": "Environmental Attributes for ZT ABAC — UX Spec (v2.1)",
+    "phase": "Phase 5 wireframe gate review",
+    "reviewers": ["Security Architect", "Compliance Officer", "PM", "UX Designer", "Accessibility Lead", "Mobile Researcher", "QA"]
+  },
   "executive_summary": {
     "total_feedback_items": 8,
     "must_fix_count": 4,
@@ -65,7 +71,11 @@ A full worked example (raw stakeholder feedback in → categorized output) for t
       "suggested_resolution": "Choose one behavior and apply consistently: Either (a) auto-save after inactivity timer, or (b) manual save with explicit button. Update both sections to be consistent. If auto-save, explain what happens if user navigates away — is save in progress?",
       "impact_if_not_fixed": "Engineering will receive ambiguous spec and have to guess which behavior is correct. Likely causes implementation to not match design intent.",
       "duplicate_mentions": ["PM mentioned this again in later feedback"]
-    }
+    },
+    { "category": "SHOULD_FIX", "reviewer": "UX Designer", "feedback_summary": "Help text uses unexplained acronyms (ABAC)", "affected_section": "Attribute field help text", "detailed_description": "Help text mentions 'ABAC' without explaining it; not every admin knows the term.", "suggested_resolution": "Change 'Define ABAC rules' to 'Define attribute-based rules (which user attributes and values grant access) for this channel.'", "impact_if_not_fixed": null, "duplicate_mentions": null },
+    { "category": "SHOULD_FIX", "reviewer": "Mobile Researcher", "feedback_summary": "Mobile behavior needs documentation beyond 'Identical to web'", "affected_section": "Mobile section", "detailed_description": "Mobile section says 'Identical to web', but a tactical handset has real constraints (full-screen policy panel, badge truncation).", "suggested_resolution": "Expand the mobile section with field constraints, badge behavior, and keyboard space (see SHOULD-FIX-002).", "impact_if_not_fixed": null, "duplicate_mentions": null },
+    { "category": "SHOULD_FIX", "reviewer": "QA", "feedback_summary": "Undefined behavior when a user's clearance is revoked mid-edit", "affected_section": "Section 3", "detailed_description": "If a subject's clearance is revoked while a policy edit is pending, the spec doesn't define what happens to the in-flight change.", "suggested_resolution": "On clearance revocation, cancel any pending edit by that user, surface a non-specific notice, and re-evaluate on next action (no partial apply).", "impact_if_not_fixed": null, "duplicate_mentions": null },
+    { "category": "OUT_OF_SCOPE", "reviewer": "PM", "feedback_summary": "Add bulk attribute import in this phase", "affected_section": "n/a (new capability)", "detailed_description": "Bulk attribute import was explicitly deferred to a later phase per the PRD.", "suggested_resolution": "Defer; document as a later-phase capability (see out_of_scope_items).", "impact_if_not_fixed": null, "duplicate_mentions": null }
   ],
   "must_fix_summary": [
     {

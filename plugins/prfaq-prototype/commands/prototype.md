@@ -3,9 +3,9 @@ description: Fast-path — turn a PRFAQ into shareable, multi-option interactive
 argument-hint: "<PRFAQ file path or run slug> [--persona-review=prfaq|prototype|both] [--persona-panel=domain|all|<slugs>] [--option-count=2|3] [--target=<key>]"
 ---
 
-Resolve `$ARGUMENTS` to a source PRFAQ: an exact path under `PRFAQs/`, then a fuzzy title match, then an
-existing run slug under `prototype-runs/`. If nothing resolves, **ask the user for the PRFAQ** — do not go
-hunting Confluence/Jira/web for it.
+Resolve `$ARGUMENTS` to a source PRFAQ **markdown file**: an exact path, then a fuzzy title match under
+`PRFAQs/`. If nothing resolves, **ask the user for the PRFAQ** — do not go hunting Confluence/Jira/web for
+it. (Stage 1 always needs a real PRFAQ file — a bare `prototype-runs/<slug>` is not a valid input.)
 
 This is the standalone `/prfaq-prototype:prototype` fast-path pipeline (installed as a Claude plugin). It
 is **decoupled from any spec-state / gate machinery**: no `spec-state.json`, no gates, no orchestrator

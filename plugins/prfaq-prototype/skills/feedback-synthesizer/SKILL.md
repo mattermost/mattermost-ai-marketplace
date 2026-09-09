@@ -178,8 +178,19 @@ Your output should help a product manager quickly understand:
 ```json
 {
   "type": "object",
-  "required": ["executive_summary", "feedback_table", "must_fix_summary"],
+  "required": ["review_context", "executive_summary", "feedback_table", "must_fix_summary"],
   "properties": {
+    "review_context": {
+      "type": "object",
+      "description": "Preserved from the input for traceability (who/when/what phase).",
+      "properties": {
+        "review_date": {"type": "string"},
+        "artifact": {"type": "string"},
+        "phase": {"type": "string"},
+        "reviewers": {"type": "array", "items": {"type": "string"}}
+      },
+      "required": ["review_date", "artifact", "phase"]
+    },
     "executive_summary": {
       "type": "object",
       "properties": {
