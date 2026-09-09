@@ -197,6 +197,17 @@
       }
     },
     {
+      "name": "ux-spec-process",
+      "source": "./plugins/ux-spec-process",
+      "description": "8-phase, gated UX specification pipeline for DoD/defense collaboration features — orchestrator + phase agents + composable skills, from problem brain-dump to publish-ready spec",
+      "version": "1.0.0",
+      "category": "design",
+      "tags": ["ux", "spec", "design", "dod", "orchestration", "gated-workflow"],
+      "author": {
+        "name": "Abhijit Singh"
+      }
+    },
+    {
       "name": "prfaq-prototype",
       "source": "./plugins/prfaq-prototype",
       "description": "Turn a PRFAQ into shareable, multi-option interactive prototypes for faster alignment — parse the PRFAQ, align on scope and options with the human, then build into a swappable sandbox playground on the app's real layouts",
