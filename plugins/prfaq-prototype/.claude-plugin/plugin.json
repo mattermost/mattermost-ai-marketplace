@@ -1,0 +1,11 @@
+{
+  "name": "prfaq-prototype",
+  "displayName": "PRFAQ → Prototype",
+  "description": "Turn a PRFAQ into shareable, multi-option interactive prototypes for faster alignment. A standalone fast-path: parse the PRFAQ → align on scope/options with the human → build into a swappable sandbox playground, composing on the app's real layouts.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Abhijit Singh",
+    "email": "abhijit.singh@mattermost.com"
+  },
+  "keywords": ["prfaq", "prototype", "ux", "design", "alignment", "mattermost", "compass-ui"]
+}
