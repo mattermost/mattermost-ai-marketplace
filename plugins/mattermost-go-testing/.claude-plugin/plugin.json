@@ -1,0 +1,9 @@
+{
+  "name": "mattermost-go-testing",
+  "description": "Write, review, and audit Go tests for the Mattermost server repo. Covers App, Store, and API layer test patterns, parallel safety rules, the readOnlyFF feature flag trap, and CI compatibility — institutional knowledge not documented anywhere in the server repo itself.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Pablo Vélez"
+  },
+  "keywords": ["mattermost", "testing", "go", "parallel", "ci", "test-quality", "coverage"]
+}

@@ -131,6 +131,17 @@
       }
     },
     {
+      "name": "mattermost-go-testing",
+      "source": "./plugins/mattermost-go-testing",
+      "description": "Write, review, and audit Go tests for the Mattermost server repo — App/Store/API layer patterns, parallel safety, readOnlyFF feature flag trap, and CI compatibility",
+      "version": "1.0.0",
+      "category": "testing",
+      "tags": ["mattermost", "testing", "go", "parallel", "ci", "test-quality"],
+      "author": {
+        "name": "Pablo Vélez"
+      }
+    },
+    {
       "name": "dev-workflows",
       "source": "./plugins/dev-workflows",
       "description": "Skills for common development workflows — dependency management, module hygiene, and routine maintenance tasks",
