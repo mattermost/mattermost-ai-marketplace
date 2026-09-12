@@ -228,6 +228,17 @@
       "author": {
         "name": "Abhijit Singh"
       }
+    },
+    {
+      "name": "e2e-trust",
+      "source": "./plugins/e2e-trust",
+      "description": "Raise trust in E2E suites (Playwright/Detox) where mutation testing doesn't fit — diff-to-flow coverage mapping, a root-cause-required flake gate, opt-in defect seeding for catch-rate, and assertion-quality lint.",
+      "version": "0.1.0",
+      "category": "testing",
+      "tags": ["e2e", "playwright", "detox", "flaky-tests", "test-quality", "qa", "defect-seeding"],
+      "author": {
+        "name": "Yasser Khan"
+      }
     }
   ]
 }

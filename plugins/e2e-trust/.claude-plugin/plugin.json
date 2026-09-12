@@ -1,0 +1,9 @@
+{
+  "name": "e2e-trust",
+  "description": "Raise trust in E2E suites where mutation testing doesn't fit. Maps a diff to the user flows it changes and the specs that cover them, gates on flake rate (root-cause required, never masked), optionally seeds realistic defects to measure catch-rate, and lints specs for empty assertions. Framework-aware: Playwright and Detox.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Yasser Khan"
+  },
+  "keywords": ["e2e", "playwright", "detox", "flaky-tests", "test-quality", "qa", "coverage", "defect-seeding"]
+}
