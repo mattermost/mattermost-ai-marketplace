@@ -1,6 +1,6 @@
 ---
 name: plugin-security-release-targets
-description: Given a Mattermost priority/severity level and a plugin repository, resolve the target plugin release-X.Y branches by cross-referencing the platform release policy with the plugin versions declared in each platform Makefile, plus any RC branches not yet referenced by the Makefile. Returns only branches that exist on the plugin's origin.
+description: Given a Mattermost priority/severity level and a plugin repository, resolve the target plugin release-X.Y branches by cross-referencing the platform release policy with the plugin versions declared in each platform Makefile, plus any plugin release branches not yet wired into the platform. Returns only branches that exist on the plugin's origin.
 allowed-tools: Read, Bash(git ls-remote:*), Bash(git show:*), Bash(rg:*), Bash(gh api:*)
 ---
 
@@ -11,8 +11,9 @@ plugin `release-X.Y` branches that a fix at that level must be cherry-picked ont
 The resolution works by: (1) delegating to `/cursor-automations:security-release-targets`
 to get the set of active platform `release-X.Y` branches, then (2) looking up the
 plugin version shipped in each platform release's Makefile, then (3) adding any plugin
-RC branches not yet referenced by the Makefile (newer than the highest Makefile-resolved
-version), and finally (4) filtering to branches that exist on the plugin's remote.
+release branches not yet referenced by the platform Makefile (newer than the highest
+Makefile-resolved version), and finally (4) filtering to branches that exist on the
+plugin's remote.
 
 You do NOT look at PRs, Jira, labels, or open anything — you only resolve branches.
 Ticket handling, gating, and cherry-pick execution live in the caller.
@@ -51,9 +52,9 @@ The `mattermost/mattermost` repo is loaded in the workspace context. For each pl
 
 If the branch does not exist on origin or the plugin is not found in the Makefile, skip that platform version.
 
-## Step 3: Include RC branches not yet in the Makefile
+## Step 3: Include plugin release branches not yet wired into the platform
 
-During the RC phase, a plugin release branch may exist on the plugin remote before the platform Makefile references it. To avoid missing cherry-pick targets:
+A plugin may cut a `release-X.Y` branch before the `mattermost/mattermost` Makefile is updated to reference it — for example, when the plugin release is ahead of the next platform release cycle. To avoid missing cherry-pick targets:
 
 1. Enumerate all plugin release branches from the remote:
 
@@ -65,15 +66,15 @@ During the RC phase, a plugin release branch may exist on the plugin remote befo
 
 2. Find the highest version resolved from the Makefile in Step 2 (`MAX_MAKEFILE`).
 
-3. Any plugin branch with a version **strictly greater than** `MAX_MAKEFILE` is an in-flight RC branch — include it unconditionally (no Makefile backing needed).
+3. Any plugin branch with a version **strictly greater than** `MAX_MAKEFILE` is not yet wired into the platform — include it unconditionally.
 
-Merge these RC branches into the candidate set from Step 2.
+Merge these branches into the candidate set from Step 2.
 
 ## Step 4: Map to plugin release branches and filter to what exists
 
 - Map each resolved plugin version `vX.Y` (major.minor) to the branch name `release-X.Y` on the plugin repository.
-- Deduplicate: multiple platform releases may ship the same plugin version, and an RC branch from Step 3 may overlap with a Makefile-resolved branch.
-- Keep only branches that actually exist on the plugin's remote (RC branches added in Step 3 already exist by definition; re-verify Makefile-resolved branches):
+- Deduplicate: multiple platform releases may ship the same plugin version, and a branch added in Step 3 may overlap with a Makefile-resolved branch.
+- Keep only branches that actually exist on the plugin's remote (branches added in Step 3 already exist by definition; re-verify Makefile-resolved branches):
 
   ```bash
   git ls-remote --heads https://github.com/<PLUGIN_REPO>.git release-X.Y
