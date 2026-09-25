@@ -1,7 +1,7 @@
 ---
 name: security-release-targets
 description: Given a Mattermost priority/severity level (Critical/High/Medium/Low), resolve the target release-X.Y branches to cherry-pick onto by parsing the Mattermost release policy (ESR/active/upcoming) and keeping only branches that exist on mattermost/mattermost. Use when you need the list of release branches a fix must be backported to for a given severity.
-allowed-tools: Read, Bash(git ls-remote:*), WebFetch
+allowed-tools: Read, Bash(git ls-remote:*)
 ---
 
 # Resolve target release branches for a severity
@@ -19,11 +19,10 @@ resolve branches. Ticket handling and gating live in the caller.
 
 ## Step 1: Parse the release policy
 
-Fetch and parse the policy once here; later steps consume the sets produced below rather than re-reading the page.
+Read and parse the policy once here; later steps consume the sets produced below rather than re-reading the file.
 
-- Fetch the page source of: https://docs.mattermost.com/product-overview/release-policy.html
-- Locate the `<pre class="mermaid"> ... gantt ...` block in the "Releases" section.
-- Unescape HTML entities such as `&amp;` before parsing.
+- Read `docs/main/product-overview/release-policy.mdx` from the `mattermost/mattermost` repo, which is loaded in the workspace context.
+- Locate the ` ```mermaid ` fenced code block containing `gantt`.
 - Parse each release row `vX.Y[ & ...] :<status>, <start>, <end>`:
   - Locate the status marker `:(crit|active|done),` and treat everything before that marker as the row label. Status markers may contain multiple flags, e.g. `:crit, :done, ...`. Parse all status flags that appear before the start/end dates, not just the first one. 
   - Do not assume the row label is only `vX.Y`. Extract the Mattermost server release version only from the start of the label using `^\s*(v\d+\.\d+)\b`. Ignore additional label text such as `& Desktop App v6.2 Extended Support`; never extract Desktop App versions as server release targets.

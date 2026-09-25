@@ -1,7 +1,7 @@
 ---
 name: plugin-security-release-targets
 description: Given a Mattermost priority/severity level and a plugin repository, resolve the target plugin release-X.Y branches by cross-referencing the platform release policy with the plugin versions declared in each platform Makefile. Returns only branches that exist on the plugin's origin.
-allowed-tools: Read, Bash(git ls-remote:*), Bash(gh api:*), WebFetch
+allowed-tools: Read, Bash(git ls-remote:*), Bash(git show:*), Bash(rg:*), Bash(gh api:*)
 ---
 
 # Resolve target plugin release branches for a severity
@@ -28,7 +28,7 @@ Ticket handling, gating, and cherry-pick execution live in the caller.
 
 Invoke the `/cursor-automations:security-release-targets` skill with `<PRIORITY>` (or `Critical` if priority was omitted). That skill:
 
-1. Parses the Mattermost release policy (gantt chart at https://docs.mattermost.com/about/release-policy.html)
+1. Parses the Mattermost release policy (reads `docs/main/product-overview/release-policy.mdx` from the `mattermost/mattermost` repo loaded in the workspace context)
 2. Maps the priority to candidate platform versions (`ACTIVE ∪ ESR` for Critical/High/Medium; `{UPCOMING} ∪ ESR` for Low)
 3. Filters to branches that exist on origin
 
@@ -38,13 +38,17 @@ If `PLATFORM_BRANCHES` is empty, return an empty list immediately.
 
 ## Step 2: Look up the plugin version in each platform release Makefile
 
-For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
+The `mattermost/mattermost` repo is loaded in the workspace context. For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
 
-1. Fetch `https://raw.githubusercontent.com/mattermost/mattermost/refs/heads/release-X.Y/server/Makefile`.
-2. Grep for `<MAKEFILE_NAME>`. Exclude any lines containing `fips`. Extract the full artifact name up to and including the semver (e.g. `mattermost-plugin-jira-v4.7.0`).
-3. Parse the semver: `vMAJOR.MINOR.PATCH`. Keep only `MAJOR.MINOR` for branch resolution.
+1. Read the Makefile directly from git — no network request needed:
 
-If the Makefile does not exist for a platform version (branch not yet cut) or the plugin is not found in it, skip that platform version.
+   ```bash
+   git show "origin/release-X.Y:server/Makefile" | rg -o '<MAKEFILE_NAME>-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?' | grep -v fips | sort -Vu | tail -1
+   ```
+
+2. Parse the semver from the match: `vMAJOR.MINOR.PATCH`. Keep only `MAJOR.MINOR` for branch resolution.
+
+If the branch does not exist on origin or the plugin is not found in the Makefile, skip that platform version.
 
 ## Step 3: Map to plugin release branches and filter to what exists
 
