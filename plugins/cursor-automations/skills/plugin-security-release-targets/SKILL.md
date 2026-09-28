@@ -50,6 +50,8 @@ The `mattermost/mattermost` repo is loaded in the workspace context. For each pl
 
 2. Parse the semver from the match: `vMAJOR.MINOR.PATCH`. Keep only `MAJOR.MINOR` for branch resolution.
 
+3. Track the highest `MAJOR.MINOR` across all platform branches — call this `MAX_MAKEFILE`. This will be used in Step 3 to identify plugin branches not yet wired into the platform.
+
 If the branch does not exist on origin or the plugin is not found in the Makefile, skip that platform version.
 
 ## Step 3: Include plugin release branches not yet wired into the platform
@@ -64,9 +66,7 @@ A plugin may cut a `release-X.Y` branch before the `mattermost/mattermost` Makef
 
    Filter to the `release-X.Y` pattern; parse `X` and `Y` as integers.
 
-2. Find the highest version resolved from the Makefile in Step 2 (`MAX_MAKEFILE`).
-
-3. Any plugin branch with a version **strictly greater than** `MAX_MAKEFILE` is not yet wired into the platform — include it unconditionally.
+2. Use `MAX_MAKEFILE` from Step 2. Any plugin branch with a version **strictly greater than** `MAX_MAKEFILE` is not yet wired into the platform — include it unconditionally.
 
 Merge these branches into the candidate set from Step 2.
 
