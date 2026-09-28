@@ -1,7 +1,7 @@
 ---
 name: plugin-security-release-targets
 description: Given a Mattermost priority/severity level and a plugin repository, resolve the target plugin release-X.Y branches by cross-referencing the platform release policy with the plugin versions declared in each platform Makefile, plus any plugin release branches not yet wired into the platform. Returns only branches that exist on the plugin's origin.
-allowed-tools: Read, Bash(git ls-remote:*), Bash(git show:*), Bash(rg:*), Bash(gh api:*)
+allowed-tools: Read, Bash(git ls-remote:*), Bash(git show:*), Bash(git clone:*), Bash(rg:*), Bash(gh api:*)
 ---
 
 # Resolve target plugin release branches for a severity
@@ -43,10 +43,10 @@ If `PLATFORM_BRANCHES` is empty, return an empty list immediately.
 The `mattermost/mattermost` repo must be available. If it's not yet cloned locally, clone it to a temporary location first:
 
 ```bash
-git clone https://github.com/mattermost/mattermost.git --depth=1 /tmp/mattermost-repo
+git clone https://github.com/mattermost/mattermost.git /tmp/mattermost-repo
 ```
 
-Then use that path for subsequent `git show` commands. For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
+Reuse the cloned repo if it already exists at that path; otherwise, delete it after use to avoid disk bloat. Then use that path for subsequent `git show` commands. For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
 
 1. Read the Makefile directly from git (change to the repo directory if cloned):
 
