@@ -40,12 +40,18 @@ If `PLATFORM_BRANCHES` is empty, return an empty list immediately.
 
 ## Step 2: Look up the plugin version in each platform release Makefile
 
-The `mattermost/mattermost` repo is loaded in the workspace context. For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
+The `mattermost/mattermost` repo must be available. If it's not yet cloned locally, clone it to a temporary location first:
 
-1. Read the Makefile directly from git — no network request needed:
+```bash
+git clone https://github.com/mattermost/mattermost.git --depth=1 /tmp/mattermost-repo
+```
+
+Then use that path for subsequent `git show` commands. For each platform branch `release-X.Y` in `PLATFORM_BRANCHES`:
+
+1. Read the Makefile directly from git (change to the repo directory if cloned):
 
    ```bash
-   git show "origin/release-X.Y:server/Makefile" | rg -o '<MAKEFILE_NAME>-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?' | grep -v fips | sort -Vu | tail -1
+   cd /path/to/mattermost && git show "origin/release-X.Y:server/Makefile" | rg -o '<MAKEFILE_NAME>-v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?' | grep -v fips | sort -Vu | tail -1
    ```
 
 2. Parse the semver from the match: `vMAJOR.MINOR.PATCH`. Keep only `MAJOR.MINOR` for branch resolution.
