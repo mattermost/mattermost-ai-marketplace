@@ -78,19 +78,23 @@ Merge these branches into the candidate set from Step 2.
 
 ## Step 4: Map to plugin release branches and filter to what exists
 
-- Map each resolved plugin version `vX.Y` (major.minor) to the branch name `release-X.Y` on the plugin repository.
-- Deduplicate: multiple platform releases may ship the same plugin version, and a branch added in Step 3 may overlap with a Makefile-resolved branch.
-- Keep only branches that actually exist on the plugin's remote (branches added in Step 3 already exist by definition; re-verify Makefile-resolved branches):
+1. Map each resolved plugin version `vX.Y` (major.minor) to the branch name `release-X.Y` on the plugin repository.
 
-  ```bash
-  git ls-remote --heads https://github.com/<PLUGIN_REPO>.git release-X.Y
-  ```
+2. Deduplicate: multiple platform releases may ship the same plugin version, and a branch added in Step 3 may overlap with a Makefile-resolved branch. Keep only one copy of each branch name.
 
-  Alternatively, if you are already in a checkout of the plugin:
+3. Verify that branches actually exist on the plugin's remote. Branches added in Step 3 already exist by definition; for Makefile-resolved branches, re-verify they still exist (the branch may have been deleted or renamed since the Makefile was written). For each candidate branch, run:
 
-  ```bash
-  git ls-remote --heads origin release-X.Y
-  ```
+   ```bash
+   git ls-remote --heads https://github.com/<PLUGIN_REPO>.git release-X.Y
+   ```
+
+   Alternatively, if you are already in a checkout of the plugin:
+
+   ```bash
+   git ls-remote --heads origin release-X.Y
+   ```
+
+   If the command returns empty, exclude that branch from the final result.
 
 ## Output
 
