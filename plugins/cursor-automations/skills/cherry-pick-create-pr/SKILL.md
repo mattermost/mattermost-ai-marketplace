@@ -1,7 +1,6 @@
 ---
 name: cherry-pick-create-pr
 description: Cherry-pick a single merged commit onto one release-X.Y branch, correctly resolving conflicts, running lint in a separate commit, pushing, and opening a cherry-pick PR via the create_pr_tool MCP following the PR template. Self-contained (carries its own conflict-resolution logic). Use inside a per-branch subagent when backporting a merged PR to a release branch. Has side effects (push + open PR).
-disable-model-invocation: true
 ---
 
 # Cherry-pick a commit onto a release branch and open a PR
