@@ -44,7 +44,7 @@ Match in this order; the first hit wins.
 
 | # | Input looks like | `source_type` | How to read it |
 |---|---|---|---|
-| 1 | A path to an existing file inside the workspace | `local` | `.md` → use in place. `.docx` / `.pdf` / `.html` / `.txt` → convert to markdown (use the host's document skills if present) and save a copy per Step 4. |
+| 1 | A path to an existing file inside the workspace | `local` | `.md` → use in place. `.docx` / `.pdf` / `.html` / `.txt` → convert to markdown (use the host's document skills if present) and save a copy per Step 5. |
 | 2 | `github.com/<owner>/<repo>/blob/<ref>/<path>` or `raw.githubusercontent.com/...` | `github` | GitHub connector "get file contents", else `gh api repos/<owner>/<repo>/contents/<path>?ref=<ref>`. Record the commit SHA. |
 | 3 | `docs.google.com/document/d/<id>`, `drive.google.com/file/d/<id>`, `docs.google.com/...` | `google-doc` | Google Drive connector — read/export the file as text or markdown by `<id>`. Record the revision / modified time. |
 | 4 | `<site>.atlassian.net/wiki/...`, or a Confluence host with `/pages/<id>` or `pageId=<id>` | `confluence` | Atlassian / Confluence connector — fetch the page body by page id (storage or markdown format). Record the page version. |
@@ -56,7 +56,23 @@ Match in this order; the first hit wins.
 Canonicalize URLs before matching or recording them: drop tracking query params and fragments that
 don't identify the document (keep ids such as `pageId`), strip `/edit`, `/view`, `usp=` suffixes.
 
-## Step 2 — Find a tool that can read it (capability-based, never hardcoded)
+## Step 2 — Saved copy? (before touching the source)
+
+For a URL input, scan `PRFAQs/*.md` for a provenance comment whose `url` equals the canonical URL. Do this
+before looking for a reader tool, so a re-run never prompts for a connector it doesn't need.
+
+- **Not found** → continue to Step 3.
+- **Found, user asked to refresh** → continue to Step 3; the save in Step 5 overwrites only that copy.
+- **Found, no reader tool already available** → reuse the saved copy. Tell the user it's the copy saved on
+  `<fetched_at>` and that they can ask to refresh it. Don't prompt to connect anything.
+- **Found, reader tool available** → check only the source's revision (version, modified time, latest
+  commit), not the full body. If the only way to check is a full fetch, skip the check and reuse.
+  - Unchanged → reuse; don't re-fetch.
+  - Changed → ask: **refresh it (Recommended)** or **use the saved copy**. Refresh → continue to Step 3.
+
+Reuse skips Steps 3–5; go to Step 6 with `reused_existing_copy: true`.
+
+## Step 3 — Find a tool that can read it (capability-based, never hardcoded)
 
 Connector tool names differ per host and install (often prefixed with a server id), so **do not assume
 a tool name**. Look for a tool by capability:
@@ -70,7 +86,7 @@ If a matching tool exists, use it. If it exists but fails with an auth/permissio
 connected", "needs authentication"), treat it like a missing tool below — never ask the user to paste a
 token, cookie, or password.
 
-## Step 3 — No tool, or no access: prompt, don't guess
+## Step 4 — No tool, or no access: prompt, don't guess
 
 Ask the user with the host's interactive question picker (plain language, one question):
 
@@ -82,31 +98,26 @@ Options (exactly one Recommended):
 1. **Connect <service> and retry (Recommended)** — say where: claude.ai → Settings → Connectors for
    claude.ai connectors, or `/mcp` in a terminal `claude` session for MCP servers. If the host offers a
    connector-suggestion tool, use it to show the connect card. After the user says it's connected,
-   re-run Step 2.
+   re-run Step 3.
 2. **I'll export it** — the user saves the doc (Markdown, .docx, or PDF) into `PRFAQs/`; then resolve it
    as `local`.
-3. **I'll paste it** — the user pastes the text in chat; save it per Step 4 with `source_type: pasted`.
+3. **I'll paste it** — the user pastes the text in chat; save it per Step 5 with `source_type: pasted`.
 4. **Stop.**
 
 For a `web` link that returns a login page, say that the page needs sign-in and offer options 2–4 (or a
 connector for that service if one plausibly exists).
 
-## Step 4 — Save a local markdown copy with provenance
+## Step 5 — Save a local markdown copy with provenance
 
-1. **Reuse first.** Scan `PRFAQs/*.md` for a provenance comment whose `url` equals the canonical URL.
-   - Found and the source revision is unchanged (or can't be cheaply checked and the user doesn't ask to
-     refresh) → reuse that file; do not re-fetch.
-   - Found but the source changed → ask: **use the saved copy** or **refresh it (Recommended)**. A refresh
-     overwrites only that saved copy.
-2. **Convert to markdown faithfully.** Keep headings, lists, tables, links, and **strikethrough** (the
+1. **Convert to markdown faithfully.** Keep headings, lists, tables, links, and **strikethrough** (the
    parser treats struck text as superseded decisions). Keep dated annotations. Drop doc-editor chrome,
    resolved comment threads, and suggestion-mode noise unless the text is the only place a decision lives
    (then keep it, marked `> [comment]`).
-3. **Name the file** `PRFAQs/<kebab-title>.md` from the document title (strip customer names from the
+2. **Name the file** `PRFAQs/<kebab-title>.md` from the document title (strip customer names from the
    *filename*). If that name exists for a different source, append `-2`, `-3`.
-4. **Containment (security).** Resolve the target path; it must stay under `<workspace_root>/PRFAQs/`.
+3. **Containment (security).** Resolve the target path; it must stay under `<workspace_root>/PRFAQs/`.
    Reject anything that escapes (`..`, absolute paths, symlinks out of the workspace).
-5. **Provenance on line 1**, as an HTML comment (so it never collides with a T3 doc's YAML frontmatter):
+4. **Provenance on line 1**, as an HTML comment (so it never collides with a T3 doc's YAML frontmatter):
 
    ```
    <!-- prfaq-source: {"source_type":"google-doc","source_kind":"prfaq","url":"<canonical url>","title":"<doc title>","revision":"<sha | revision | version | update_at>","fetched_at":"<ISO-8601>","via":"<tool or gh/web>"} -->
@@ -114,7 +125,7 @@ connector for that service if one plausibly exists).
 
    `local` `.md` files used in place get no comment (they are not modified).
 
-## Step 5 — Decide `source_kind`
+## Step 6 — Decide `source_kind`
 
 - `prfaq` — the content is a PRFAQ or decision doc (press release / FAQ / T3 tiers / requirements).
 - `discussion` — a thread, meeting notes, or a loose writeup that *discusses* a feature but isn't a PRFAQ.
@@ -133,7 +144,7 @@ analyst's clarification round gets heavier.
   them automatically.** If one looks like the actual PRFAQ, ask the user: "This thread links to
   **<title or host>**. Pull that too?" Options: **Pull the linked doc as the main source and keep the
   thread as extra context (Recommended)** / **Use only the thread** / **Pull both as separate sources**.
-  Each linked doc runs through Steps 1–4 on its own; the thread is saved with `source_kind: discussion`.
+  Each linked doc runs through Steps 1–5 on its own; the thread is saved with `source_kind: discussion`.
 - When both exist, return the PRFAQ as `prfaq_path` and the thread as `context_paths[]`.
 
 ## Output
@@ -154,8 +165,8 @@ analyst's clarification round gets heavier.
 | Error | Cause | Resolution |
 |-------|-------|------------|
 | `NO_INPUT_MATCH` | Not a path, URL, or matching title | Ask the user for the PRFAQ (link, file, or paste). Don't search for it. |
-| `NO_READER` | No tool in the session can read that link type | Step 3 prompt. |
-| `ACCESS_DENIED` | Tool present but 401/403/not connected, or a login page came back | Step 3 prompt (reconnect / request access / export / paste). Never ask for credentials. |
+| `NO_READER` | No tool in the session can read that link type | Step 4 prompt. |
+| `ACCESS_DENIED` | Tool present but 401/403/not connected, or a login page came back | Step 4 prompt (reconnect / request access / export / paste). Never ask for credentials. |
 | `NOT_A_DOCUMENT` | Link points at a folder, space, channel, search page, or repo root | Ask the user which document inside it to use. |
 | `PATH_ESCAPE` | Target path would leave `PRFAQs/` | Abort the save; report it. |
 | `EMPTY_SOURCE` | Fetched content is empty or only a title | Report it; offer export/paste. |

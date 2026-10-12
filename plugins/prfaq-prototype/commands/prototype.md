@@ -112,7 +112,9 @@ The builder will:
   reset, or clean an existing one.
 - **Never ask for tokens, passwords, or cookies** to reach a source — prompt the user to connect the
   connector instead.
-- **Never build into the production `mattermost` repo** — the sandbox target is the only build surface.
+- **Don't build into a production `mattermost` repo by default** — the sandbox playground is the build
+  target. A production repo is used only when the project profile names it as `repo_url` and the user has
+  said yes to the one-time prompt (Step 0.2).
 - **Never overwrite an existing prototype** without confirmation — offer reuse/extend or a new slug.
 - **No customer names** in any artifact (the parser scrubs; verify).
 

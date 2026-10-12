@@ -1,6 +1,6 @@
 ---
 name: Playground Bootstrap
-description: Pre-flight for /prfaq-prototype. Makes sure the active target playground exists inside the workspace. If it's missing and the target profile names a repo, prompts the user to clone a fresh copy (plus any companion repos it needs) and install dependencies; if it exists, verifies it's the expected sandbox repo, never a production repo. Never clones, installs, pulls, or resets without the user's yes.
+description: Pre-flight for /prfaq-prototype. Makes sure the active target playground exists inside the workspace. If it's missing and the target profile names a repo, prompts the user to clone a fresh copy (plus any companion repos it needs) and install dependencies; if it exists, verifies it's the expected repo. A production repo is used only when the profile names it explicitly, after a one-time yes. Never clones, installs, pulls, or resets without the user's yes.
 version: 1.0.0
 author: Mattermost Design Team
 tags: [prototype, playground, bootstrap, git, clone, sandbox, target-profile, fast-path]
@@ -47,9 +47,13 @@ symlinks that resolve outside. Abort with the specific path on failure. Re-check
 - It must be a git checkout. Read `git -C <root> remote get-url origin` and normalize both it and the
   profile's `repo_url` (`git@github.com:o/r.git` ≡ `https://github.com/o/r(.git)`).
 - **Mismatch** → stop: "`<root>` is a checkout of `<actual>`, not the playground `<expected>`." Never
-  build into it. (This is the guard that keeps the pipeline out of the production `mattermost` repo.)
+  build into it.
 - No `repo_url` in the profile → skip the remote check, but still refuse a remote that is
-  `mattermost/mattermost` or `mattermost/mattermost-webapp`.
+  `mattermost/mattermost` or `mattermost/mattermost-webapp`. (This is the guard that keeps the pipeline
+  out of a production repo by accident.)
+- **Production repo on purpose** → if the profile's `repo_url` explicitly names `mattermost/mattermost`
+  or `mattermost/mattermost-webapp` and the remote matches, building there is allowed — confirm it once
+  (Step 2d) before continuing.
 - If `node_modules/` is missing, offer to run the install command (Step 4).
 - **Never** `pull`, `reset`, `checkout`, or `clean` an existing playground — it may hold the user's
   unpushed prototypes. If it looks stale, you may mention `git -C <root> pull --ff-only` as a suggestion.
@@ -77,7 +81,20 @@ Options:
    re-run. (The playground must live inside the workspace.)
 3. **Stop.**
 
-Only option 1 proceeds. Never clone without this explicit yes.
+Only option 1 proceeds. Never clone without this explicit yes. If `repo_url` is a production repo, add
+the Step 2d wording to this prompt; a yes here also counts as the Step 2d confirmation.
+
+### 2d. Production repo named in the profile → confirm once
+
+Look for `prototype-runs/.production-target-confirmed` in the workspace. If it exists and lists this
+remote, continue without asking. Otherwise use the host's interactive question picker:
+
+> "Your project profile points the prototype build at **<repo>**, a production repo. Prototype files will
+> be written into `<workspace_relative_root>`. The sandbox playground is the usual target. Build here?"
+
+Options: **Yes, build in <repo>** / **No, stop**. There is no Recommended option; this is the user's call.
+On yes, write the marker file (`{"remote": "<normalized remote>", "confirmed_at": "<ISO-8601>"}`, one
+entry per remote) so later runs skip the question. On no, stop with `USER_DECLINED`.
 
 ## Step 3 — Companion repos
 
@@ -121,7 +138,8 @@ the same way as the playground (remote matches `repo_url`), but never modified.
 | `NO_REPO_URL` | Playground missing and profile has no `repo_url` | Abort with the copy-config instructions. |
 | `CLONE_FAILED` | Network/auth error | Report; suggest `gh auth login` / SSH fix; stop. |
 | `INSTALL_FAILED` | npm install error | Report the error tail; stop. |
-| `USER_DECLINED` | User chose option 2 or 3 | Stop cleanly with the matching instructions. |
+| `PRODUCTION_REMOTE` | Existing folder is `mattermost/mattermost(-webapp)` and the profile has no `repo_url` | Abort; to build there on purpose, set it as `repo_url` in the project profile. |
+| `USER_DECLINED` | User chose option 2 or 3, or said no to the Step 2d prompt | Stop cleanly with the matching instructions. |
 
 ## Related Skills
 
