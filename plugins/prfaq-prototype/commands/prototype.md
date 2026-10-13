@@ -114,7 +114,7 @@ The builder will:
   connector instead.
 - **Don't build into a production `mattermost` repo by default** — the sandbox playground is the build
   target. A production repo is used only when the project profile names it as `repo_url` and the user has
-  said yes to the one-time prompt (Step 0.2).
+  said yes to the prompt on that run (Step 0.2).
 - **Never overwrite an existing prototype** without confirmation — offer reuse/extend or a new slug.
 - **No customer names** in any artifact (the parser scrubs; verify).
 

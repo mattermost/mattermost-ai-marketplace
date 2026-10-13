@@ -92,7 +92,7 @@ depend on external `state-matrix-builder` / `option-presenter` / `dedup` skills.
 - No customer names in any artifact; authored UI copy labeled `[AI DRAFT — COPY]`.
 - Clean product frame (no reviewer annotations in the UI).
 - Walkthrough only after narrowing to one direction; Vercel deploy only on explicit request; builds into a
-  production repo only if your project profile names it and you confirm once (an existing playground's
+  production repo only if your project profile names it and you confirm on each run (an existing playground's
   git remote is checked before building).
 - Sources are read-only and pulled only from the link you give; no tokens or passwords are ever requested.
 - Clones and installs only after you say yes; never pulls, resets, or cleans an existing playground.
