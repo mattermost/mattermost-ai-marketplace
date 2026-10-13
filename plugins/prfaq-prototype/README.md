@@ -14,10 +14,15 @@ of prose. A standalone fast-path — decoupled from any spec/gate machinery — 
 
 ## Prerequisites
 
-- A local **prototype playground** (a React/Vite sandbox with a Compass-style component library). The
-  bundled default profile targets `proto-playground` (`@mattermost/compass-ui`, `src/pages/prototypes/<slug>/`,
-  `SceneSwitcher` scene API). See **Configure your playground** below.
-- Node + npm to build/preview the playground.
+- **Node + npm** (the default playground pins its version in `.nvmrc`) and **git** with access to GitHub.
+- A **prototype playground** inside your project. You don't need to set one up first: if it's missing, the
+  command offers to clone [`mattermost-proto-playground`](https://github.com/mattermost/mattermost-proto-playground)
+  into `prototype-playground/proto-playground` — plus [`compass-design`](https://github.com/mattermost/compass-design)
+  next to it, which the playground needs — and run `npm install`. It asks before cloning. See **Configure
+  your playground** below to use your own.
+- To pull a PRFAQ from a link, the matching **connector** in your Claude session (GitHub, Google Drive,
+  Confluence/Atlassian, Mattermost, …). If one isn't connected, the command tells you and offers to wait
+  while you connect it, or to take an exported file or pasted text instead.
 
 ## Install
 
@@ -29,8 +34,22 @@ of prose. A standalone fast-path — decoupled from any spec/gate machinery — 
 ## Use
 
 ```
-/prfaq-prototype:prototype <path to a PRFAQ .md>
+/prfaq-prototype:prototype <PRFAQ: file path, doc link, or title>
 ```
+
+The PRFAQ can come from anywhere you can link to:
+
+| You pass | What happens |
+|---|---|
+| A file in the project (`.md`, `.docx`, `.pdf`, …) | Used as is (non-markdown is converted to a copy under `PRFAQs/`). |
+| A GitHub, Google Doc, or Confluence link | Pulled read-only through the matching connector and saved to `PRFAQs/<title>.md`. |
+| A Mattermost thread permalink | The whole thread is pulled as context. If it links to the actual PRFAQ, you're asked whether to pull that too. |
+| Any other doc link | Pulled through a matching connector, or fetched if it's public. |
+| A title | Matched against files already in `PRFAQs/`. |
+
+Only the exact link you pass is pulled — the plugin never searches for a PRFAQ, and never writes back to
+the source. Each saved copy records where it came from on its first line, so a re-run reuses it instead of
+re-fetching (and offers a refresh if the source changed).
 
 Optional flags: `--option-count=2|3`, `--target=<profile key>`,
 `--persona-review=prfaq|prototype|both`, `--persona-panel=domain|all|<slugs>`.
@@ -56,7 +75,8 @@ the folder/manifest/scene-API fields). Add a newer playground later by adding a 
 - **Command:** `commands/prototype.md` → `/prfaq-prototype:prototype`
 - **Agents:** `prfaq-analyst` (parse + align), `prototype-builder` (scaffold + compose + validate),
   `persona-critic` (in-character review)
-- **Skills:** `prfaq-parser`, `scene-mapper`, `sandbox-scaffolder`, `sandbox-composer`, plus the bundled
+- **Skills:** `prfaq-source-resolver` and `playground-bootstrap` (pre-flight), `prfaq-parser`,
+  `scene-mapper`, `sandbox-scaffolder`, `sandbox-composer`, plus the bundled
   essentials `clarification-protocol`, `artifact-frontmatter`, `walkthrough-builder`, `feedback-synthesizer`
 - **Config:** `config/prototype-targets.json` (bundled default target profile)
 - **Personas:** `personas/` (FY26 persona catalog + profiles) for the optional persona review
@@ -71,8 +91,11 @@ depend on external `state-matrix-builder` / `option-presenter` / `dedup` skills.
   non-blocking fallback.
 - No customer names in any artifact; authored UI copy labeled `[AI DRAFT — COPY]`.
 - Clean product frame (no reviewer annotations in the UI).
-- Walkthrough only after narrowing to one direction; Vercel deploy only on explicit request; never builds
-  into a production repo.
+- Walkthrough only after narrowing to one direction; Vercel deploy only on explicit request; builds into a
+  production repo only if your project profile names it and you confirm on each run (an existing playground's
+  git remote is checked before building).
+- Sources are read-only and pulled only from the link you give; no tokens or passwords are ever requested.
+- Clones and installs only after you say yes; never pulls, resets, or cleans an existing playground.
 
 ## Personas
 

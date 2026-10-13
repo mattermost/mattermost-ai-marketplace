@@ -23,7 +23,10 @@ Use the **resolved target profile the command injects**. The command already app
 `${CLAUDE_PLUGIN_ROOT}/config/prototype-targets.json`) and any `--target` override — do NOT re-resolve or
 re-read the bundled file yourself. Derive ALL build paths and the target key from that injected profile
 (`workspace_relative_root`, `prototype_dir`, `manifest_file`, `scene_api`, etc.). Do NOT hardcode a
-playground and do NOT build into the production `mattermost` repo. Pointing at a newer playground later is
+playground. Build into a production `mattermost` repo only when the injected profile names it as
+`repo_url`; the command's `playground-bootstrap` pre-flight has already confirmed that choice with the
+user and cloned/verified the playground; if `workspace_relative_root` is missing anyway, stop
+and report it rather than cloning from here. Pointing at a newer playground later is
 a profile change, not an agent change.
 
 ## YOUR TASKS (In Order)
@@ -33,11 +36,11 @@ a profile change, not an agent change.
    STOP and raise a focused clarification (interactive, plain language — see the analyst's SURFACING
    RULES) rather than guessing.
 2. **Reuse check.** Before scaffolding, glob the target's `prototype_dir` for existing prototypes that
-   overlap (e.g. an `action-controls-view-channel` already covering a scene). Prefer to branch/extend
+   overlap (e.g. an `external-call-participants` already covering a scene). Prefer to branch/extend
    over rebuild; note reuse decisions.
 3. **Scaffold.** Invoke `sandbox-scaffolder` with the slug, options, and scenes → orchestrator + scene
    files + manifest entry, per the target profile (one slug; option toggle + `SceneSwitcher` in the
-   center slot; `useRegisterPrototypeScene` for per-scene comments).
+   center slot; the profile's `scene_api.scene_register_hook` for per-scene comments when it isn't `null`).
 4. **Compose on top of the real base surface.** For each (scene × option), invoke `sandbox-composer`.
    First honor the scene's `base_surface`: reuse an existing prototype's assembled shell, else compose the
    real app frame from the target's layout/shell components (`ChannelShell`/`ChannelHeader`/`ChannelsSidebar`,

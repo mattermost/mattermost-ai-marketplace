@@ -130,7 +130,7 @@ Write to `prototype-runs/<slug>/02-scene-plan.md`: readable plan, then a fenced 
       { "id": "blocked-view", "label": "...", "surface": "...", "actor": "...", "purpose": "...",
         "states_needed": ["default", "denied", "..."], "verbatim_copy": ["..."],
         "leverage": "high|medium|low", "leverage_reason": "...", "source_refs": ["..."],
-        "base_surface": { "surface": "channel-view|system-console|dm-gm-composer|...", "resolution": "reuse-prototype|shell-components|screenshot-needed|freeform", "reuse_prototype": "action-controls-view-channel", "shell_components": ["ChannelShell", "ChannelHeader"] } }
+        "base_surface": { "surface": "channel-view|system-console|dm-gm-composer|...", "resolution": "reuse-prototype|shell-components|screenshot-needed|freeform", "reuse_prototype": "external-call-participants", "shell_components": ["ChannelShell", "ChannelHeader"] } }
     ],
     "base_surfaces_needing_screenshot": [ { "surface": "...", "scenes": ["<scene-id>"], "note": "no base layout in the target — a human screenshot would raise fidelity (non-blocking)" } ],
     "option_axes": [
