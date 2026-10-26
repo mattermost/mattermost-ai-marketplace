@@ -61,9 +61,11 @@ You compose one scene, for one design option, into the active target playground.
 
 Use the **resolved target profile the builder/command injects** — do NOT re-read or re-resolve a target
 yourself (it could diverge from the command's `--target`/override choice). Glob the profile's
-`component_source_glob` (proto-playground: `packages/compass-ui/src/components/**/*.tsx`) to get the REAL
-component inventory. Import design-system components from the profile's `component_import_source`
-(proto-playground: `@mattermost/compass-ui`). Prototype-only helpers live in the prototype's local
+`component_source_glob` (a string or a list; proto-playground: the `compass-ui` and `compass-proto` sources in
+the sibling `compass-design` clone) to get the REAL component inventory. Import design-system components
+from the profile's `component_import_source` (proto-playground: `@mattermost/compass-ui` via subpaths for
+primitives, `@mattermost/compass-proto` root exports for shells/composites — the playground's
+`src/pages/prototypes/AGENTS.md` has the current import table). Prototype-only helpers live in the prototype's local
 `components/`; never reimplement a design-system component there. Check `src/hooks/` before duplicating logic.
 
 ### Step 2 — Confirm props before using a component
@@ -78,7 +80,7 @@ library addition — and pick the primitive-composition path by default; never w
 Read the scene's `base_surface` (from `scene-mapper`) and build the feature UI ON TOP of the real app
 surface, in this priority order:
 
-1. **`reuse-prototype`** — open the named reference prototype (e.g. `action-controls-view-channel`) and
+1. **`reuse-prototype`** — open the named reference prototype (e.g. `external-call-participants`) and
    reuse its assembled shell/components (channel app, console frame). Branch from it; don't duplicate.
 2. **`shell-components`** — compose the real app frame from the profile's `base_layouts.<surface>.shell_components`
    (e.g. `ChannelShell` + `ChannelHeader` + `ChannelsSidebar` for a channel view; `AdminConsoleSidebar` +
@@ -128,7 +130,7 @@ The composed scene must type-check. Prefer the minimal set of real components th
   "scene": "<scene id>",
   "option": "<option id>",
   "file": "src/pages/prototypes/<slug>/scenes/<Scene>.tsx",
-  "base_surface_used": { "resolution": "reuse-prototype | shell-components | screenshot-needed | freeform", "from": "action-controls-view-channel | ChannelShell+ChannelHeader | reference/console.png | none" },
+  "base_surface_used": { "resolution": "reuse-prototype | shell-components | screenshot-needed | freeform", "from": "external-call-participants | ChannelShell+ChannelHeader | reference/console.png | none" },
   "components_used": [ { "name": "SectionNotice", "from": "@mattermost/compass-ui", "props_confirmed": true } ],
   "component_gaps": [ { "need": "action-registry row", "resolution": "composed from Table + Switch + Chip" } ],
   "authored_copy": [ { "text": "You can't view this channel on this network.", "surface": "blocked-view", "flag": "[AI DRAFT — COPY]" } ],

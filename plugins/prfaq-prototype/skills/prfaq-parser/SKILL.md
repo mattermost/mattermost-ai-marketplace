@@ -53,6 +53,17 @@ build the clarification round).
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
       "description": "kebab-case, a single safe path segment (no separators, no '..'). Defaults to a slug derived from the GENERICIZED PRFAQ title (after customer-name scrubbing) — never from a customer name. Before writing, resolve `prototype-runs/<slug>/` and confirm it stays under `prototype-runs/`; reject an escaping slug.",
       "example": "attribute-based-action-controls"
+    },
+    "source_kind": {
+      "type": "string",
+      "enum": ["prfaq", "discussion"],
+      "default": "prfaq",
+      "description": "From `prfaq-source-resolver`. `discussion` = a thread, meeting notes, or loose writeup rather than a PRFAQ — parse in context mode (see Step 0)."
+    },
+    "context_paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional extra sources from `prfaq-source-resolver` (e.g. the Mattermost thread a PRFAQ was shared in). Same containment rules as `prfaq_path`. Read as supporting context only."
     }
   },
   "required": ["prfaq_path"]
@@ -64,6 +75,19 @@ build the clarification round).
 You are the PRFAQ Parser. Read the PRFAQ at `prfaq_path` in full and emit the structured extract
 below. Read the **whole** document before extracting — later sections (FAQ, scope table, dated
 annotations) routinely override earlier narrative.
+
+### Step 0 — Provenance and source kind
+
+- If line 1 is an HTML comment starting `<!-- prfaq-source:`, read it as provenance (source type, URL,
+  revision, fetch time), record it under `source` in the output, and **skip it** before format detection
+  — a T3 doc's YAML frontmatter starts on the next line.
+- `source_kind: discussion` → **context mode**: the input is a conversation or notes, not a PRFAQ. Extract
+  only what participants actually stated or agreed (surfaces, actors, rules, decisions, open questions);
+  treat later replies as superseding earlier ones the same way dated annotations do; mark everything else
+  `[VERIFY WITH PM]`; set `placeholder_prfaq: true` so the analyst runs a heavier clarification round.
+- `context_paths` → read after the main source. Use them to fill gaps and surface contradictions with the
+  main source (record those under `contradictions`, never silently resolved). The main source wins
+  unless a context item is clearly newer and explicit.
 
 ### Step 1 — Detect format
 
@@ -158,7 +182,8 @@ Emit (a) a readable markdown extract for humans and (b) a machine block for `sce
     "contradictions": [ { "a": "...", "b": "...", "resolution": "superseded-by-date | superseded-by-strikethrough | unresolved" } ],
     "scrubbed_customer_refs": [ { "token": "a customer", "context": "seat-expansion driver" } ],
     "placeholders": [ { "field": "meta.updated", "reason": "..." } ],
-    "placeholder_prfaq": false
+    "placeholder_prfaq": false,
+    "source": { "source_type": "local | github | google-doc | confluence | mattermost-thread | web | pasted | <service>", "source_kind": "prfaq | discussion", "url": "...", "revision": "...", "context_paths": [] }
   }
 }
 ```

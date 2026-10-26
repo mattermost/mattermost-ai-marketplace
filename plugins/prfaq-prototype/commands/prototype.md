@@ -1,11 +1,13 @@
 ---
 description: Fast-path — turn a PRFAQ into shareable, multi-option interactive prototypes for faster alignment
-argument-hint: "<PRFAQ file path or run slug> [--persona-review=prfaq|prototype|both] [--persona-panel=domain|all|<slugs>] [--option-count=2|3] [--target=<key>]"
+argument-hint: "<PRFAQ file path, doc link (GitHub / Google Doc / Confluence / Mattermost thread / other), or title> [--persona-review=prfaq|prototype|both] [--persona-panel=domain|all|<slugs>] [--option-count=2|3] [--target=<key>]"
 ---
 
-Resolve `$ARGUMENTS` to a source PRFAQ **markdown file**: an exact path, then a fuzzy title match under
-`PRFAQs/`. If nothing resolves, **ask the user for the PRFAQ** — do not go hunting Confluence/Jira/web for
-it. (Stage 1 always needs a real PRFAQ file — a bare `prototype-runs/<slug>` is not a valid input.)
+Resolve `$ARGUMENTS` to a source PRFAQ with the `prfaq-source-resolver` skill (Step 0 below). The input
+can be a workspace file, a title under `PRFAQs/`, or a link to the doc wherever it lives — GitHub, Google
+Docs, Confluence, a Mattermost thread, or any other doc. Only the exact link or file the user gave is
+pulled; nothing is searched for. If nothing resolves, **ask the user for the PRFAQ**. (Stage 1 always needs
+a real source — a bare `prototype-runs/<slug>` is not a valid input.)
 
 This is the standalone `/prfaq-prototype:prototype` fast-path pipeline (installed as a Claude plugin). It
 is **decoupled from any spec-state / gate machinery**: no `spec-state.json`, no gates, no orchestrator
@@ -20,26 +22,43 @@ Resolve the target profile in this order: (1) `prototype-targets.json` in the pr
 `--target=<key>` overrides it. To point at your own playground, copy the bundled config into your project
 and edit `workspace_relative_root` — you never edit files inside the installed plugin.
 
+## Step 0 — Pre-flight (run by you, the top-level assistant)
+
+Both steps can prompt the user, and both need this session's connectors and shell, so run them here — not
+inside the Stage-1/Stage-2 subagents.
+
+1. **Resolve the source** — invoke the `prfaq-source-resolver` skill with `$ARGUMENTS`. It classifies the
+   input (local file / GitHub / Google Doc / Confluence / Mattermost thread / other service / web / title),
+   finds a connected tool that can read it, and — if none can — asks the user to connect one, export the
+   doc, or paste it. It saves a markdown copy with provenance under `PRFAQs/` (reusing an earlier copy of
+   the same link when unchanged) and returns `prfaq_path`, `source_kind` (`prfaq` | `discussion`), and any
+   `context_paths`.
+2. **Make sure the playground exists** — invoke the `playground-bootstrap` skill with the resolved target
+   profile. If the playground is missing and the profile has a `repo_url`, it asks the user before cloning
+   it (plus any `companion_repos`) into the workspace and installing dependencies. If it exists, it checks
+   the git remote is the expected sandbox repo.
+
 ## Preconditions
 
-- The source PRFAQ markdown exists (or the user provides it).
-- **Input path containment (security):** canonicalize the resolved `prfaq_path`; require it to stay inside
-  the project workspace (prefer the `PRFAQs/` root) and reject absolute paths or `..` traversal that
-  escapes the workspace — before Stage 1 parses it.
-- The resolved target playground exists at its `workspace_relative_root`. If missing, abort and tell the
+- A source PRFAQ resolved to a markdown file inside the workspace (Step 0.1).
+- **Input path containment (security):** canonicalize the resolved `prfaq_path` (and every
+  `context_paths` entry); require it to stay inside the project workspace (prefer the `PRFAQs/` root) and
+  reject absolute paths or `..` traversal that escapes the workspace — before Stage 1 parses it.
+- The resolved target playground exists at its `workspace_relative_root` and is the expected repo
+  (Step 0.2). If it's still missing (no `repo_url`, or the user declined the clone), abort and tell the
   user to clone/point at their playground (or copy the bundled config into the project and set the path).
-- **Path containment (security):** canonicalize `workspace_relative_root` and require it to stay **inside
-  the project workspace** — a real sandbox playground, never a production repo. Reject `..` traversal or
-  absolute paths that escape the workspace. Re-verify this containment immediately before Stage 2 scaffolds,
-  composes, or runs `npm run build`, so a misconfigured or malicious value cannot redirect writes/builds
-  into `mattermost` or anywhere outside the sandbox.
+- **Path containment (security):** canonicalize `workspace_relative_root` (and companion repo paths) and
+  require them to stay **inside the project workspace** — a real sandbox playground, never a production
+  repo. Reject `..` traversal or absolute paths that escape the workspace. Re-verify this containment
+  immediately before Stage 2 scaffolds, composes, or runs `npm run build`, so a misconfigured or malicious
+  value cannot redirect writes/builds into `mattermost` or anywhere outside the sandbox.
 
 If preconditions fail, abort with the specific reason.
 
 ## Stage 1 — Analyst (analysis + human checkpoint)
 
-Invoke the `prfaq-analyst` agent. Pass: the PRFAQ path, the slug, the active target profile, and any run
-flags. It parses the PRFAQ (T3-aware), maps scenes + option axes + assumptions, writes the brief, and
+Invoke the `prfaq-analyst` agent. Pass: the PRFAQ path, `source_kind`, any `context_paths`, the slug, the
+active target profile, and any run flags. It parses the PRFAQ (T3-aware), maps scenes + option axes + assumptions, writes the brief, and
 returns a clarification round.
 
 **Surface the clarification round INTERACTIVELY and PAUSE.** Per the analyst's SURFACING RULES and project
@@ -83,9 +102,19 @@ The builder will:
   resolves Recommended options (per-question or `accept recommendations`).
 - **Never deploy to Vercel without explicit user confirmation** — deploying is an external publish. Local
   `npm run dev` is the default. State exactly what will be deployed and where, and wait for a clear yes.
-- **Never write to `internal-product-knowledge` or Confluence** from this pipeline — it emits no
-  knowledge-repo artifacts (by design).
-- **Never build into the production `mattermost` repo** — the sandbox target is the only build surface.
+- **Never write to `internal-product-knowledge`, Confluence, Google Docs, Mattermost, or any other source
+  system** from this pipeline — it emits no knowledge-repo artifacts (by design). Reading the exact doc the
+  user linked, and saving a local copy under `PRFAQs/`, is allowed; posting, commenting, editing, or
+  sharing is not.
+- **Never pull a doc the user didn't point at.** No searching for PRFAQs; links found inside a fetched
+  doc or thread are only followed after the user says yes.
+- **Never clone, install, or modify a playground without the user's yes** (Step 0.2), and never pull,
+  reset, or clean an existing one.
+- **Never ask for tokens, passwords, or cookies** to reach a source — prompt the user to connect the
+  connector instead.
+- **Don't build into a production `mattermost` repo by default** — the sandbox playground is the build
+  target. A production repo is used only when the project profile names it as `repo_url` and the user has
+  said yes to the prompt on that run (Step 0.2).
 - **Never overwrite an existing prototype** without confirmation — offer reuse/extend or a new slug.
 - **No customer names** in any artifact (the parser scrubs; verify).
 

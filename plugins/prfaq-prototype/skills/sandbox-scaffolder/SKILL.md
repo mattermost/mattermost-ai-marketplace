@@ -68,16 +68,16 @@ re-select a target yourself — that could diverge from the command's choice. Fr
 ### Step 2 — Confirm conventions at runtime (they drift)
 
 - Read the profile's `conventions_docs` (for proto-playground: `src/pages/prototypes/AGENTS.md`).
-- Read the `starter_template` and `example_prototype` orchestrators for the canonical shape (for
-  proto-playground, `action-controls-view-channel/ActionControlsViewChannel.tsx` shows the real
-  `usePrototypeChrome` + `SceneSwitcher` + `useRegisterPrototypeScene` pattern).
+- Read the `starter_template` (if the profile has one) and `example_prototype` orchestrators for the
+  canonical shape (for proto-playground, `external-call-participants/ExternalCallParticipants.tsx` shows
+  the real `usePrototypeChrome` + `SceneSwitcher` pattern).
 - Read the `manifest_file` to confirm the current `PrototypeEntry` shape before adding an entry.
 
 ### Step 3 — Collision / reuse check (do not overwrite)
 
 - If `prototype_dir` for this `slug` already exists, STOP and report — offer: reuse/extend, pick a new
   slug, or explicit overwrite. Never silently overwrite.
-- If an existing prototype clearly overlaps (e.g. a neighboring `action-controls-view-channel` covers a
+- If an existing prototype clearly overlaps (e.g. a neighboring `external-call-participants` covers a
   scene), surface it so the builder can branch from it rather than duplicate. Reuse beats rebuild.
 
 ### Step 4 — Create the skeleton (multi-scene, multi-option)
@@ -97,8 +97,8 @@ scenes/                 # one file per (scene) — options handled via an `optio
 **Multi-option mapping (per the profile's `multi_option_convention`):** one slug. The orchestrator holds
 BOTH an `option` toggle (the design directions) and a `scene` switch (the screens). Put the option toggle
 + `SceneSwitcher` in the center slot via `setCenterSlot(...)` inside a `useEffect` (cleanup
-`setCenterSlot(null)`; re-run on change; never `position:fixed`). Call `useRegisterPrototypeScene(scene)`
-so reviewer comments scope per screen. Each scene file receives the active `option` (and state) as props
+`setCenterSlot(null)`; re-run on change; never `position:fixed`). If the profile's `scene_api.scene_register_hook` is set (and resolves), call it
+with the active scene so reviewer comments scope per screen; if it's `null`, skip it — never phantom-import. Each scene file receives the active `option` (and state) as props
 and renders that direction's take. Only split into per-option files when a shared scene file would
 mislead. Mirror the exact import paths from the profile's `scene_api` (verify they resolve).
 
@@ -134,7 +134,7 @@ Top every generated file with an `// [AI DRAFT]` comment. Leave scene bodies as 
 | Error | Cause | Resolution |
 |-------|-------|------------|
 | `TARGET_UNRESOLVED` | No resolved `target_profile` injected, or it is missing required keys | Stop; report that the command/builder must inject a resolved target profile. |
-| `ROOT_MISSING` | `workspace_relative_root` absent on disk | Stop; the playground isn't present — tell the user which target to install/clone. |
+| `ROOT_MISSING` | `workspace_relative_root` absent on disk | Stop. The command's `playground-bootstrap` pre-flight should have offered the clone; tell the user to re-run so it can, or to point the profile at their playground. |
 | `PROTOTYPE_EXISTS` | Slug dir already present | Offer reuse/extend, new slug, or explicit overwrite; never silent overwrite. |
 | `MANIFEST_SHAPE_DRIFT` | Manifest entry fields differ from the profile | Trust the live manifest; update the profile note and match the live shape. |
 
