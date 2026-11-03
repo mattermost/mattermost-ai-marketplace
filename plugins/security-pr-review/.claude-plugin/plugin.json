@@ -1,0 +1,9 @@
+{
+  "name": "security-pr-review",
+  "description": "Two-phase security review of a Mattermost pull request (paranoid reviewer, critical reviewer, then test-driven verification of each Medium+ finding). The same prompts run locally as /security-pr-review:review-pr and in the automated cloud review agents.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Edgar Bellot"
+  },
+  "keywords": ["security", "code-review", "tdd", "mattermost", "pull-request"]
+}
