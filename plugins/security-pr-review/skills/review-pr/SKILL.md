@@ -2,6 +2,7 @@
 name: review-pr
 description: Two-phase security review (paranoid + critical) of a Mattermost PR, in an isolated worktree, with test-driven verification of each Medium+ finding
 argument-hint: <PR number>
+disable-model-invocation: true
 ---
 # Security review for PR $ARGUMENTS
 
@@ -81,7 +82,8 @@ Use the Atlassian MCP for Jira/Confluence links and the Google Docs connector fo
 Invoke the `pr-paranoid-reviewer` subagent. Pass it:
 - The PR number
 - The absolute worktree path `$WT`, with an explicit instruction that **all file reads and all git commands must target that path** (`git -C "$WT"`, absolute `$WT/...` paths for `cat`/`grep`/Read). It must never read files from the main clone, whose `HEAD` may move mid-review, and must never move `HEAD` anywhere.
-- The PR title and full body as the CONTEXTO DE LA PR section
+- The PR title and full body as the PR context
+- The base branch (`baseRefName` from Step 1), to use as `<base_branch>` in its diff commands
 - The LINKED CONTEXT section from Step 1.5, verbatim
 - The COMPLETE list of changed files from the `gh pr view --json files` output in Step 1, verbatim. Instruct the subagent that this is the authoritative coverage scope: every backend (non-test) Go file in this list must be read in full and assigned a status.
 
