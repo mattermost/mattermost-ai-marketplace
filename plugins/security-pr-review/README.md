@@ -16,6 +16,10 @@ The pipeline fetches the files from this repository at the start of every review
 
 It builds the prompt from `cloud/entrypoint.md`: every line that is only `@<relative path>` is replaced by the content of that file (resolved relative to the file that contains it, front matter removed, recursively). It adds nothing else and rewrites nothing. The only parts written specifically for the cloud agent are in `cloud/overlay.md`: the run inputs, running unattended, where the worktree lives, the incremental mode and the structured result format.
 
+## Lightweight review
+
+For pull requests scored as low risk the pipeline assembles `cloud/entrypoint-lightweight.md` instead. It uses the same procedure and the same paranoid and verifier definitions, without the critical reviewer, and `cloud/overlay-lightweight.md` limits the work: one pass over the diff, at most 3 candidates, and only findings proven by a failing test are reported. It runs on cheaper models (Sonnet 5.5 to reason, Haiku 5.5 for the mechanical test work).
+
 ## Improving the prompts
 
 Anyone can propose changes by pull request:
@@ -33,6 +37,8 @@ Anyone can propose changes by pull request:
 skills/review-pr/SKILL.md        # orchestration of the review
 agents/                          # paranoid, critical and TDD verifier subagents
 prompts/                         # shared criteria imported by the agents
-cloud/entrypoint.md              # what the pipeline assembles
+cloud/entrypoint.md              # what the pipeline assembles (full review)
 cloud/overlay.md                 # run inputs and cloud-only behavior
+cloud/entrypoint-lightweight.md  # what the pipeline assembles (lightweight review)
+cloud/overlay-lightweight.md     # what changes in the lightweight review
 ```
