@@ -13,7 +13,7 @@ This run is a LIGHTWEIGHT review of a pull request that the pipeline scored as l
 4. **Step 3 (critical reviewer) is skipped.** The failing test of Step 4 is the filter. Rate the severity of each candidate yourself (medium, high or critical), from the real impact of the behavior that its test shows. A candidate that is only Low is dropped.
 
 5. **Step 4 (test-driven verification) is the only filter.**
-   - Verify the candidates one at a time, as the verifier definition says, with these limits: at most 2 attempts to get a valid red test and a green test, and no DoS compounding tests (a candidate that can only be shown that way is dropped).
+   - Verify the candidates one at a time, as the verifier definition says, with this limit: at most 2 attempts to get a valid red test and a green test. Resource-exhaustion (DoS) candidates are verified like any other, with the in-process concurrent test that the DoS criteria describe; running that test counts as one attempt.
    - A candidate is reported only if the verifier ends with `CONFIRMED_BY_TEST`. Drop every candidate that ends NOT_REPRODUCED, INCONCLUSIVE or TEST_NOT_FEASIBLE: do not report it, with or without a note. This replaces the procedure's reporting of findings that could not be proven. In `notes`, say only how many candidates were dropped for lack of proof.
    - `needs_dynamic` never applies.
 
