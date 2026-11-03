@@ -1,8 +1,7 @@
 ---
 name: review-pr
-description: Revisión de seguridad en dos fases (paranoid + critical) de una PR de Mattermost, en un worktree aislado
+description: Two-phase security review (paranoid + critical) of a Mattermost PR, in an isolated worktree, with test-driven verification of each Medium+ finding
 argument-hint: <PR number>
-model: claude-opus-5
 ---
 # Security review for PR $ARGUMENTS
 
@@ -10,7 +9,7 @@ Execute a full two-phase security review of the Mattermost PR with the given ID.
 
 ## Concurrency rule (read first)
 
-Several `/review-pr` sessions may be running against this same clone at the same time. They share one `.git`, one working tree and one `HEAD`. **Never run `gh pr checkout`, `git checkout`, `git switch`, `git pull` or any other command that moves `HEAD` in the main working tree** — another session may be reading files from it right now, and you would corrupt its review (and it would corrupt yours).
+The checkout your session starts in is on the default branch, and the subagents you launch share one `.git`, one working tree and one `HEAD`. **Never run `gh pr checkout`, `git checkout`, `git switch`, `git pull` or any other command that moves `HEAD` in the main working tree** — something else may be reading files from it right now, and you would corrupt that work (and it would corrupt yours).
 
 This review must run entirely inside a **dedicated git worktree** created in Step 1. Every path handed to a subagent must be an absolute path inside that worktree.
 
@@ -38,10 +37,10 @@ If this fails, the PR number likely doesn't exist in this repository — stop an
 - `state` (OPEN or MERGED)
 - `mergeCommit.oid` (the merge commit SHA, present when state is MERGED)
 
-Now create the isolated worktree. `WT` must live in this session's scratchpad directory so parallel sessions never collide. Always use `--detach`: git refuses two worktrees on the same branch, and a detached HEAD pins the exact tree you want to review.
+Now create the isolated worktree. `WT` is a directory under `/tmp` named after the review, so it never collides with another tree. Always use `--detach`: git refuses two worktrees on the same branch, and a detached HEAD pins the exact tree you want to review.
 
 ```bash
-WT="<this session's scratchpad dir>/pr$ARGUMENTS-review"
+WT="/tmp/pr$ARGUMENTS-review"
 git fetch origin
 ```
 
@@ -88,7 +87,7 @@ Invoke the `pr-paranoid-reviewer` subagent. Pass it:
 
 The subagent will independently run `gh pr diff`. Pass it the resolved `$REPO` value explicitly, and instruct it to use `--repo "$REPO"` (never a hardcoded repository name). `gh` commands do not depend on the working tree, so they are safe from any directory.
 
-When the subagent returns, validate its coverage inventory before continuing: confirm the number of files in its coverage table equals the number of files reported by `gh pr view --json files`, and that every backend non-test Go file has a `revisado-*` status (never "omitido"). If any backend file is missing or unreviewed, send the subagent back (via SendMessage) to complete coverage before proceeding to Step 3. Do not advance with incomplete coverage.
+When the subagent returns, validate its coverage inventory before continuing: confirm the number of files in its coverage table equals the number of files reported by `gh pr view --json files`, and that every backend non-test Go file has a `reviewed-*` status (never "skipped"). If any backend file is missing or unreviewed, send the subagent back (via SendMessage) to complete coverage before proceeding to Step 3. Do not advance with incomplete coverage.
 
 Also sanity-check the paths it cites: if any finding references a path outside `$WT`, the subagent read the wrong tree — send it back to redo those files against `$WT`.
 
@@ -117,27 +116,20 @@ It returns a JSON object. Act on its `verification` value:
 - **NOT_REPRODUCED:** run the same check on the test. If it is valid and still passes, the finding is a false positive: silently discard it, together with its PR comment. If the test is defective, send the subagent back once to fix it; never discard a finding on a test you have not checked.
 - **INCONCLUSIVE:** retry once via SendMessage, telling the subagent what blocked it. If it is still inconclusive, report the finding with a `> ⚠️ Confidence note:` stating that the test could not settle it and why.
 - **TEST_NOT_FEASIBLE:** the finding was verified from the code by the subagent (`code_verification`). If `confidence` is `high`, report it as a true positive. If `not_high`, report it as a potential true positive with a `> ⚠️ Confidence note:` that carries its `doubt` text, in plain and simple language. Do not re-trace the code yourself.
-  - If `needs_dynamic.required` is true, do NOT run anything on the local instance automatically. Ask me whether I want it verified dynamically, telling me what would be checked, as which role, and that the instance would have to be running this PR's code, and wait for my answer before doing anything. If I decline, report it as a potential true positive with the confidence note.
+  - If `needs_dynamic.required` is true, do NOT run anything on a live instance and do not start any server: dynamic verification is not done in this review. Report it as a potential true positive with the confidence note, and include in the note what would have to be checked, as which role, and that the instance would have to be running this PR's code.
 
 Do not proceed to Step 5 until every MEDIUM+ finding has been through this step.
 
 ## Step 5 — Present results
 
-Present only the verified MEDIUM+ findings. Do not include LOW findings, false positives, findings discarded in Step 4, or the critical reviewer's one-line `DESCARTADO` entries: none of them are reviewed, so writing them out is wasted output. Do not add any wrapper text or summary beyond what the critical reviewer produced for the MEDIUM+ findings, the confidence notes from Step 4, and, under each MEDIUM+ finding confirmed by test, a compact evidence block:
+Present only the verified MEDIUM+ findings. Do not include LOW findings, false positives, findings discarded in Step 4, or the critical reviewer's one-line `DISCARDED` entries: none of them are reviewed, so writing them out is wasted output. Do not add any wrapper text or summary beyond what the critical reviewer produced for the MEDIUM+ findings, the confidence notes from Step 4, and, under each MEDIUM+ finding confirmed by test, a compact evidence block:
 
 - Red test: file, test name, runner command, and the relevant failing assertion
 - Green test: file, test name, and that it passes
 - Attacker role used in the test
 
-The evidence block is for me only. The PR comment for GitHub stays exactly as the critical reviewer wrote it and never mentions tests.
+The evidence block is for internal use only. The PR comment for GitHub stays exactly as the critical reviewer wrote it and never mentions tests.
 
-## Step 6 — Clean up the worktree
+## Step 6 — Leave the worktree in place
 
-After the results are presented, offer to remove the worktree so the clone does not accumulate stale trees. Tell the user the path, and ask before removing if they may want to keep digging into the code:
-
-```bash
-git worktree remove --force "$WT"
-git worktree prune
-```
-
-For an OPEN PR, also drop the per-PR ref: `git update-ref -d "refs/pr-review/$ARGUMENTS"`.
+Do not remove the worktree or the per-PR ref: the same session may be asked later to fix a finding, and it needs the tests left in the tree. Never commit, stage or push anything.

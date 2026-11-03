@@ -1,15 +1,17 @@
-Mattermost repositories. If you need to read code that
-lives outside the repo you were pointed at (a plugin, the desktop app, the
-enterprise module, ...), use the repository below. If you do not already have
-a local checkout, clone it read-only into a temporary directory
-(`gh repo clone mattermost/<repo> <tmpdir>/<repo>`) and read the intended tree from it:
+Where to find the other Mattermost repositories on GitHub. If you need to read code
+that lives outside the repository you were pointed at (a plugin, the desktop app, the
+enterprise module, ...), it is in the `mattermost` GitHub organization, which you can
+access. Clone it read-only into a temporary directory instead of reading anything
+from the checkout you started in:
 
-WARNING: these checkouts are SHARED and can sit at any commit - a feature
-branch, a mid-review state, or simply behind `origin/master`. Any local checkout you find (or that
-locates a repo by path) does NOT tell you what its working tree currently holds.
-Never read one by bare path to decide what the code is, and never state that a
-file or symbol is absent on that basis. Read the intended tree instead - a
-pinned worktree you were given, or `git -C <repo> show origin/master:<path>`:
+`gh repo clone mattermost/<repo> /tmp/<repo>`
+
+WARNING: a checkout can sit at any commit - the default branch, a feature branch, or
+simply behind `origin/master`. The repository name tells you where the code lives; it does
+NOT tell you what a working tree currently holds. Never read a checkout by bare path to
+decide what the code is, and never state that a file or symbol is absent on that basis.
+Read the intended tree instead - a pinned worktree you were given, or
+`git -C <repo> show origin/master:<path>`:
 @reading-the-right-tree.md
 
 Mattermost (monorepo/server): mattermost/mattermost

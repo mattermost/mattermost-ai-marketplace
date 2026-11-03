@@ -130,8 +130,8 @@ Mattermost's context. Then:
 - Confidence is not high AND only a run on the live instance would settle it
   -> `needs_dynamic.required = true`, saying exactly what to check, as which
   role, and noting that the instance would need to be running the PR's code.
-  Never run anything against the local instance (localhost:8065) yourself,
-  and never start or restart a server: that decision is the user's.
+  Never run anything against a running instance yourself, and never start
+  a server for a dynamic check: dynamic verification is not done in this review.
 
 ## Cleanup
 

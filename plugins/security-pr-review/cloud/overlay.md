@@ -15,7 +15,7 @@ Carry out the security review described in the PROCEDURE and SUBAGENT DEFINITION
 
 ## Differences from the procedure
 
-1. **No human in the loop.** Never ask a question and never wait for an answer. Where the procedure says "ask me" or to wait for an answer, apply the conservative default stated in item 6.
+1. **No human in the loop.** Never ask a question and never wait for an answer. Where an instruction cannot be followed without asking, take the conservative option and say so in `notes`.
 
 2. **Step 1 (worktree).** Your checkout starts on the default branch, not on the PR. The PR is already identified and its head SHA is fixed by the run inputs, so you do not need `gh pr view` to decide what to review. Create the worktree exactly at the head SHA: `git fetch origin pull/{{PR_NUMBER}}/head`, then `git worktree add --detach /tmp/review-{{REVIEW_ID}} {{HEAD_SHA}}`, and verify `git -C /tmp/review-{{REVIEW_ID}} rev-parse HEAD` prints that SHA. `/tmp/review-{{REVIEW_ID}}` is `$WT`. Everything else in Step 1 and the concurrency rule apply unchanged. Use `gh pr view` only to read the PR title, body and changed files.
 
@@ -25,10 +25,7 @@ Carry out the security review described in the PROCEDURE and SUBAGENT DEFINITION
 
 5. **Incremental mode** (the procedure does not define it; this is an addition). Only when Mode is `incremental`: review only the changes between the base SHA and the head SHA, together with the previous findings, running the same steps on that diff. For each previous finding, check whether its code still has the problem at the new head: if it is gone, list its ID in `resolved_previous`; if it is still present or changed, report it again with `previous_finding_id` set. Do not re-review code that did not change since the base SHA, except what a previous finding depends on.
 
-6. **Cases where the procedure asks the user.**
-   - Step 4, TEST_NOT_FEASIBLE with `needs_dynamic.required` true: do not run anything on a live instance and do not start any server. Treat it as if the user declined: report it as a potential true positive with the confidence note.
-   - Step 6 (clean up the worktree): do not remove the worktree or the refs. The same session may be asked later to fix a finding, and it needs the red tests you left. Never commit, stage or push anything.
-   - The local test instance mentioned in the agents (localhost:8065) does not exist here. Never use it.
+6. **Tests stay in the worktree.** The TDD verifier's cleanup (restoring the worktree after each finding) does not apply: leave the red and green test files you write in `$WT`, uncommitted and unstaged, because the same session may be asked later to fix the finding and needs them. Still return their content as `test_diff` where the verifier prompt asks for it. Never commit, stage or push anything.
 
 7. **Test infrastructure.** Go tests that need a database use the repository's own tooling: start the services with `make start-docker` in the repository root. Go tests in the worktree may need a temporary `go.work` that lists the worktree root and `./public`; remove it when you finish. For webapp tests install dependencies in the worktree (`npm install` in the workspace) if `node_modules` is not already available. If the infrastructure cannot be started, the finding's verification is INCONCLUSIVE with the exact error, as the procedure already says.
 
@@ -36,7 +33,7 @@ Carry out the security review described in the PROCEDURE and SUBAGENT DEFINITION
 
 9. **Files referenced by path.** Where a subagent definition tells you to read a file (for example `../prompts/pr-finding-tdd-verification-prompt.md`), that file's content is included below under its path. Do not look for it on disk.
 
-10. **Where the output goes.** The procedure presents its results to a user (Step 5). Here you present them only through the structured result described below. Do not write the "Comentario para la PR" text (the pipeline composes the single PR comment itself). Do not add any other presentation text.
+10. **Where the output goes.** The procedure presents its results to a user (Step 5). Here you present them only through the structured result described below. Do not write the "PR comment" text (the pipeline composes the single PR comment itself). Do not add any other presentation text.
 
 ## Structured result
 Do the report in two steps. First call the tool `report_review_results` of the SecReview n8n MCP server once, with `review_id` set to {{REVIEW_ID}} and the result object serialized as JSON text. If it answers `accepted: false`, fix the listed errors and call it again. Then end your final message with the same JSON object only (first character `{`, no code fences).
@@ -54,8 +51,8 @@ Shape (schema_version 1; unknown fields are rejected):
     {
       "severity": "medium" or "high" or "critical",
       "verification": "CONFIRMED_BY_TEST" or "INCONCLUSIVE" or "TEST_NOT_FEASIBLE",
-      "description": "<what the finding is: your Explicación, at most 400 characters, links do not count>",
-      "impact": "<your Impacto máximo, at most 200 characters, links do not count>",
+      "description": "<what the finding is: your Explanation, at most 400 characters, links do not count>",
+      "impact": "<your Maximum impact, at most 200 characters, links do not count>",
       "mitigation": "<suggested mitigation, at most 300 characters, links do not count>",
       "code_links": [ { "path": "server/channels/app/x.go", "start_line": 10, "end_line": 14 } ],
       "test_ref": "<repo-relative test file>::<test name> (required when verification is CONFIRMED_BY_TEST)",
