@@ -20,6 +20,10 @@ It builds the prompt from `cloud/entrypoint.md`: every line that is only `@<rela
 
 For pull requests scored as low risk the pipeline assembles `cloud/entrypoint-lightweight.md` instead. It uses the same procedure and the same paranoid and verifier definitions, without the critical reviewer, and `cloud/overlay-lightweight.md` limits the work: one pass over the diff, at most 3 candidates, and only findings proven by a failing test are reported. It runs on cheaper models (Sonnet 5.5 to reason, Haiku 5.5 for the mechanical test work).
 
+## Fix execution
+
+When a person selects findings to be fixed, the pipeline sends `cloud/entrypoint-fix.md` as a follow-up to the same agent session that ran the review. `cloud/overlay-fix.md` tells the agent to implement each fix, prove it with the finding's test, push to the PR branch with neutral commit messages and report through the `report_fix_results` tool.
+
 ## Improving the prompts
 
 Anyone can propose changes by pull request:
@@ -41,4 +45,6 @@ cloud/entrypoint.md              # what the pipeline assembles (full review)
 cloud/overlay.md                 # run inputs and cloud-only behavior
 cloud/entrypoint-lightweight.md  # what the pipeline assembles (lightweight review)
 cloud/overlay-lightweight.md     # what changes in the lightweight review
+cloud/entrypoint-fix.md          # what the pipeline sends to fix selected findings
+cloud/overlay-fix.md             # the fix instructions and the fix result format
 ```
