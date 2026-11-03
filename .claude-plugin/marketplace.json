@@ -228,6 +228,17 @@
       "author": {
         "name": "Abhijit Singh"
       }
+    },
+    {
+      "name": "security-pr-review",
+      "source": "./plugins/security-pr-review",
+      "description": "Prompts of the automated security review of Mattermost PRs (paranoid reviewer, critical reviewer, test-driven verification of each Medium+ finding), run in Cursor cloud agents",
+      "version": "1.0.0",
+      "category": "security",
+      "tags": ["security", "code-review", "tdd", "mattermost", "pull-request"],
+      "author": {
+        "name": "Edgar Bellot"
+      }
     }
   ]
 }

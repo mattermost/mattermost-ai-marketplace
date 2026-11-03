@@ -1,0 +1,15 @@
+{
+  "name": "security-pr-review",
+  "description": "Prompts of the automated security review of Mattermost pull requests (paranoid reviewer, critical reviewer, then test-driven verification of each Medium+ finding), run in Cursor cloud agents.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Edgar Bellot"
+  },
+  "keywords": [
+    "security",
+    "code-review",
+    "tdd",
+    "mattermost",
+    "pull-request"
+  ]
+}
