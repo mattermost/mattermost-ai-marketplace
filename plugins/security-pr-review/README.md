@@ -16,6 +16,18 @@ The pipeline fetches the files from this repository at the start of every review
 
 It builds the prompt from `cloud/entrypoint.md`: every line that is only `@<relative path>` is replaced by the content of that file (resolved relative to the file that contains it, front matter removed, recursively). It adds nothing else and rewrites nothing. The only parts written specifically for the cloud agent are in `cloud/overlay.md`: the run inputs, running unattended, where the worktree lives, the incremental mode and the structured result format.
 
+### Reviewer definitions reach the subagents verbatim
+
+A cloud agent starts each subagent with a task that it writes itself, and a long definition retyped that way gets shortened. So the reviewer definitions are not retyped: before the review starts, `cloud/materialize_definitions.py` downloads them at the same commit, expands the `@` imports the way the pipeline does, and saves each one to disk. The pipeline computes the SHA-256 of every expanded definition and the script refuses any file that differs. Each subagent's task only says to read its file and follow it, plus the inputs of the step.
+
+## Lightweight review
+
+For pull requests scored as low risk the pipeline assembles `cloud/entrypoint-lightweight.md` instead. It uses the same procedure and the same paranoid and verifier definitions, without the critical reviewer, and `cloud/overlay-lightweight.md` limits the work: one pass over the diff, at most 3 candidates, and only findings proven by a failing test are reported. It runs on cheaper models (Sonnet 5.5 to reason, Haiku 5.5 for the mechanical test work).
+
+## Fix execution
+
+When a person selects findings to be fixed, the pipeline sends `cloud/entrypoint-fix.md` as a follow-up to the same agent session that ran the review. `cloud/overlay-fix.md` tells the agent to implement each fix, prove it with the finding's test, push to the PR branch with neutral commit messages and report through the `report_fix_results` tool.
+
 ## Improving the prompts
 
 Anyone can propose changes by pull request:
@@ -33,6 +45,11 @@ Anyone can propose changes by pull request:
 skills/review-pr/SKILL.md        # orchestration of the review
 agents/                          # paranoid, critical and TDD verifier subagents
 prompts/                         # shared criteria imported by the agents
-cloud/entrypoint.md              # what the pipeline assembles
+cloud/entrypoint.md              # what the pipeline assembles (full review)
 cloud/overlay.md                 # run inputs and cloud-only behavior
+cloud/materialize_definitions.py # saves the reviewer definitions to disk and checks their checksums
+cloud/entrypoint-lightweight.md  # what the pipeline assembles (lightweight review)
+cloud/overlay-lightweight.md     # what changes in the lightweight review
+cloud/entrypoint-fix.md          # what the pipeline sends to fix selected findings
+cloud/overlay-fix.md             # the fix instructions and the fix result format
 ```
