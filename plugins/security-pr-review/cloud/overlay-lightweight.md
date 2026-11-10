@@ -21,4 +21,4 @@ This run is a LIGHTWEIGHT review of a pull request that the pipeline scored as l
 
 7. **Result.** Use the structured result of the overlay above, with these specifics: `findings` contains only findings whose `verification` is `CONFIRMED_BY_TEST`, each with its `test_ref`; do not use `confidence_note`. An empty `findings` list is a valid result.
 
-8. **More candidates than the limit.** If you found more than 3 candidates, verify only the 3 strongest and never drop the others silently: in `notes`, say how many candidates were left unverified, and set `risk_assessment.agent_level` to `medium` (or `high` if any unverified candidate looks High or Critical). The pipeline treats a raised `agent_level` as the signal to run a full review of the pull request.
+8. **More candidates than the limit.** If you found more than 3 candidates, verify only the 3 strongest and never drop the others silently: in `notes`, say how many candidates were left unverified, and set `risk_assessment.agent_level` to `medium` (or `high` if any unverified candidate looks High or Critical). The pipeline records `agent_level` for calibration only: it does not start a full review because of it.
